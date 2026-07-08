@@ -227,6 +227,20 @@ public class SingleMicrosoftTestPlatformRunnerCoverageTests
     }
 
     [TestMethod]
+    public void MutantFilePath_ShouldBeUniquePerRunnerInstance()
+    {
+        using var runner = CreateRunner(511);
+        using var otherRunner = CreateRunner(512);
+        using var sameIdRunner = CreateRunner(511);
+
+        // Runner ids restart at 0 in every Stryker process, so the name embeds the process id and
+        // a per-instance nonce to keep concurrent runs from steering each other's test hosts
+        Path.GetFileName(runner.MutantFilePath).ShouldStartWith($"stryker-mutant-{Environment.ProcessId}-");
+        otherRunner.MutantFilePath.ShouldNotBe(runner.MutantFilePath, "different runners should get different mutant-id files");
+        sameIdRunner.MutantFilePath.ShouldNotBe(runner.MutantFilePath, "runner instances sharing an id must not share the mutant-id file");
+    }
+
+    [TestMethod]
     public void ReadCoverageData_ShouldReturnEmpty_WhenFileDoesNotExist()
     {
         using var runner = CreateRunner(500);
