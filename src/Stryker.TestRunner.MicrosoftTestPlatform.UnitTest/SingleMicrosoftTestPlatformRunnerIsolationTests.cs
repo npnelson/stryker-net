@@ -260,8 +260,8 @@ public class SingleMicrosoftTestPlatformRunnerIsolationTests
     /// <summary>
     /// Records the order of server resets and assembly runs, and the mutant id the control file
     /// holds while each run executes (what a real test host would activate), instead of starting
-    /// real test servers. Uses a runner id no other test class shares so the control file cannot
-    /// be touched by concurrent tests.
+    /// real test servers. The control file is read through the runner's own MutantFilePath: its
+    /// name carries a per-instance nonce, so concurrent tests cannot touch each other's file.
     /// </summary>
     private sealed class SessionTrackingRunner : SingleMicrosoftTestPlatformRunner
     {
@@ -281,11 +281,8 @@ public class SingleMicrosoftTestPlatformRunnerIsolationTests
         {
         }
 
-        public int ReadMutantFile()
-        {
-            var path = Path.Combine(Path.GetTempPath(), $"stryker-mutant-{RunnerId}.txt");
-            return BitConverter.ToInt32(File.ReadAllBytes(path), 0);
-        }
+        public int ReadMutantFile() =>
+            BitConverter.ToInt32(File.ReadAllBytes(MutantFilePath), 0);
 
         public override async Task ResetServerAsync()
         {
