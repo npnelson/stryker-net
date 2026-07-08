@@ -30,11 +30,10 @@ public class SingleMicrosoftTestPlatformRunner : IDisposable
     private readonly ILogger _logger;
     private readonly string _mutantFilePath;
     private readonly string _coverageFilePathBase;
-    // One coverage file per test assembly. The injected MutantControl flushes coverage with an
-    // unconditional overwrite on process exit, so with test hosts sharing a single file the last
-    // flush to land replaces all the others: only one assembly's coverage survives, and which one
-    // depends on server stop order and process shutdown timing. Giving every assembly's host its
-    // own file and unioning them at read time makes coverage independent of both.
+    // One coverage file per test assembly. Test hosts sharing a single file used to lose all but
+    // the final coverage flush: only one assembly's coverage survived, and which one depended on
+    // server stop order and process shutdown timing. Giving every assembly's host its own file and
+    // unioning them at read time makes coverage independent of both.
     private readonly ConcurrentDictionary<string, string> _coverageFilePaths = new();
     private readonly IStrykerOptions? _options;
 
@@ -252,9 +251,14 @@ public class SingleMicrosoftTestPlatformRunner : IDisposable
                     continue;
                 }
 
-                var parts = content.Split(';');
-                coveredMutants.UnionWith(ParseMutantIds(parts.Length > 0 ? parts[0] : string.Empty));
-                staticMutants.UnionWith(ParseMutantIds(parts.Length > 1 ? parts[1] : string.Empty));
+                // One line per flush: every instrumented assembly in the host appends its own
+                // "covered;static" line on process exit (see MutantControl.FlushCoverageToFile)
+                foreach (var line in content.Split('\n'))
+                {
+                    var parts = line.Trim().Split(';');
+                    coveredMutants.UnionWith(ParseMutantIds(parts.Length > 0 ? parts[0] : string.Empty));
+                    staticMutants.UnionWith(ParseMutantIds(parts.Length > 1 ? parts[1] : string.Empty));
+                }
             }
             catch (Exception ex)
             {

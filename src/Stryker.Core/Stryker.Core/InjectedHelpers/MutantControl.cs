@@ -214,7 +214,11 @@ namespace Stryker
         /// <summary>
         /// Writes accumulated coverage data to a file for MTP runner IPC.
         /// Called automatically on process exit to capture all coverage from tests run in this process.
-        /// Format: "coveredMutants;staticMutants" (comma-separated IDs)
+        /// Appends one line per flush, formatted "coveredMutants;staticMutants" (comma-separated IDs):
+        /// every instrumented assembly loaded in this process carries its own copy of this class (under
+        /// a distinct namespace) targeting the same file, so an overwrite would keep only whichever
+        /// copy flushed last and silently drop the other assemblies' coverage. The runner unions all
+        /// lines when reading.
         /// </summary>
         public static void FlushCoverageToFile()
         {
@@ -242,7 +246,7 @@ namespace Stryker
                     string covered = string.Join(",", _coveredMutants);
                     string staticMutants = string.Join(",", _coveredStaticMutants);
                     string content = covered + ";" + staticMutants;
-                    System.IO.File.WriteAllText(_cachedCoverageFilePath, content);
+                    System.IO.File.AppendAllText(_cachedCoverageFilePath, content + System.Environment.NewLine);
                     ResetCoverage();
                 }
             }

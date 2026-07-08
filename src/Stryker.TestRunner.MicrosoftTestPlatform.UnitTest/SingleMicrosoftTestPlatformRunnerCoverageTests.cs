@@ -436,6 +436,41 @@ public class SingleMicrosoftTestPlatformRunnerCoverageTests
     }
 
     [TestMethod]
+    public void ReadCoverageData_ShouldUnionFlushLinesWithinOneFile()
+    {
+        // Regression test: a test host can load several instrumented assemblies, each with its own
+        // injected MutantControl appending a "covered;static" line to the same file on process
+        // exit. All lines must be unioned; before flushes were appended, the last one overwrote
+        // the others and their assemblies' coverage was silently lost.
+        using var runner = CreateRunner(513);
+        var coverageFilePath = runner.GetCoverageFilePath("Tests.dll");
+
+        try
+        {
+            File.WriteAllText(coverageFilePath, "1,2;10" + Environment.NewLine + "3,4;" + Environment.NewLine + ";20" + Environment.NewLine);
+
+            var result = runner.ReadCoverageData();
+
+            result.CoveredMutants.Count.ShouldBe(4);
+            result.CoveredMutants.ShouldContain(1);
+            result.CoveredMutants.ShouldContain(2);
+            result.CoveredMutants.ShouldContain(3);
+            result.CoveredMutants.ShouldContain(4);
+
+            result.StaticMutants.Count.ShouldBe(2);
+            result.StaticMutants.ShouldContain(10);
+            result.StaticMutants.ShouldContain(20);
+        }
+        finally
+        {
+            if (File.Exists(coverageFilePath))
+            {
+                File.Delete(coverageFilePath);
+            }
+        }
+    }
+
+    [TestMethod]
     public void ReadCoverageData_ShouldUnionCoverageAcrossAssemblies()
     {
         // Regression test: every test assembly's host writes its own coverage file (the injected

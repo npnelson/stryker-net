@@ -201,7 +201,11 @@ public class ValidateStrykerResults
         // by the MSTest project count as covered (1 survived + 2 timeout), like in the MSTestMTP run.
         // Before coverage files were split per test host, the final flush overwrote the shared
         // file, usually losing exactly those three mutants to NoCoverage.
-        CheckReportMutants(report, total: 670, ignored: 274, survived: 2, killed: 1, timeout: 2, nocoverage: 357);
+        // The MSTest project's TestFibonacci additionally executes code from the second mutated
+        // assembly (Library), whose RecursiveMath mutants are tested here (6 survived + 1 runtime
+        // error): both of the host's MutantControl instances append to the same coverage file, and
+        // before flushes were appended the last one erased the other assembly's coverage.
+        CheckReportMutants(report, total: 670, ignored: 274, survived: 8, killed: 1, timeout: 2, nocoverage: 350, runtimeError: 1);
         CheckReportTestCounts(report, total: 0); // MTP doesn't report tests yet
     }
 
