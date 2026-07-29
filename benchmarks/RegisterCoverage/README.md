@@ -17,6 +17,12 @@ selection, and input construction are outside the measured operation.
 - BenchmarkDotNet: `0.15.8`
 - Target framework: `.NET 10`
 
+The branch includes a
+[preliminary ShortRun comparison](results/20260729T152206Z/comparison.md)
+that validates the two-revision workflow and records both the speedup and the
+allocation tradeoff. Run the full job on a quiet physical machine before
+using numbers in the production pull request.
+
 Use detached worktrees so later branch movement cannot change either input:
 
 ```bash
@@ -33,6 +39,11 @@ Run the full comparison from this benchmark branch:
   ../stryker-register-baseline \
   ../stryker-register-candidate
 ```
+
+The runner rejects uncommitted harness changes and dirty source worktrees so
+the recorded harness, baseline, and candidate SHAs describe the code that was
+actually measured. Existing files under `results/` are excluded from the
+harness cleanliness check.
 
 Set `DOTNET_CMD` when `dotnet` is not on `PATH`:
 
