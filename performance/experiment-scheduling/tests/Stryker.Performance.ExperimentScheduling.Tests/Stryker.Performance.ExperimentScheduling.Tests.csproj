@@ -1,0 +1,16 @@
+<Project Sdk="MSTest.Sdk/4.2.2">
+
+  <PropertyGroup>
+    <TargetFramework>net10.0</TargetFramework>
+    <ImplicitUsings>enable</ImplicitUsings>
+    <Nullable>enable</Nullable>
+    <LangVersion>13</LangVersion>
+    <TreatWarningsAsErrors>true</TreatWarningsAsErrors>
+    <RestorePackagesWithLockFile>true</RestorePackagesWithLockFile>
+  </PropertyGroup>
+
+  <ItemGroup>
+    <ProjectReference Include="../../src/Stryker.Performance.ExperimentScheduling/Stryker.Performance.ExperimentScheduling.csproj" />
+  </ItemGroup>
+
+</Project>

@@ -1,0 +1,4 @@
+<Solution>
+  <Project Path="src/Stryker.Performance.ExperimentScheduling/Stryker.Performance.ExperimentScheduling.csproj" />
+  <Project Path="tests/Stryker.Performance.ExperimentScheduling.Tests/Stryker.Performance.ExperimentScheduling.Tests.csproj" />
+</Solution>
