@@ -1,0 +1,31 @@
+```
+
+BenchmarkDotNet v0.15.8, Linux Ubuntu 24.04.4 LTS (Noble Numbat)
+AMD Ryzen 9 7900X 4.69GHz, 1 CPU, 24 logical and 12 physical cores
+.NET SDK 10.0.110
+  [Host]     : .NET 10.0.10 (10.0.10, 10.0.1026.32716), X64 RyuJIT x86-64-v4
+  Job-JMDAGQ : .NET 10.0.10 (10.0.10, 10.0.1026.32716), X64 RyuJIT x86-64-v4
+
+Toolchain=.NET 10.0
+
+```
+| Type                                      | Method                          | DistinctMutants | Passes | WorkerCount | HitCount | Mean         | Error      | StdDev     | Gen0    | Completed Work Items | Lock Contentions | Gen1   | Allocated |
+|------------------------------------------ |-------------------------------- |---------------- |------- |------------ |--------- |-------------:|-----------:|-----------:|--------:|---------------------:|-----------------:|-------:|----------:|
+| **RegisterCoverageSequentialBenchmarks**      | **CaptureCoverageGeneration**       | **100**             | **1**      | **?**           | **?**        |     **1.348 μs** |  **0.0137 μs** |  **0.0129 μs** |  **0.0744** |                   **NA** |               **NA** |      **-** |    **1256 B** |
+| **RegisterCoverageSequentialBenchmarks**      | **CaptureCoverageGeneration**       | **100**             | **10**     | **?**           | **?**        |     **9.451 μs** |  **0.1441 μs** |  **0.1348 μs** |  **0.0610** |                   **NA** |               **NA** |      **-** |    **1256 B** |
+| **RegisterCoverageStaticPromotionBenchmarks** | **CaptureNormalThenStaticCoverage** | **100**             | **?**      | **?**           | **?**        |     **2.560 μs** |  **0.0344 μs** |  **0.0322 μs** |  **0.1411** |                   **NA** |               **NA** |      **-** |    **2408 B** |
+| **RegisterCoverageSequentialBenchmarks**      | **CaptureCoverageGeneration**       | **1000**            | **1**      | **?**           | **?**        |    **12.563 μs** |  **0.1339 μs** |  **0.1187 μs** |  **0.5035** |                   **NA** |               **NA** |      **-** |    **8496 B** |
+| **RegisterCoverageConcurrentBenchmarks**      | **CaptureCoverageConcurrently**     | **1000**            | **?**      | **1**           | **?**        |   **112.003 μs** |  **0.8883 μs** |  **0.7418 μs** |  **0.4883** |                    **-** |                **-** |      **-** |    **9960 B** |
+| **RegisterCoverageConcurrentBenchmarks**      | **CaptureCoverageConcurrently**     | **1000**            | **?**      | **4**           | **?**        |   **391.178 μs** |  **7.5976 μs** |  **7.1068 μs** |  **0.4883** |               **3.0000** |           **0.8403** |      **-** |   **10554 B** |
+| **RegisterCoverageConcurrentBenchmarks**      | **CaptureCoverageConcurrently**     | **1000**            | **?**      | **8**           | **?**        |   **729.025 μs** |  **9.4916 μs** |  **8.8785 μs** |       **-** |               **7.0000** |           **6.5176** |      **-** |   **11496 B** |
+| **RegisterCoverageSequentialBenchmarks**      | **CaptureCoverageGeneration**       | **1000**            | **10**     | **?**           | **?**        |    **94.372 μs** |  **1.2568 μs** |  **1.1757 μs** |  **0.4883** |                   **NA** |               **NA** |      **-** |    **8496 B** |
+| **RegisterCoverageStaticPromotionBenchmarks** | **CaptureNormalThenStaticCoverage** | **1000**            | **?**      | **?**           | **?**        |    **24.921 μs** |  **0.4569 μs** |  **0.4274 μs** |  **1.0071** |                   **NA** |               **NA** | **0.0305** |   **16888 B** |
+| **RegisterCoverageDuplicateBenchmarks**       | **CaptureRepeatedMutant**           | **?**               | **?**      | **?**           | **1000**     |     **9.036 μs** |  **0.0620 μs** |  **0.0550 μs** |       **-** |                   **NA** |               **NA** |      **-** |     **144 B** |
+| **RegisterCoverageSequentialBenchmarks**      | **CaptureCoverageGeneration**       | **10000**           | **1**      | **?**           | **?**        |   **125.008 μs** |  **0.9930 μs** |  **0.9288 μs** |  **7.8125** |                   **NA** |               **NA** | **1.7090** |  **131472 B** |
+| **RegisterCoverageConcurrentBenchmarks**      | **CaptureCoverageConcurrently**     | **10000**           | **?**      | **1**           | **?**        | **1,124.301 μs** | **19.2740 μs** | **18.0289 μs** |  **7.8125** |                    **-** |                **-** |      **-** |  **132936 B** |
+| **RegisterCoverageConcurrentBenchmarks**      | **CaptureCoverageConcurrently**     | **10000**           | **?**      | **4**           | **?**        | **4,045.983 μs** | **66.4574 μs** | **86.4134 μs** |  **7.8125** |               **3.0000** |           **4.1484** |      **-** |  **133529 B** |
+| **RegisterCoverageConcurrentBenchmarks**      | **CaptureCoverageConcurrently**     | **10000**           | **?**      | **8**           | **?**        | **5,093.984 μs** | **29.0791 μs** | **27.2006 μs** |  **7.8125** |               **7.0000** |          **42.4297** |      **-** |  **134457 B** |
+| **RegisterCoverageSequentialBenchmarks**      | **CaptureCoverageGeneration**       | **10000**           | **10**     | **?**           | **?**        |   **934.511 μs** | **12.3784 μs** | **10.9732 μs** |  **7.8125** |                   **NA** |               **NA** | **0.9766** |  **131472 B** |
+| **RegisterCoverageStaticPromotionBenchmarks** | **CaptureNormalThenStaticCoverage** | **10000**           | **?**      | **?**           | **?**        |   **250.449 μs** |  **2.4361 μs** |  **2.2787 μs** | **15.6250** |                   **NA** |               **NA** | **4.3945** |  **262840 B** |
+| **RegisterCoverageDuplicateBenchmarks**       | **CaptureRepeatedMutant**           | **?**               | **?**      | **?**           | **10000**    |    **91.879 μs** |  **1.7686 μs** |  **2.2368 μs** |       **-** |                   **NA** |               **NA** |      **-** |     **144 B** |
+| **RegisterCoverageDuplicateBenchmarks**       | **CaptureRepeatedMutant**           | **?**               | **?**      | **?**           | **100000**   |   **908.569 μs** | **16.9674 μs** | **15.8713 μs** |       **-** |                   **NA** |               **NA** |      **-** |     **144 B** |
