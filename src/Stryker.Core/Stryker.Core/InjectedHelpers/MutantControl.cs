@@ -10,7 +10,7 @@ namespace Stryker
         private static System.Collections.Generic.List<int> _coveredMutants = new System.Collections.Generic.List<int>();
         private static System.Collections.Generic.List<int> _coveredStaticMutants = new System.Collections.Generic.List<int>();
         private static string envName = string.Empty;
-        private static System.Object _coverageLock = new System.Object();
+        private static readonly System.Object _coverageLock = new System.Object();
         // Initialized to avoid nullable warnings/errors
         private static string _cachedMutantFilePath = string.Empty;
         private static bool _mutantFilePathCached;
@@ -66,6 +66,14 @@ namespace Stryker
         }
 
         public static void ResetCoverage()
+        {
+            lock (_coverageLock)
+            {
+                ResetCoverageNoLock();
+            }
+        }
+
+        private static void ResetCoverageNoLock()
         {
             _coveredMutants = new System.Collections.Generic.List<int>();
             _coveredStaticMutants = new System.Collections.Generic.List<int>();
@@ -206,9 +214,15 @@ namespace Stryker
 
         public static System.Collections.Generic.IList<int>[] GetCoverageData()
         {
-            System.Collections.Generic.IList<int>[] result = new System.Collections.Generic.IList<int>[] { _coveredMutants, _coveredStaticMutants };
-            ResetCoverage();
-            return result;
+            // Take-and-reset must be atomic with respect to RegisterCoverage: a concurrent hit
+            // belongs entirely to either the returned generation or the next one, and the returned
+            // lists are quiescent by the time the caller enumerates them.
+            lock (_coverageLock)
+            {
+                System.Collections.Generic.IList<int>[] result = new System.Collections.Generic.IList<int>[] { _coveredMutants, _coveredStaticMutants };
+                ResetCoverageNoLock();
+                return result;
+            }
         }
 
         /// <summary>
@@ -243,7 +257,7 @@ namespace Stryker
                     string staticMutants = string.Join(",", _coveredStaticMutants);
                     string content = covered + ";" + staticMutants;
                     System.IO.File.WriteAllText(_cachedCoverageFilePath, content);
-                    ResetCoverage();
+                    ResetCoverageNoLock();
                 }
             }
             catch (System.Exception ex)
