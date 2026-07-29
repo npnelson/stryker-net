@@ -193,28 +193,91 @@ public class MutantControlCoverageTests : TestBase
     [TestMethod, Timeout(30000)]
     public void ShouldBlockSnapshotWhileCoverageLockIsHeld()
     {
-        // The snapshot/reset must be serialized with registration through _coverageLock. Holding
-        // that lock and observing that GetCoverageData cannot complete distinguishes the
-        // synchronized implementation from one that snapshots without the lock.
+        // The snapshot/reset must be serialized with registration through _coverageLock. This test
+        // proves the worker REACHED the GetCoverageData invocation and was then observably blocked
+        // on the held lock - merely asserting "did not complete within N ms" would also pass
+        // against an unlocked implementation whenever the worker was not scheduled in time.
         var lockField = _mutantControl.GetField("_coverageLock", BindingFlags.NonPublic | BindingFlags.Static)!;
         var coverageLock = lockField.GetValue(null)!;
 
+        // Strongly typed, warmed delegate: after warming, the only wait inside the in-test call is
+        // the coverage lock, so an observed wait state is attributable to it.
+        var getCoverageData = (Func<IList<int>[]>)_mutantControl.GetMethod("GetCoverageData")!
+            .CreateDelegate(typeof(Func<IList<int>[]>));
+        getCoverageData();
+
         HitMutant(1);
 
-        Monitor.Enter(coverageLock);
-        Task<IList<int>[]> snapshot;
+        IList<int>[]? result = null;
+        Exception? workerError = null;
+        using var reachedInvocation = new ManualResetEventSlim(false);
+        var worker = new Thread(() =>
+        {
+            try
+            {
+                reachedInvocation.Set();
+                result = getCoverageData();
+            }
+            catch (Exception exception)
+            {
+                workerError = exception;
+            }
+        })
+        {
+            // a pathologically stuck worker must never keep the test host alive
+            IsBackground = true
+        };
+
         try
         {
-            snapshot = Task.Run(GetCoverageData);
-            snapshot.Wait(300).ShouldBeFalse("GetCoverageData must not complete while the coverage lock is held");
+            var observedBlocked = false;
+            Monitor.Enter(coverageLock);
+            try
+            {
+                worker.Start();
+                reachedInvocation.Wait(10000).ShouldBeTrue("the worker must reach the GetCoverageData invocation");
+
+                var deadline = Environment.TickCount64 + 10000;
+                while (Environment.TickCount64 < deadline)
+                {
+                    if (!worker.IsAlive || result is not null || workerError is not null)
+                    {
+                        // completed while the lock was held: the implementation ignored the lock
+                        break;
+                    }
+                    if ((worker.ThreadState & System.Threading.ThreadState.WaitSleepJoin) != 0)
+                    {
+                        observedBlocked = true;
+                        break;
+                    }
+                    Thread.Sleep(1);
+                }
+
+                observedBlocked.ShouldBeTrue("GetCoverageData must block on the held coverage lock instead of completing");
+            }
+            finally
+            {
+                Monitor.Exit(coverageLock);
+            }
+
+            worker.Join(10000).ShouldBeTrue("the worker must complete once the coverage lock is released");
+            if (workerError is not null)
+            {
+                System.Runtime.ExceptionServices.ExceptionDispatchInfo.Capture(workerError).Throw();
+            }
+            result.ShouldNotBeNull();
+            result![0].ShouldBe(new[] { 1 });
         }
         finally
         {
-            Monitor.Exit(coverageLock);
+            // drain the worker on assertion-failure paths too: the lock is released by the inner
+            // finally, so a healthy worker finishes promptly and cannot overlap the next test's
+            // initialization; a stuck one is a background thread and cannot block host shutdown
+            if (worker.IsAlive)
+            {
+                worker.Join(2000);
+            }
         }
-
-        snapshot.Wait(10000).ShouldBeTrue("GetCoverageData must complete once the coverage lock is released");
-        snapshot.Result[0].ShouldBe(new[] { 1 });
     }
 
     [TestMethod, Timeout(30000)]
@@ -294,8 +357,16 @@ public class MutantControlCoverageTests : TestBase
             emptySnapshot[0].ShouldBeEmpty();
             emptySnapshot[1].ShouldBeEmpty();
 
+            // both membership indexes must have been reset by the successful flush: normal and
+            // static coverage must each register again
             HitMutant(11);
-            GetCoverageData()[0].ShouldBe(new[] { 11 }, "mutants must register again after a successful flush");
+            using (EnterStaticContext())
+            {
+                HitMutant(12);
+            }
+            var reRegistered = GetCoverageData();
+            reRegistered[0].ShouldBe(new[] { 11, 12 }, "mutants must register again after a successful flush");
+            reRegistered[1].ShouldBe(new[] { 12 }, "static mutants must register again after a successful flush");
         }
         finally
         {
