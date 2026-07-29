@@ -9,6 +9,20 @@ namespace Stryker
     {
         private static System.Collections.Generic.List<int> _coveredMutants = new System.Collections.Generic.List<int>();
         private static System.Collections.Generic.List<int> _coveredStaticMutants = new System.Collections.Generic.List<int>();
+        // Generation-tagged membership index for the two lists above: RegisterCoverage runs at
+        // every mutation point during coverage capture, so a List.Contains guard would cost
+        // O(covered mutants) inside the global lock on every hit. The dictionary maps mutant id to
+        // a generation stamp - the current (always even) generation number when seen normally, or
+        // generation + 1 once also recorded as static - so membership is one hash lookup and
+        // resetting just advances the generation by two, invalidating every stamp at once. The
+        // dictionary persists across generations, so steady-state registration allocates nothing,
+        // and it makes no assumption about id shape (ids may be sparse or offset: MutantIdProvider
+        // is a public, replaceable contract, and in solution mode each assembly's helper copy sees
+        // a range starting at a global offset). The lists remain the returned payload: they
+        // preserve the existing IList<int>[] contract and first-seen ordering, and make
+        // GetCoverageData an O(1) hand-off without copying.
+        private static System.Collections.Generic.Dictionary<int, int> _coverageStamps = new System.Collections.Generic.Dictionary<int, int>();
+        private static int _coverageGeneration = 2;
         private static string envName = string.Empty;
         private static readonly System.Object _coverageLock = new System.Object();
         // Initialized to avoid nullable warnings/errors
@@ -77,6 +91,13 @@ namespace Stryker
         {
             _coveredMutants = new System.Collections.Generic.List<int>();
             _coveredStaticMutants = new System.Collections.Generic.List<int>();
+            _coverageGeneration = _coverageGeneration + 2;
+            if (_coverageGeneration >= int.MaxValue - 1)
+            {
+                // a full generation wrap could alias stale stamps; start the numbering over
+                _coverageStamps = new System.Collections.Generic.Dictionary<int, int>();
+                _coverageGeneration = 2;
+            }
         }
 
         public static void ResetActiveMutant()
@@ -327,15 +348,20 @@ namespace Stryker
 
         private static void RegisterCoverage(int id)
         {
+            bool inStaticContext = MutantContext.InStatic();
             lock (_coverageLock)
             {
-                if (!_coveredMutants.Contains(id))
+                int stamp;
+                if (!_coverageStamps.TryGetValue(id, out stamp) || stamp < _coverageGeneration)
                 {
                     _coveredMutants.Add(id);
+                    stamp = _coverageGeneration;
+                    _coverageStamps[id] = stamp;
                 }
-                if (MutantContext.InStatic() && !_coveredStaticMutants.Contains(id))
+                if (inStaticContext && stamp == _coverageGeneration)
                 {
                     _coveredStaticMutants.Add(id);
+                    _coverageStamps[id] = _coverageGeneration + 1;
                 }
             }
         }
