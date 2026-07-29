@@ -1,0 +1,16 @@
+{
+  "stryker-config": {
+    "test-runner": "MTP",
+    "reporters": [
+      "Json"
+    ],
+    "project": "SchedulerSaturation.TargetProject.csproj",
+    "mutation-level": "Standard",
+    "coverage-analysis": "off",
+    "disable-bail": true,
+    "disable-mix-mutants": true,
+    "mutate": [
+      "**/SaturationWorkload.cs"
+    ]
+  }
+}

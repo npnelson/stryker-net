@@ -1,0 +1,138 @@
+{
+  "schemaVersion": 1,
+  "profileId": "mtp-scheduler-saturation-v1",
+  "comparisonScope": "whole-stack",
+  "purpose": "Characterize Stryker outer mutation-group scheduling with one sequential logical test per framework stack.",
+  "logicalTestCount": 1,
+  "seed": 17,
+  "expectedChecksum": 51377,
+  "declaredAssignmentMutationSites": 320,
+  "expectedReport": {
+    "schemaVersion": "2",
+    "targetSourcePath": "TargetProject/SaturationWorkload.cs",
+    "totalMutants": 321,
+    "statuses": {
+      "Killed": 320,
+      "Ignored": 1
+    },
+    "mutators": {
+      "AddAssignmentExpression to SubtractAssignmentExpression mutation": 320,
+      "Block removal mutation": 1
+    },
+    "blockRemoval": {
+      "id": "0",
+      "description": "",
+      "replacement": "{}",
+      "status": "Ignored",
+      "statusReason": "Removed by block already covered filter",
+      "startLine": 15,
+      "startColumn": 5,
+      "endLine": 339,
+      "endColumn": 6
+    },
+    "assignmentMutations": {
+      "firstId": 1,
+      "lastId": 320,
+      "description": "",
+      "firstLine": 17,
+      "startColumn": 9
+    },
+    "testLocation": {
+      "startLine": 11,
+      "startColumn": 5,
+      "endLine": 15,
+      "endColumn": 6
+    }
+  },
+  "frameworks": {
+    "xunit": {
+      "projectDirectory": "Tests.XUnit",
+      "projectFile": "SchedulerSaturation.Tests.XUnit.csproj",
+      "testName": "SchedulerSaturation.Tests.XUnit.SaturationTests.WorkloadProducesExpectedChecksum",
+      "testIdPattern": "^[0-9a-f]{64}$"
+    },
+    "tunit": {
+      "projectDirectory": "Tests.TUnit",
+      "projectFile": "SchedulerSaturation.Tests.TUnit.csproj",
+      "testName": "SchedulerSaturation.Tests.TUnit.SaturationTests.WorkloadProducesExpectedChecksum",
+      "testIdPattern": "^SchedulerSaturation[.]Tests[.]TUnit[.]SaturationTests[.]1[.]1[.]WorkloadProducesExpectedChecksum[.]1[.]1[.]0$"
+    }
+  },
+  "packageStack": {
+    "targetFramework": "net10.0",
+    "microsoftNetTestSdk": "18.8.1",
+    "microsoftTestingPlatform": "2.3.3",
+    "microsoftTestingPlatformMsBuild": "2.3.3",
+    "xunitV3MtpV2": "3.2.2",
+    "tunit": "1.62.0"
+  },
+  "strykerConfiguration": {
+    "testRunner": "MTP",
+    "mutationLevel": "Standard",
+    "coverageAnalysis": "off",
+    "disableBail": true,
+    "disableMixMutants": true,
+    "reporters": [
+      "Json"
+    ],
+    "mutate": [
+      "**/SaturationWorkload.cs"
+    ]
+  },
+  "controlledEnvironment": {
+    "DOTNET_CLI_TELEMETRY_OPTOUT": "1",
+    "DOTNET_NOLOGO": "1",
+    "DOTNET_SKIP_FIRST_TIME_EXPERIENCE": "1",
+    "TESTINGPLATFORM_TELEMETRY_OPTOUT": "1",
+    "TUNIT_DISABLE_HTML_REPORTER": "true",
+    "TUNIT_DISABLE_JSON_REPORT": "true",
+    "TUNIT_DISABLE_GITHUB_REPORTER": "true"
+  },
+  "fingerprints": {
+    "semanticInputs": [
+      "Directory.Build.props",
+      "TargetProject/SchedulerSaturation.TargetProject.csproj",
+      "TargetProject/SaturationWorkload.cs",
+      "CommonTests/SchedulerSaturation.CommonTests.csproj",
+      "CommonTests/SaturationOracle.cs",
+      "Tests.XUnit/SchedulerSaturation.Tests.XUnit.csproj",
+      "Tests.XUnit/AssemblyInfo.cs",
+      "Tests.XUnit/SaturationTests.cs",
+      "Tests.XUnit/stryker-config.json",
+      "Tests.TUnit/SchedulerSaturation.Tests.TUnit.csproj",
+      "Tests.TUnit/AssemblyInfo.cs",
+      "Tests.TUnit/SaturationTests.cs",
+      "Tests.TUnit/stryker-config.json"
+    ],
+    "fixtureInputs": [
+      "Directory.Build.props",
+      "fixture-manifest.json",
+      "README.md",
+      "run-stryker.ps1",
+      "validate.ps1",
+      "TargetProject/SchedulerSaturation.TargetProject.csproj",
+      "TargetProject/SaturationWorkload.cs",
+      "TargetProject/packages.lock.json",
+      "CommonTests/SchedulerSaturation.CommonTests.csproj",
+      "CommonTests/SaturationOracle.cs",
+      "CommonTests/packages.lock.json",
+      "Tests.XUnit/SchedulerSaturation.Tests.XUnit.csproj",
+      "Tests.XUnit/AssemblyInfo.cs",
+      "Tests.XUnit/SaturationTests.cs",
+      "Tests.XUnit/stryker-config.json",
+      "Tests.XUnit/packages.lock.json",
+      "Tests.TUnit/SchedulerSaturation.Tests.TUnit.csproj",
+      "Tests.TUnit/AssemblyInfo.cs",
+      "Tests.TUnit/SaturationTests.cs",
+      "Tests.TUnit/stryker-config.json",
+      "Tests.TUnit/packages.lock.json"
+    ]
+  },
+  "reporterSidecars": {
+    "htmlExtensions": [
+      ".htm",
+      ".html"
+    ],
+    "jsonNamePattern": "(?i)(report|result)"
+  }
+}
