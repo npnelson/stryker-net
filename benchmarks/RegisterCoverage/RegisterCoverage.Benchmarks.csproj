@@ -1,0 +1,24 @@
+<Project Sdk="Microsoft.NET.Sdk">
+  <PropertyGroup>
+    <OutputType>Exe</OutputType>
+    <TargetFramework>net10.0</TargetFramework>
+    <ImplicitUsings>disable</ImplicitUsings>
+    <Nullable>enable</Nullable>
+    <IsPackable>false</IsPackable>
+    <RestorePackagesWithLockFile>true</RestorePackagesWithLockFile>
+    <StrykerSourceRoot Condition="'$(StrykerSourceRoot)' == '' and '$(STRYKER_SOURCE_ROOT)' != ''">$(STRYKER_SOURCE_ROOT)</StrykerSourceRoot>
+    <StrykerSourceRoot Condition="'$(StrykerSourceRoot)' == ''">$(MSBuildThisFileDirectory)..\..\</StrykerSourceRoot>
+    <StrykerSourceRoot>$([System.IO.Path]::GetFullPath('$(StrykerSourceRoot)'))</StrykerSourceRoot>
+  </PropertyGroup>
+
+  <ItemGroup>
+    <PackageReference Include="BenchmarkDotNet" Version="0.15.8" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <Compile Include="$(StrykerSourceRoot)/src/Stryker.Core/Stryker.Core/InjectedHelpers/MutantControl.cs"
+             Link="StrykerSource/MutantControl.cs" />
+    <Compile Include="$(StrykerSourceRoot)/src/Stryker.Core/Stryker.Core/InjectedHelpers/Coverage/MutantContext.cs"
+             Link="StrykerSource/MutantContext.cs" />
+  </ItemGroup>
+</Project>
