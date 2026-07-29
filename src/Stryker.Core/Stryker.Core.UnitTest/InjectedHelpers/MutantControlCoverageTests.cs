@@ -123,12 +123,10 @@ public class MutantControlCoverageTests : TestBase
         }
         GetCoverageData()[0].ShouldBe(new[] { 1, 2 });
 
-        // GetCoverageData resets the accumulated coverage, so an immediate second snapshot is empty
         var emptySnapshot = GetCoverageData();
         emptySnapshot[0].ShouldBeEmpty();
         emptySnapshot[1].ShouldBeEmpty();
 
-        // and the same mutants must register again, in both the covered and the static lists
         HitMutant(1);
         using (EnterStaticContext())
         {
@@ -197,143 +195,78 @@ public class MutantControlCoverageTests : TestBase
         // proves the worker REACHED the GetCoverageData invocation and was then observably blocked
         // on the held lock - merely asserting "did not complete within N ms" would also pass
         // against an unlocked implementation whenever the worker was not scheduled in time.
-        var lockField = _mutantControl.GetField("_coverageLock", BindingFlags.NonPublic | BindingFlags.Static)!;
-        var coverageLock = lockField.GetValue(null)!;
-
-        // Strongly typed, warmed delegate: after warming, the only wait inside the in-test call is
-        // the coverage lock, so an observed wait state is attributable to it.
-        var getCoverageData = (Func<IList<int>[]>)_mutantControl.GetMethod("GetCoverageData")!
-            .CreateDelegate(typeof(Func<IList<int>[]>));
-        getCoverageData();
+        var coverageLock = GetCoverageLock();
+        var getCoverageData = CreateWarmedSnapshotDelegate();
 
         HitMutant(1);
 
-        IList<int>[]? result = null;
-        Exception? workerError = null;
-        using var reachedInvocation = new ManualResetEventSlim(false);
-        var worker = new Thread(() =>
-        {
-            try
-            {
-                reachedInvocation.Set();
-                result = getCoverageData();
-            }
-            catch (Exception exception)
-            {
-                workerError = exception;
-            }
-        })
-        {
-            // a pathologically stuck worker must never keep the test host alive
-            IsBackground = true
-        };
-
+        var worker = new SnapshotWorker(getCoverageData);
         try
         {
-            var observedBlocked = false;
             Monitor.Enter(coverageLock);
             try
             {
                 worker.Start();
-                reachedInvocation.Wait(10000).ShouldBeTrue("the worker must reach the GetCoverageData invocation");
-
-                var deadline = Environment.TickCount64 + 10000;
-                while (Environment.TickCount64 < deadline)
-                {
-                    if (!worker.IsAlive || result is not null || workerError is not null)
-                    {
-                        // completed while the lock was held: the implementation ignored the lock
-                        break;
-                    }
-                    if ((worker.ThreadState & System.Threading.ThreadState.WaitSleepJoin) != 0)
-                    {
-                        observedBlocked = true;
-                        break;
-                    }
-                    Thread.Sleep(1);
-                }
-
-                observedBlocked.ShouldBeTrue("GetCoverageData must block on the held coverage lock instead of completing");
+                worker.WaitUntilBlockedOrCompleted().ShouldBe(SnapshotWorkerState.Blocked,
+                    "GetCoverageData must block on the held coverage lock instead of completing");
             }
             finally
             {
                 Monitor.Exit(coverageLock);
             }
 
-            worker.Join(10000).ShouldBeTrue("the worker must complete once the coverage lock is released");
-            if (workerError is not null)
-            {
-                System.Runtime.ExceptionServices.ExceptionDispatchInfo.Capture(workerError).Throw();
-            }
-            result.ShouldNotBeNull();
-            result![0].ShouldBe(new[] { 1 });
+            worker.JoinAndGetResult()[0].ShouldBe(new[] { 1 });
         }
         finally
         {
-            // drain the worker on assertion-failure paths too: the lock is released by the inner
-            // finally, so a healthy worker finishes promptly and cannot overlap the next test's
-            // initialization; a stuck one is a background thread and cannot block host shutdown
-            if (worker.IsAlive)
-            {
-                worker.Join(2000);
-            }
+            worker.Drain();
         }
     }
 
     [TestMethod, Timeout(30000)]
-    public void ShouldAssignEveryRegistrationToExactlyOneSnapshotGeneration()
+    public void ShouldIncludeRegistrationInSnapshot_WhenRegistrationLinearizesFirst()
     {
-        // Bounded race: for each chunk the writer signals start, registers its ids from four threads
-        // while the main thread takes one concurrent snapshot, then the next chunk begins. Every id
-        // must appear in exactly one snapshot generation: the union is complete, and no snapshot
-        // contains a duplicate.
-        const int chunks = 20;
-        const int idsPerChunk = 100;
-        using var chunkStarted = new SemaphoreSlim(0);
-        using var snapshotTaken = new SemaphoreSlim(0);
+        // Deterministic generation-ordering proof. The test thread holds the coverage lock, so the
+        // worker's snapshot cannot proceed; a registration made while the lock is held (Monitor is
+        // reentrant) linearizes BEFORE that snapshot. A synchronized implementation therefore
+        // returns [42] and leaves the next generation empty; an implementation that snapshots
+        // without the lock completes its snapshot before the registration and returns [] instead.
+        var coverageLock = GetCoverageLock();
+        var getCoverageData = CreateWarmedSnapshotDelegate();
 
-        var writer = Task.Run(() =>
+        var worker = new SnapshotWorker(getCoverageData);
+        try
         {
-            for (var chunk = 0; chunk < chunks; chunk++)
+            Monitor.Enter(coverageLock);
+            try
             {
-                var firstId = chunk * idsPerChunk;
-                chunkStarted.Release();
-                Parallel.For(0, 4, worker =>
-                {
-                    for (var i = worker; i < idsPerChunk; i += 4)
-                    {
-                        HitMutant(firstId + i);
-                    }
-                });
-                snapshotTaken.Wait();
+                worker.Start();
+                // reach a definitive state either way - blocked (synchronized) or completed
+                // (unsynchronized) - so the content assertions below do the discriminating
+                worker.WaitUntilBlockedOrCompleted();
+                HitMutant(42);
             }
-        });
+            finally
+            {
+                Monitor.Exit(coverageLock);
+            }
 
-        var snapshots = new List<int[]>();
-        for (var chunk = 0; chunk < chunks; chunk++)
-        {
-            chunkStarted.Wait();
-            snapshots.Add(GetCoverageData()[0].ToArray());
-            snapshotTaken.Release();
+            var snapshot = worker.JoinAndGetResult();
+            snapshot[0].ShouldBe(new[] { 42 },
+                "the registration made while holding the coverage lock must linearize before the blocked snapshot");
+            GetCoverageData()[0].ShouldBeEmpty("the registration must not leak into the following generation");
         }
-        writer.GetAwaiter().GetResult();
-        snapshots.Add(GetCoverageData()[0].ToArray());
-
-        foreach (var snapshot in snapshots)
+        finally
         {
-            snapshot.Distinct().Count().ShouldBe(snapshot.Length, "a snapshot must not contain duplicate ids");
+            worker.Drain();
         }
-
-        var union = snapshots.SelectMany(snapshot => snapshot).ToList();
-        union.Count.ShouldBe(chunks * idsPerChunk, "every registration must belong to exactly one snapshot generation");
-        union.Distinct().Count().ShouldBe(chunks * idsPerChunk);
     }
 
     [TestMethod]
     public void ShouldPublishAndResetCoverage_WhenFlushSucceeds()
     {
-        var pathField = _mutantControl.GetField("_cachedCoverageFilePath", BindingFlags.NonPublic | BindingFlags.Static)!;
-        var cachedFlagField = _mutantControl.GetField("_coverageFilePathCached", BindingFlags.NonPublic | BindingFlags.Static)!;
+        var pathField = _mutantControl.GetField("_cachedCoverageFilePath", BindingFlags.NonPublic | BindingFlags.Static);
+        var cachedFlagField = _mutantControl.GetField("_coverageFilePathCached", BindingFlags.NonPublic | BindingFlags.Static);
         var originalPath = pathField.GetValue(null);
         var originalFlag = cachedFlagField.GetValue(null);
         var coverageFile = Path.Combine(Path.GetTempPath(), "stryker-flush-test-" + Guid.NewGuid().ToString("N") + ".txt");
@@ -357,8 +290,6 @@ public class MutantControlCoverageTests : TestBase
             emptySnapshot[0].ShouldBeEmpty();
             emptySnapshot[1].ShouldBeEmpty();
 
-            // both membership indexes must have been reset by the successful flush: normal and
-            // static coverage must each register again
             HitMutant(11);
             using (EnterStaticContext())
             {
@@ -382,28 +313,163 @@ public class MutantControlCoverageTests : TestBase
     [TestMethod]
     public void ShouldRetainCoverage_WhenCoverageFileWriteFails()
     {
-        // The MTP flush resets accumulated coverage only after a successful write; a failing write
-        // must leave the accumulator intact so a later flush can still publish it.
-        var pathField = _mutantControl.GetField("_cachedCoverageFilePath", BindingFlags.NonPublic | BindingFlags.Static)!;
-        var cachedFlagField = _mutantControl.GetField("_coverageFilePathCached", BindingFlags.NonPublic | BindingFlags.Static)!;
+        // The MTP flush resets accumulated coverage only after a successful write; a failed write
+        // must leave the accumulator fully intact - the lists AND their membership indexes in
+        // step. Mutants 10 (normal) and 13 (static) are sentinels that are NOT re-hit after the
+        // failure: they can only appear in the retried output if the failed flush truly retained
+        // state, so a buggy failure path that resets coverage cannot be papered over by the
+        // re-hits. Re-hitting 11 and 12 catches an index-only reset as duplicates.
+        var pathField = _mutantControl.GetField("_cachedCoverageFilePath", BindingFlags.NonPublic | BindingFlags.Static);
+        var cachedFlagField = _mutantControl.GetField("_coverageFilePathCached", BindingFlags.NonPublic | BindingFlags.Static);
         var originalPath = pathField.GetValue(null);
         var originalFlag = cachedFlagField.GetValue(null);
+        var invalidPath = Path.Combine(Path.GetTempPath(), "stryker-nonexistent-dir-" + Guid.NewGuid().ToString("N"), "coverage.txt");
+        var retryPath = Path.Combine(Path.GetTempPath(), "stryker-flush-retry-" + Guid.NewGuid().ToString("N") + ".txt");
 
         try
         {
-            pathField.SetValue(null, Path.Combine(Path.GetTempPath(), "stryker-nonexistent-dir-" + Guid.NewGuid().ToString("N"), "coverage.txt"));
+            pathField.SetValue(null, invalidPath);
             cachedFlagField.SetValue(null, true);
 
+            HitMutant(10);
             HitMutant(11);
-            HitMutant(12);
+            using (EnterStaticContext())
+            {
+                HitMutant(12);
+                HitMutant(13);
+            }
             _mutantControl.GetMethod("FlushCoverageToFile").Invoke(null, null);
 
-            GetCoverageData()[0].ShouldBe(new[] { 11, 12 }, "a failed flush must not clear accumulated coverage");
+            // re-hit only a subset; the sentinels 10 and 13 must survive on their own
+            HitMutant(11);
+            using (EnterStaticContext())
+            {
+                HitMutant(12);
+            }
+
+            pathField.SetValue(null, retryPath);
+            _mutantControl.GetMethod("FlushCoverageToFile").Invoke(null, null);
+
+            File.ReadAllText(retryPath).ShouldBe("10,11,12,13;12,13",
+                "a failed flush must retain coverage - sentinels included - without desynchronizing the lists from their membership indexes");
+
+            var afterRetry = GetCoverageData();
+            afterRetry[0].ShouldBeEmpty("the successful retry must reset the accumulator");
+            afterRetry[1].ShouldBeEmpty();
         }
         finally
         {
             pathField.SetValue(null, originalPath);
             cachedFlagField.SetValue(null, originalFlag);
+            if (File.Exists(retryPath))
+            {
+                File.Delete(retryPath);
+            }
+        }
+    }
+
+    private static object GetCoverageLock() =>
+        _mutantControl.GetField("_coverageLock", BindingFlags.NonPublic | BindingFlags.Static).GetValue(null);
+
+    private static Func<IList<int>[]> CreateWarmedSnapshotDelegate()
+    {
+        // Strongly typed, warmed delegate: after warming, the only wait inside the in-test call is
+        // the coverage lock, so an observed wait state is attributable to it.
+        var getCoverageData = (Func<IList<int>[]>)_mutantControl.GetMethod("GetCoverageData")
+            .CreateDelegate(typeof(Func<IList<int>[]>));
+        getCoverageData();
+        return getCoverageData;
+    }
+
+    private enum SnapshotWorkerState
+    {
+        Blocked,
+        Completed
+    }
+
+    /// <summary>
+    /// Runs GetCoverageData on a dedicated background thread with bounded orchestration: proves the
+    /// worker reached the invocation, then makes a bounded observation of completion versus
+    /// lock-blocking, and guarantees failure-path cleanup. The observation polls ThreadState,
+    /// which Microsoft cautions against using for synchronization; it gates control flow only
+    /// where blocking-detection is the very property under test (the lock-blocking test's Blocked
+    /// assertion, corroborated by content assertions). In the linearization test the observation
+    /// is not load-bearing: lock ownership alone guarantees the ordering on the synchronized
+    /// implementation, and the unsynchronized implementation exits via the completion condition.
+    /// </summary>
+    private sealed class SnapshotWorker
+    {
+        private readonly Thread _thread;
+        private readonly ManualResetEventSlim _reachedInvocation = new(false);
+        private IList<int>[] _result;
+        private Exception _error;
+
+        public SnapshotWorker(Func<IList<int>[]> getCoverageData) =>
+            _thread = new Thread(() =>
+            {
+                try
+                {
+                    _reachedInvocation.Set();
+                    _result = getCoverageData();
+                }
+                catch (Exception exception)
+                {
+                    _error = exception;
+                }
+            })
+            {
+                // a pathologically stuck worker must never keep the test host alive
+                IsBackground = true
+            };
+
+        public void Start()
+        {
+            _thread.Start();
+            _reachedInvocation.Wait(10000).ShouldBeTrue("the worker must reach the GetCoverageData invocation");
+        }
+
+        public SnapshotWorkerState WaitUntilBlockedOrCompleted()
+        {
+            var deadline = Environment.TickCount64 + 10000;
+            while (Environment.TickCount64 < deadline)
+            {
+                if (!_thread.IsAlive || _result is not null || _error is not null)
+                {
+                    return SnapshotWorkerState.Completed;
+                }
+                if ((_thread.ThreadState & System.Threading.ThreadState.WaitSleepJoin) != 0)
+                {
+                    return SnapshotWorkerState.Blocked;
+                }
+                Thread.Sleep(1);
+            }
+
+            Assert.Fail("the worker neither completed nor blocked within the deadline");
+            return SnapshotWorkerState.Completed; // unreachable
+        }
+
+        public IList<int>[] JoinAndGetResult()
+        {
+            _thread.Join(10000).ShouldBeTrue("the worker must complete once the coverage lock is released");
+            if (_error is not null)
+            {
+                System.Runtime.ExceptionServices.ExceptionDispatchInfo.Capture(_error).Throw();
+            }
+            _result.ShouldNotBeNull();
+            return _result;
+        }
+
+        /// <summary>
+        /// Failure-path cleanup: drains the worker so an assertion failure cannot leave it
+        /// overlapping the next test's initialization (the coverage lock is released by then, so a
+        /// healthy worker finishes promptly; a stuck one is a background thread and cannot block
+        /// host shutdown).
+        /// </summary>
+        public void Drain()
+        {
+            var drained = !_thread.IsAlive || _thread.Join(2000);
+            _reachedInvocation.Dispose();
+            drained.ShouldBeTrue("the snapshot worker must drain once the coverage lock is released");
         }
     }
 }
