@@ -99,138 +99,99 @@ public class MutantControlCoverageTests : TestBase
     [TestMethod]
     public void ShouldRegisterEachCoveredMutantOnceInFirstSeenOrder()
     {
-        HitMutant(1);
-        HitMutant(2);
+        HitMutant(10_003);
+        HitMutant(250_019);
         for (var i = 0; i < 1000; i++)
         {
-            HitMutant(1);
+            HitMutant(10_003);
         }
-        HitMutant(3);
+        HitMutant(40_007);
 
         var coverage = GetCoverageData();
 
-        coverage[0].ShouldBe(new[] { 1, 2, 3 });
+        coverage[0].ShouldBe(new[] { 10_003, 250_019, 40_007 });
         coverage[1].ShouldBeEmpty();
     }
 
     [TestMethod]
     public void ShouldRegisterMutantAgainAfterCoverageSnapshotReset()
     {
-        HitMutant(1);
+        HitMutant(101);
         using (EnterStaticContext())
         {
-            HitMutant(2);
+            HitMutant(202);
         }
-        GetCoverageData()[0].ShouldBe(new[] { 1, 2 });
+        var firstSnapshot = GetCoverageData();
 
-        var emptySnapshot = GetCoverageData();
-        emptySnapshot[0].ShouldBeEmpty();
-        emptySnapshot[1].ShouldBeEmpty();
-
-        HitMutant(1);
+        HitMutant(202);
         using (EnterStaticContext())
         {
-            HitMutant(2);
+            HitMutant(101);
         }
-        var coverage = GetCoverageData();
-        coverage[0].ShouldBe(new[] { 1, 2 });
-        coverage[1].ShouldBe(new[] { 2 });
+        var secondSnapshot = GetCoverageData();
+
+        firstSnapshot[0].ShouldBe(new[] { 101, 202 });
+        firstSnapshot[1].ShouldBe(new[] { 202 });
+        secondSnapshot[0].ShouldBe(new[] { 202, 101 });
+        secondSnapshot[1].ShouldBe(new[] { 101 });
     }
 
     [TestMethod]
-    public void ShouldTrackStaticContextMutantsSeparately()
+    public void ShouldTrackStaticContextMutantsOnceInFirstSeenOrder()
     {
+        HitMutant(5);
         using (EnterStaticContext())
         {
+            HitMutant(6);
             HitMutant(5);
+            HitMutant(6);
             HitMutant(5);
         }
-        HitMutant(6);
 
         var coverage = GetCoverageData();
 
         coverage[0].ShouldBe(new[] { 5, 6 });
-        coverage[1].ShouldBe(new[] { 5 });
-    }
-
-    [TestMethod]
-    public void ShouldPromoteMutantToStaticList_WhenFirstSeenOutsideStaticContext()
-    {
-        // A mutant first covered outside any static context, then hit during static
-        // initialization, must appear in the static list as well - and only once in each list.
-        HitMutant(7);
-        using (EnterStaticContext())
-        {
-            HitMutant(7);
-        }
-
-        var coverage = GetCoverageData();
-
-        coverage[0].ShouldBe(new[] { 7 });
-        coverage[1].ShouldBe(new[] { 7 });
+        coverage[1].ShouldBe(new[] { 6, 5 });
     }
 
     [TestMethod]
     public void ShouldRegisterCoverageConsistentlyUnderConcurrency()
     {
         const int distinctMutants = 200;
+        var expectedMutants = Enumerable.Range(1000, distinctMutants).ToArray();
+        var expectedNormalMutants = expectedMutants.Where(id => id % 2 != 0).ToArray();
+        var expectedStaticMutants = expectedMutants.Where(id => id % 2 == 0).ToArray();
+
         Parallel.For(0, 4, _ =>
         {
             for (var i = 0; i < 10_000; i++)
             {
-                HitMutant(i % distinctMutants);
+                HitMutant(expectedNormalMutants[i % expectedNormalMutants.Length]);
+            }
+            using (EnterStaticContext())
+            {
+                for (var i = 0; i < 10_000; i++)
+                {
+                    HitMutant(expectedStaticMutants[i % expectedStaticMutants.Length]);
+                }
             }
         });
 
         var coverage = GetCoverageData();
 
-        coverage[0].Count.ShouldBe(distinctMutants);
-        coverage[0].Distinct().Count().ShouldBe(distinctMutants);
-    }
-
-    [TestMethod, Timeout(30000)]
-    public void ShouldBlockSnapshotWhileCoverageLockIsHeld()
-    {
-        // The snapshot/reset must be serialized with registration through _coverageLock. This test
-        // proves the worker REACHED the GetCoverageData invocation and was then observably blocked
-        // on the held lock - merely asserting "did not complete within N ms" would also pass
-        // against an unlocked implementation whenever the worker was not scheduled in time.
-        var coverageLock = GetCoverageLock();
-        var getCoverageData = CreateWarmedSnapshotDelegate();
-
-        HitMutant(1);
-
-        var worker = new SnapshotWorker(getCoverageData);
-        try
-        {
-            Monitor.Enter(coverageLock);
-            try
-            {
-                worker.Start();
-                worker.WaitUntilBlockedOrCompleted().ShouldBe(SnapshotWorkerState.Blocked,
-                    "GetCoverageData must block on the held coverage lock instead of completing");
-            }
-            finally
-            {
-                Monitor.Exit(coverageLock);
-            }
-
-            worker.JoinAndGetResult()[0].ShouldBe(new[] { 1 });
-        }
-        finally
-        {
-            worker.Drain();
-        }
+        coverage[0].OrderBy(id => id).ToArray().ShouldBe(expectedMutants,
+            "every expected normal id must appear exactly once");
+        coverage[1].OrderBy(id => id).ToArray().ShouldBe(expectedStaticMutants,
+            "only the expected static ids may appear, each exactly once");
     }
 
     [TestMethod, Timeout(30000)]
     public void ShouldIncludeRegistrationInSnapshot_WhenRegistrationLinearizesFirst()
     {
         // Deterministic generation-ordering proof. The test thread holds the coverage lock, so the
-        // worker's snapshot cannot proceed; a registration made while the lock is held (Monitor is
-        // reentrant) linearizes BEFORE that snapshot. A synchronized implementation therefore
-        // returns [42] and leaves the next generation empty; an implementation that snapshots
-        // without the lock completes its snapshot before the registration and returns [] instead.
+        // worker's snapshot cannot proceed; registrations made while the lock is held (Monitor is
+        // reentrant) linearize BEFORE that snapshot. An implementation that snapshots without the
+        // lock completes its snapshot before the registrations and returns empty lists instead.
         var coverageLock = GetCoverageLock();
         var getCoverageData = CreateWarmedSnapshotDelegate();
 
@@ -245,6 +206,10 @@ public class MutantControlCoverageTests : TestBase
                 // (unsynchronized) - so the content assertions below do the discriminating
                 worker.WaitUntilBlockedOrCompleted();
                 HitMutant(42);
+                using (EnterStaticContext())
+                {
+                    HitMutant(43);
+                }
             }
             finally
             {
@@ -252,9 +217,13 @@ public class MutantControlCoverageTests : TestBase
             }
 
             var snapshot = worker.JoinAndGetResult();
-            snapshot[0].ShouldBe(new[] { 42 },
-                "the registration made while holding the coverage lock must linearize before the blocked snapshot");
-            GetCoverageData()[0].ShouldBeEmpty("the registration must not leak into the following generation");
+            snapshot[0].ShouldBe(new[] { 42, 43 },
+                "registrations made while holding the coverage lock must linearize before the blocked snapshot");
+            snapshot[1].ShouldBe(new[] { 43 });
+
+            var followingSnapshot = GetCoverageData();
+            followingSnapshot[0].ShouldBeEmpty("normal coverage must not leak into the following generation");
+            followingSnapshot[1].ShouldBeEmpty("static coverage must not leak into the following generation");
         }
         finally
         {
@@ -381,21 +350,10 @@ public class MutantControlCoverageTests : TestBase
         return getCoverageData;
     }
 
-    private enum SnapshotWorkerState
-    {
-        Blocked,
-        Completed
-    }
-
     /// <summary>
-    /// Runs GetCoverageData on a dedicated background thread with bounded orchestration: proves the
-    /// worker reached the invocation, then makes a bounded observation of completion versus
-    /// lock-blocking, and guarantees failure-path cleanup. The observation polls ThreadState,
-    /// which Microsoft cautions against using for synchronization; it gates control flow only
-    /// where blocking-detection is the very property under test (the lock-blocking test's Blocked
-    /// assertion, corroborated by content assertions). In the linearization test the observation
-    /// is not load-bearing: lock ownership alone guarantees the ordering on the synchronized
-    /// implementation, and the unsynchronized implementation exits via the completion condition.
+    /// Runs GetCoverageData on a dedicated background thread with bounded orchestration. ThreadState
+    /// polling establishes that the worker either completed or is waiting on the held coverage lock
+    /// before registration proceeds; returned snapshot contents remain the regression assertion.
     /// </summary>
     private sealed class SnapshotWorker
     {
@@ -428,24 +386,23 @@ public class MutantControlCoverageTests : TestBase
             _reachedInvocation.Wait(10000).ShouldBeTrue("the worker must reach the GetCoverageData invocation");
         }
 
-        public SnapshotWorkerState WaitUntilBlockedOrCompleted()
+        public void WaitUntilBlockedOrCompleted()
         {
             var deadline = Environment.TickCount64 + 10000;
             while (Environment.TickCount64 < deadline)
             {
-                if (!_thread.IsAlive || _result is not null || _error is not null)
+                if (!_thread.IsAlive)
                 {
-                    return SnapshotWorkerState.Completed;
+                    return;
                 }
                 if ((_thread.ThreadState & System.Threading.ThreadState.WaitSleepJoin) != 0)
                 {
-                    return SnapshotWorkerState.Blocked;
+                    return;
                 }
                 Thread.Sleep(1);
             }
 
             Assert.Fail("the worker neither completed nor blocked within the deadline");
-            return SnapshotWorkerState.Completed; // unreachable
         }
 
         public IList<int>[] JoinAndGetResult()
