@@ -46,6 +46,7 @@ namespace Stryker
         private static bool _epochMmfReady;
         private static bool _epochMmfFailed;
         private static bool _epochPollerStarted;
+        private static bool _epochAdopted;
         // Must match the request value the runner writes via InitializeEpochFile (0), NOT a sentinel
         // distinct from it. The poller thread only starts once MutantControl is first touched, which is
         // the first IsActive() call from mutated code - i.e., only once the first test has already begun
@@ -272,7 +273,26 @@ namespace Stryker
                     string covered = string.Join(",", _coveredMutants);
                     string staticMutants = string.Join(",", _coveredStaticMutants);
                     string content = covered + ";" + staticMutants;
-                    System.IO.File.WriteAllText(_cachedCoverageFilePath, content);
+                    // Append one line per flush instead of overwriting: every mutated assembly's
+                    // injected MutantControl flushes to the same file, and an overwrite would keep
+                    // only the last copy's coverage. The runner unions all lines when reading.
+                    // Appends from another copy's relay thread can collide briefly, so retry.
+                    for (int attempt = 0; ; attempt++)
+                    {
+                        try
+                        {
+                            System.IO.File.AppendAllText(_cachedCoverageFilePath, content + System.Environment.NewLine);
+                            break;
+                        }
+                        catch (System.IO.IOException)
+                        {
+                            if (attempt >= 10)
+                            {
+                                throw;
+                            }
+                            System.Threading.Thread.Sleep(1);
+                        }
+                    }
                     ResetCoverage();
                 }
             }
@@ -357,6 +377,26 @@ namespace Stryker
                         System.IO.MemoryMappedFiles.MemoryMappedViewAccessor accessor =
                             (System.IO.MemoryMappedFiles.MemoryMappedViewAccessor)_epochAccessor;
                         int requestedEpoch = accessor.ReadInt32(0);
+                        if (!_epochAdopted)
+                        {
+                            _epochAdopted = true;
+                            int ackedEpoch = accessor.ReadInt32(4);
+                            if (requestedEpoch == ackedEpoch)
+                            {
+                                // First observation and the request is already answered: this
+                                // poller started mid-session (its assembly's code first ran during
+                                // a later test) or against a fully-acked leftover file. The runner
+                                // is not waiting on this value, and flushing now would publish the
+                                // running test's coverage into an epoch that has already been read
+                                // - and reset it away from the epoch that needs it. Adopt silently.
+                                _lastHandledEpoch = requestedEpoch;
+                                continue;
+                            }
+                            // Unanswered request: the runner is waiting on this poller (it started
+                            // late, after the first request was written - the case the 0-start of
+                            // _lastHandledEpoch exists for). Fall through and handle it normally.
+                        }
+
                         if (requestedEpoch != _lastHandledEpoch)
                         {
                             // The previous test (or nothing, on the very first iteration) has finished;

@@ -310,11 +310,18 @@ public class SingleMicrosoftTestPlatformRunner : IDisposable
                 return (Array.Empty<int>(), Array.Empty<int>());
             }
 
-            var parts = content.Split(';');
-            var coveredMutants = ParseMutantIds(parts.Length > 0 ? parts[0] : string.Empty);
-            var staticMutants = ParseMutantIds(parts.Length > 1 ? parts[1] : string.Empty);
+            // One line per flush (each mutated assembly's MutantControl appends its own line);
+            // union them all so no assembly's coverage is lost.
+            var covered = new HashSet<int>();
+            var statics = new HashSet<int>();
+            foreach (var line in content.Split('\n'))
+            {
+                var parts = line.Split(';');
+                covered.UnionWith(ParseMutantIds(parts.Length > 0 ? parts[0] : string.Empty));
+                statics.UnionWith(ParseMutantIds(parts.Length > 1 ? parts[1] : string.Empty));
+            }
 
-            return (coveredMutants, staticMutants);
+            return (covered.ToList(), statics.ToList());
         }
         catch (Exception ex)
         {
@@ -362,17 +369,14 @@ public class SingleMicrosoftTestPlatformRunner : IDisposable
     }
 
     /// <summary>
-    /// Creates the 8-byte coverage epoch relay file (see <see cref="MutantControl"/>'s epoch poller) for
-    /// an assembly if it doesn't already exist, initialized to request=0/ack=0 to match the poller's
-    /// starting state. Idempotent so it is safe to call before every per-test run.
+    /// Creates or resets the 8-byte coverage epoch relay file (see <see cref="MutantControl"/>'s epoch
+    /// poller) for an assembly, initialized to request=0/ack=0 to match the poller's starting state.
+    /// Always rewrites the file: a leftover file with a non-zero request would make a freshly started
+    /// poller (whose last handled epoch is 0) flush and reset mid-test, discarding real coverage. It is
+    /// only called while no test host for the assembly is running, so the rewrite cannot race a poller.
     /// </summary>
-    private void InitializeEpochFile(string epochFilePath)
+    internal void InitializeEpochFile(string epochFilePath)
     {
-        if (File.Exists(epochFilePath))
-        {
-            return;
-        }
-
         try
         {
             using var stream = new FileStream(epochFilePath, FileMode.OpenOrCreate, FileAccess.ReadWrite, FileShare.ReadWrite);
@@ -424,6 +428,35 @@ public class SingleMicrosoftTestPlatformRunner : IDisposable
         catch
         {
             return false;
+        }
+    }
+
+    /// <summary>
+    /// Waits until the per-test coverage file has stopped changing for a short settle window, so
+    /// flush lines appended by MutantControl copies that ack'd later than the first one are included
+    /// in the read. Bounded: gives up after one second and lets the caller read what has arrived.
+    /// </summary>
+    private static async Task WaitForCoverageFileQuiescenceAsync(string coverageFilePath)
+    {
+        var settle = TimeSpan.FromMilliseconds(25);
+        var deadline = DateTime.UtcNow + TimeSpan.FromSeconds(1);
+        var lastLength = -1L;
+        var stableSince = DateTime.UtcNow;
+
+        while (DateTime.UtcNow < deadline)
+        {
+            var length = File.Exists(coverageFilePath) ? new FileInfo(coverageFilePath).Length : -1L;
+            if (length != lastLength)
+            {
+                lastLength = length;
+                stableSince = DateTime.UtcNow;
+            }
+            else if (length >= 0 && DateTime.UtcNow - stableSince >= settle)
+            {
+                return;
+            }
+
+            await Task.Delay(1).ConfigureAwait(false);
         }
     }
 
@@ -495,6 +528,9 @@ public class SingleMicrosoftTestPlatformRunner : IDisposable
                     _perTestEpochCounters[assembly] = epoch;
                 }
 
+                // The flush appends, so clear the previous test's lines before requesting this
+                // test's flush; what remains after the ack is this test's coverage only.
+                DeleteFileIfExists(coverageFilePath);
                 WriteEpochRequest(epochFilePath, epoch);
 
                 var acked = await WaitForEpochAckAsync(epochFilePath, epoch, TimeSpan.FromSeconds(10)).ConfigureAwait(false);
@@ -506,6 +542,12 @@ public class SingleMicrosoftTestPlatformRunner : IDisposable
                     return CoverageRunResult.Create(testId, CoverageConfidence.Dubious,
                         Array.Empty<int>(), Array.Empty<int>(), Array.Empty<int>());
                 }
+
+                // The ack is a single int shared by every MutantControl in the host (one per mutated
+                // assembly), so the first ack only proves one of them flushed. The pollers run on a
+                // 1ms cadence, so wait for the coverage file to go quiet before reading to give the
+                // remaining copies' appends time to land.
+                await WaitForCoverageFileQuiescenceAsync(coverageFilePath).ConfigureAwait(false);
 
                 var (covered, staticMutants) = ReadCoverageDataFrom(coverageFilePath);
                 return CoverageRunResult.Create(testId, CoverageConfidence.Normal, covered, staticMutants, Array.Empty<int>());
@@ -550,8 +592,11 @@ public class SingleMicrosoftTestPlatformRunner : IDisposable
         try
         {
             // Discard any server left over from a previous isolated test (or another mode) so this
-            // test starts in a fresh process rather than one that already ran other code.
+            // test starts in a fresh process rather than one that already ran other code, and clear
+            // the coverage file so a failed flush can never attribute a previous test's coverage
+            // (the ProcessExit flush appends) to this one.
             await DiscardServerAsync(assembly).ConfigureAwait(false);
+            DeleteFileIfExists(coverageFilePath);
 
             var server = await GetOrCreateServerAsync(assembly).ConfigureAwait(false);
             var (_, timedOut) = await server.RunTestsAsync(new[] { test }, CalculateSingleTestTimeout(test)).ConfigureAwait(false);

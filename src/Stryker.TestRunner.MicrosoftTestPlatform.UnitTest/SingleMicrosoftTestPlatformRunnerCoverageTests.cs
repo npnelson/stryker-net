@@ -618,4 +618,72 @@ public class SingleMicrosoftTestPlatformRunnerCoverageTests
         runner.SetPerTestCoverageMode(false);
         ((bool)modeField.GetValue(runner)!).ShouldBeFalse();
     }
+
+    [TestMethod]
+    public void ReadCoverageData_ShouldUnionMultipleFlushLines()
+    {
+        using var runner = CreateRunner(710);
+        var coverageFilePath = runner.GetCoverageFilePath("union-test-assembly.dll");
+
+        try
+        {
+            // Every mutated assembly's injected MutantControl flushes one line to the shared
+            // coverage file; a host with two mutated assemblies produces one line per copy
+            File.WriteAllText(coverageFilePath, "1,2;\n3;10\n");
+
+            var (covered, statics) = runner.ReadCoverageData();
+
+            covered.ShouldBe(new[] { 1, 2, 3 }, ignoreOrder: true,
+                "coverage must be the union of every flushed line, not a single line");
+            statics.ShouldBe(new[] { 10 },
+                "static ids must union across lines too");
+        }
+        finally
+        {
+            File.Delete(coverageFilePath);
+        }
+    }
+
+    [TestMethod]
+    public void InitializeEpochFile_ShouldResetAnExistingFile()
+    {
+        using var runner = CreateRunner(711);
+        var epochFilePath = Path.Combine(Path.GetTempPath(), $"stryker-epoch-init-test-{Environment.ProcessId}.txt");
+
+        try
+        {
+            // A crashed session leaves the epoch file behind with a non-zero request; a freshly
+            // started poller begins at epoch 0 and treats any other value as a flush request
+            WriteEpochPair(epochFilePath, request: 5, ack: 5);
+
+            runner.InitializeEpochFile(epochFilePath);
+
+            var (request, ack) = ReadEpochPair(epochFilePath);
+            request.ShouldBe(0, "a new session must start from request=0 so the poller stays idle until the first real request");
+            ack.ShouldBe(0);
+        }
+        finally
+        {
+            File.Delete(epochFilePath);
+        }
+
+        static void WriteEpochPair(string path, int request, int ack)
+        {
+            using var stream = new FileStream(path, FileMode.Create, FileAccess.ReadWrite, FileShare.ReadWrite);
+            stream.SetLength(8);
+            using var mmf = System.IO.MemoryMappedFiles.MemoryMappedFile.CreateFromFile(stream, null, 8, System.IO.MemoryMappedFiles.MemoryMappedFileAccess.ReadWrite, HandleInheritability.None, leaveOpen: true);
+            using var accessor = mmf.CreateViewAccessor(0, 8, System.IO.MemoryMappedFiles.MemoryMappedFileAccess.ReadWrite);
+            accessor.Write(0, request);
+            accessor.Write(4, ack);
+            accessor.Flush();
+        }
+
+        static (int Request, int Ack) ReadEpochPair(string path)
+        {
+            using var stream = new FileStream(path, FileMode.Open, FileAccess.Read, FileShare.ReadWrite);
+            using var mmf = System.IO.MemoryMappedFiles.MemoryMappedFile.CreateFromFile(stream, null, 8, System.IO.MemoryMappedFiles.MemoryMappedFileAccess.Read, HandleInheritability.None, leaveOpen: true);
+            using var accessor = mmf.CreateViewAccessor(0, 8, System.IO.MemoryMappedFiles.MemoryMappedFileAccess.Read);
+            return (accessor.ReadInt32(0), accessor.ReadInt32(4));
+        }
+    }
 }
