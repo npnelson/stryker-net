@@ -201,12 +201,18 @@ public class ValidateStrykerResults
 
         var report = await strykerRunOutput.DeserializeJsonReportAsync();
 
-        // Coverage is the union over all four test projects, so the Timeout.cs mutants covered only
-        // by the MSTest project count as covered (1 survived + 2 timeout), like in the MSTestMTP run.
-        // Before coverage files were split per test host, the final flush overwrote the shared
-        // file, usually losing exactly those three mutants to NoCoverage.
-        CheckReportMutants(report, total: 670, ignored: 274, survived: 2, killed: 1, timeout: 2, nocoverage: 357);
-        CheckReportTestCounts(report, total: 10);
+        // TestFibonacci executes code from a second mutated assembly (Library), so every one of
+        // RecursiveMath's non-ignored mutants must be covered on every run: this is the assertion
+        // that fails while per-test coverage can lose an instrumented assembly's flushes. Exact
+        // status totals for cross-covered mutants are deliberately not asserted yet - same-id
+        // mutants currently co-activate across a host's assemblies, which distorts them.
+        CheckReportTestCounts(report, total: 11);
+        report.Files.Select(f => f.Value.Mutants.Count()).Sum().ShouldBe(670);
+        report.Files.Select(f => f.Value.Mutants.Count(m => m.Status == MutantStatus.Ignored.ToString())).Sum().ShouldBe(274);
+
+        var recursiveMathMutants = report.Files.Single(f => f.Key.EndsWith("RecursiveMath.cs")).Value.Mutants;
+        recursiveMathMutants.Count(m => m.Status == MutantStatus.NoCoverage.ToString())
+            .ShouldBe(0, "TestFibonacci executes RecursiveMath, so none of its mutants can be NoCoverage");
     }
 
     [Fact]

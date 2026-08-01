@@ -34,4 +34,14 @@ public class SampleTests
         // which the MTP runner reports as a RuntimeError mutant.
         Assert.AreEqual(6, sut.SumTo(3));
     }
+
+    [TestMethod]
+    public void TestFibonacci()
+    {
+        // In solution mode this test executes code from a second mutated assembly (Library), so the
+        // test host carries two injected MutantControl instances sharing one coverage file pair
+        var sut = new ExampleClassLibrary.RecursiveMath();
+
+        Assert.AreEqual(0, sut.Fibonacci(3));
+    }
 }
