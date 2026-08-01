@@ -246,9 +246,14 @@ public class SingleMicrosoftTestPlatformRunner : IDisposable
                     continue;
                 }
 
-                var parts = content.Split(';');
-                coveredMutants.UnionWith(ParseMutantIds(parts.Length > 0 ? parts[0] : string.Empty));
-                staticMutants.UnionWith(ParseMutantIds(parts.Length > 1 ? parts[1] : string.Empty));
+                // One line per flush: every mutated assembly's injected MutantControl appends its
+                // own line, so union them all to keep every assembly's coverage.
+                foreach (var line in content.Split('\n'))
+                {
+                    var parts = line.Split(';');
+                    coveredMutants.UnionWith(ParseMutantIds(parts.Length > 0 ? parts[0] : string.Empty));
+                    staticMutants.UnionWith(ParseMutantIds(parts.Length > 1 ? parts[1] : string.Empty));
+                }
             }
             catch (Exception ex)
             {
