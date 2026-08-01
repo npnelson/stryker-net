@@ -4,6 +4,7 @@ using System.IO;
 using System.IO.Pipes;
 using System.Linq;
 using System.Reflection;
+using System.Threading;
 using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.CSharp;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
@@ -147,6 +148,105 @@ public class InjectedHelperTests : TestBase
                 File.Delete(coverageFilePath);
             }
         }
+    }
+
+    [TestMethod]
+    public void MutantControl_ShouldKeepAMidSessionCopysCoverage_ForTheNextEpoch()
+    {
+        // Per-test capture keeps the test host alive and relays "publish your coverage" through an
+        // 8-byte epoch file (request int, ack int). A copy whose assembly first executes mid-session
+        // wakes to an epoch that is already acknowledged; whatever the relay does at that moment, the
+        // coverage the copy registered must still reach the next epoch's read - it belongs to the test
+        // that is running right now.
+        var suffix = $"injected-helper-epoch-test-{Environment.ProcessId}";
+        var coverageFileName = $"stryker-coverage-{suffix}.txt";
+        var coverageFilePath = Path.Combine(Path.GetTempPath(), coverageFileName);
+        var epochFileName = $"stryker-epoch-{suffix}.txt";
+        var epochFilePath = Path.Combine(Path.GetTempPath(), epochFileName);
+        File.WriteAllBytes(epochFilePath, new byte[8]); // request=0 / ack=0, as the runner initializes it
+        Environment.SetEnvironmentVariable("STRYKER_COVERAGE_FILE", coverageFileName);
+        Environment.SetEnvironmentVariable("STRYKER_COVERAGE_EPOCH_FILE", epochFileName);
+
+        try
+        {
+            var copyA = CompileMutantControlCopy("EpochAssemblyA");
+            copyA.IsActive(1001); // assembly A runs during test 1; its epoch poller starts
+
+            WriteEpochRequest(epochFilePath, 1);
+            WaitUntil(() => ReadEpochAck(epochFilePath) == 1, "epoch 1 was never acknowledged");
+            WaitUntil(() => CoverageFileContains(coverageFilePath, "1001"), "copy A's flush for epoch 1 never arrived");
+
+            var copyB = CompileMutantControlCopy("EpochAssemblyB");
+            copyB.IsActive(2001); // assembly B first executes mid-session: epoch 1 is already acknowledged
+
+            // Give B's poller (1ms cadence) ample time for its first observation. If the relay handles
+            // the already-acknowledged epoch by flushing, that flush becomes visible here; if it stays
+            // silent, the grace period simply elapses. Either way the schedule is fixed before epoch 2.
+            var graceDeadline = DateTime.UtcNow + TimeSpan.FromMilliseconds(500);
+            while (DateTime.UtcNow < graceDeadline && !CoverageFileContains(coverageFilePath, "2001"))
+            {
+                Thread.Sleep(5);
+            }
+
+            // The runner clears the per-test file before each request so surviving lines belong to one test
+            File.Delete(coverageFilePath);
+            WriteEpochRequest(epochFilePath, 2);
+            WaitUntil(() => ReadEpochAck(epochFilePath) == 2, "epoch 2 was never acknowledged");
+            // The ack does not say which copy answered, so allow B's own append time to land
+            var settleDeadline = DateTime.UtcNow + TimeSpan.FromMilliseconds(500);
+            while (DateTime.UtcNow < settleDeadline && !CoverageFileContains(coverageFilePath, "2001"))
+            {
+                Thread.Sleep(5);
+            }
+
+            CoverageFileContains(coverageFilePath, "2001").ShouldBeTrue(
+                "a copy whose assembly first runs mid-session must keep its coverage for the next epoch's read");
+        }
+        finally
+        {
+            Environment.SetEnvironmentVariable("STRYKER_COVERAGE_FILE", null);
+            Environment.SetEnvironmentVariable("STRYKER_COVERAGE_EPOCH_FILE", null);
+            if (File.Exists(coverageFilePath))
+            {
+                File.Delete(coverageFilePath);
+            }
+            if (File.Exists(epochFilePath))
+            {
+                File.Delete(epochFilePath);
+            }
+        }
+    }
+
+    private static void WaitUntil(Func<bool> condition, string timeoutMessage)
+    {
+        var deadline = DateTime.UtcNow + TimeSpan.FromSeconds(5);
+        while (DateTime.UtcNow < deadline)
+        {
+            if (condition())
+            {
+                return;
+            }
+            Thread.Sleep(5);
+        }
+        condition().ShouldBeTrue(timeoutMessage);
+    }
+
+    private static bool CoverageFileContains(string coverageFilePath, string mutantId)
+        => File.Exists(coverageFilePath) && File.ReadAllText(coverageFilePath).Contains(mutantId);
+
+    private static void WriteEpochRequest(string epochFilePath, int epoch)
+    {
+        using var stream = new FileStream(epochFilePath, FileMode.Open, FileAccess.ReadWrite, FileShare.ReadWrite);
+        stream.Write(BitConverter.GetBytes(epoch), 0, 4);
+    }
+
+    private static int ReadEpochAck(string epochFilePath)
+    {
+        using var stream = new FileStream(epochFilePath, FileMode.Open, FileAccess.Read, FileShare.ReadWrite);
+        stream.Seek(4, SeekOrigin.Begin);
+        var buffer = new byte[4];
+        stream.ReadExactly(buffer, 0, 4);
+        return BitConverter.ToInt32(buffer, 0);
     }
 
     private sealed record MutantControlCopy(MethodInfo IsActiveMethod, MethodInfo FlushMethod)
