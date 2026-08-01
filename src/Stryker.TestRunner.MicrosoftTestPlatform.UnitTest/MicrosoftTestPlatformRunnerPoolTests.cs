@@ -405,6 +405,75 @@ public class MicrosoftTestPlatformRunnerPoolTests : TestBase
         // Assert
         pool.ShouldNotBeNull();
     }
+
+    [TestMethod]
+    public void CaptureCoverage_ShouldOnlyCaptureTestsOfTheGivenProject()
+    {
+        // In solution mode CaptureCoverage runs once per mutated project. Each call must capture that
+        // project's tests: re-running every assembly on each pass repeats work and, because the per-test
+        // relay files are keyed per (runner, assembly) and survive between passes, later passes meet
+        // epoch state a previous pass already consumed.
+        var options = new Mock<IStrykerOptions>();
+        options.Setup(x => x.Concurrency).Returns(1);
+        options.Setup(x => x.OptimizationMode).Returns(OptimizationModes.CoverageBasedTest);
+
+        var testsByAssembly = new Dictionary<string, List<TestNode>>();
+        var testDescriptions = new Dictionary<string, MtpTestDescription>();
+        var testSet = new TestSet();
+
+        var testInA = new TestNode("test-a", "TestA", "test", "discovered");
+        var testInB = new TestNode("test-b", "TestB", "test", "discovered");
+        testsByAssembly["projectA.dll"] = new List<TestNode> { testInA };
+        testsByAssembly["projectB.dll"] = new List<TestNode> { testInB };
+
+        var descA = new MtpTestDescription(testInA);
+        var descB = new MtpTestDescription(testInB);
+        testDescriptions["test-a"] = descA;
+        testDescriptions["test-b"] = descB;
+        testSet.RegisterTest(descA.Description);
+        testSet.RegisterTest(descB.Description);
+
+        var capturedAssemblies = new System.Collections.Concurrent.ConcurrentBag<string>();
+
+        var runnerFactory = new Mock<ISingleRunnerFactory>();
+        runnerFactory.Setup(x => x.CreateRunner(
+                It.IsAny<int>(),
+                It.IsAny<Dictionary<string, List<TestNode>>>(),
+                It.IsAny<Dictionary<string, MtpTestDescription>>(),
+                It.IsAny<TestSet>(),
+                It.IsAny<object>(),
+                It.IsAny<ILogger>(),
+                It.IsAny<IStrykerOptions>()))
+            .Returns<int, Dictionary<string, List<TestNode>>, Dictionary<string, MtpTestDescription>, TestSet, object, ILogger, IStrykerOptions>(
+                (id, tba, td, ts, dl, logger, opts) =>
+                {
+                    if (tba.Count == 0)
+                    {
+                        foreach (var kvp in testsByAssembly) tba[kvp.Key] = kvp.Value;
+                        foreach (var kvp in testDescriptions) td[kvp.Key] = kvp.Value;
+                    }
+                    return new TestableRunner(id, tba, td, ts, dl,
+                        () => { },
+                        coverageHandler: (assembly, test, testId) =>
+                        {
+                            capturedAssemblies.Add(assembly);
+                            return Task.FromResult<ICoverageRunResult>(
+                                CoverageRunResult.Create(testId, CoverageConfidence.Normal,
+                                    Array.Empty<int>(), Array.Empty<int>(), Array.Empty<int>()));
+                        });
+                });
+
+        // The capture is asked for one project's coverage.
+        var projectA = new Mock<IProjectAndTests>();
+        projectA.Setup(x => x.GetTestAssemblies()).Returns(new[] { "projectA.dll" });
+
+        using var pool = new MicrosoftTestPlatformRunnerPool(options.Object, NullLogger.Instance, runnerFactory.Object);
+
+        // Act
+        _ = pool.CaptureCoverage(projectA.Object).ToList();
+
+        // Assert
+        capturedAssemblies.ShouldAllBe(assembly => assembly == "projectA.dll",
+            $"capture for projectA also ran: {string.Join(", ", capturedAssemblies.Distinct())}");
+    }
 }
-
-

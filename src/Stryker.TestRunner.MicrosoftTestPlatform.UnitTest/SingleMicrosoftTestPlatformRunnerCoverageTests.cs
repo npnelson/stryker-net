@@ -1,3 +1,4 @@
+using System.Reflection;
 using Microsoft.Extensions.Logging.Abstractions;
 using Shouldly;
 using Stryker.Abstractions.Testing;
@@ -618,4 +619,105 @@ public class SingleMicrosoftTestPlatformRunnerCoverageTests
         runner.SetPerTestCoverageMode(false);
         ((bool)modeField.GetValue(runner)!).ShouldBeFalse();
     }
+
+    [TestMethod]
+    public void PerTestArtifactNames_ShouldBeUniquePerProcessAndInstance()
+    {
+        // #3696 established that these temp artifacts must be identifiable per process and per runner
+        // instance, so concurrent Stryker runs cannot steer each other and crash leftovers stay
+        // attributable. The per-test artifacts added later do not follow it: they carry the runner id,
+        // the assembly name and a string hash whose value is randomized per process.
+        using var runner = CreateRunner(720);
+        var coveragePath = InvokePrivate(runner, "GetPerTestCoverageFilePath", "some-assembly.dll");
+        var epochPath = InvokePrivate(runner, "GetPerTestEpochFilePath", "some-assembly.dll");
+
+        foreach (var path in new[] { coveragePath, epochPath })
+        {
+            var name = Path.GetFileName(path);
+            name.ShouldContain(Environment.ProcessId.ToString(),
+                customMessage: $"'{name}' must identify the owning process, as the aggregate coverage name does");
+        }
+    }
+
+    [TestMethod]
+    public void CoverageEnvironmentVariables_ShouldCarryFullPaths()
+    {
+        // The variables carry a bare file name that each injected copy recombines with its own
+        // Path.GetTempPath(), evaluated whenever that copy happens to initialize. Passing the resolved
+        // path removes the assumption that every copy resolves the same temp root as the runner.
+        using var runner = CreateRunner(721);
+        runner.SetCoverageMode(true);
+
+        var envVars = (Dictionary<string, string?>)typeof(SingleMicrosoftTestPlatformRunner)
+            .GetMethod("BuildEnvironmentVariables", BindingFlags.NonPublic | BindingFlags.Instance)!
+            .Invoke(runner, new object[] { "some-assembly.dll" })!;
+
+        Path.IsPathRooted(envVars["STRYKER_COVERAGE_FILE"]).ShouldBeTrue(
+            $"STRYKER_COVERAGE_FILE was '{envVars["STRYKER_COVERAGE_FILE"]}'; a resolved path cannot be split across temp roots");
+    }
+
+    [TestMethod]
+    public void Dispose_ShouldDeletePerTestArtifacts_AfterPerTestModeIsDisabled()
+    {
+        // The pool always disables per-test mode in its finally block, and disabling clears the very
+        // inventory Dispose iterates to delete these files - so in a real run the cleanup loop has
+        // nothing left to do and every epoch/coverage file survives the process.
+        using var runner = CreateRunner(722);
+        var assembly = "cleanup-assembly.dll";
+        var coveragePath = InvokePrivate(runner, "GetPerTestCoverageFilePath", assembly);
+        var epochPath = InvokePrivate(runner, "GetPerTestEpochFilePath", assembly);
+
+        runner.SetPerTestCoverageMode(true);
+        var inventory = (HashSet<string>)typeof(SingleMicrosoftTestPlatformRunner)
+            .GetField("_initializedPerTestFiles", BindingFlags.NonPublic | BindingFlags.Instance)!
+            .GetValue(runner)!;
+        inventory.Add(assembly); // what a per-test capture records when it initializes the files
+        File.WriteAllText(coveragePath, ";");
+        File.WriteAllBytes(epochPath, new byte[8]);
+
+        try
+        {
+            runner.SetPerTestCoverageMode(false);
+            runner.Dispose();
+
+            File.Exists(epochPath).ShouldBeFalse("the epoch file must not outlive the runner that created it");
+            File.Exists(coveragePath).ShouldBeFalse("the per-test coverage file must not outlive the runner that created it");
+        }
+        finally
+        {
+            if (File.Exists(coveragePath)) { File.Delete(coveragePath); }
+            if (File.Exists(epochPath)) { File.Delete(epochPath); }
+        }
+    }
+
+    [TestMethod]
+    public void ReadCoverageData_ShouldDistinguishAMissingProducerFromOneThatCoveredNothing()
+    {
+        // A host that was killed, crashed or never wrote produces no file; a host that ran and covered
+        // nothing produces an empty set. Both currently read as "no mutants covered", so lost coverage
+        // is indistinguishable from real absence of coverage and is reported at full confidence.
+        using var runner = CreateRunner(723);
+        var coverageFilePath = runner.GetCoverageFilePath("evidence-assembly.dll");
+        if (File.Exists(coverageFilePath)) { File.Delete(coverageFilePath); }
+
+        var (missingProducer, _) = runner.ReadCoverageData();
+
+        try
+        {
+            File.WriteAllText(coverageFilePath, ";");
+            var (coveredNothing, _) = runner.ReadCoverageData();
+
+            missingProducer.ShouldNotBe(coveredNothing,
+                "a producer that never reported must not be indistinguishable from one that reported nothing");
+        }
+        finally
+        {
+            if (File.Exists(coverageFilePath)) { File.Delete(coverageFilePath); }
+        }
+    }
+
+    private static string InvokePrivate(SingleMicrosoftTestPlatformRunner runner, string method, string argument) =>
+        (string)typeof(SingleMicrosoftTestPlatformRunner)
+            .GetMethod(method, BindingFlags.NonPublic | BindingFlags.Instance)!
+            .Invoke(runner, new object[] { argument })!;
 }

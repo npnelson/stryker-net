@@ -234,6 +234,56 @@ public class InjectedHelperTests : TestBase
     private static bool CoverageFileContains(string coverageFilePath, string mutantId)
         => File.Exists(coverageFilePath) && File.ReadAllText(coverageFilePath).Contains(mutantId);
 
+    [TestMethod]
+    public void MutantControl_ShouldNotAcknowledgeAnEpoch_WhenTheCoverageFlushFailed()
+    {
+        // The runner treats ack == requested epoch as "the coverage file now holds this test's data" and
+        // reads it. So the ack has to mean the flush landed: if a write fails, the file still holds the
+        // PREVIOUS test's content, and acknowledging anyway credits this test with that content.
+        var suffix = $"injected-helper-failed-flush-{Environment.ProcessId}";
+        var coverageFileName = $"stryker-coverage-{suffix}.txt";
+        var coverageFilePath = Path.Combine(Path.GetTempPath(), coverageFileName);
+        var epochFileName = $"stryker-epoch-{suffix}.txt";
+        var epochFilePath = Path.Combine(Path.GetTempPath(), epochFileName);
+
+        // A directory at the coverage path makes every write fail, standing in for the real-world causes
+        // (a lock held by a scanner, a read-only or full temp volume).
+        Directory.CreateDirectory(coverageFilePath);
+        File.WriteAllBytes(epochFilePath, new byte[8]);
+        Environment.SetEnvironmentVariable("STRYKER_COVERAGE_FILE", coverageFileName);
+        Environment.SetEnvironmentVariable("STRYKER_COVERAGE_EPOCH_FILE", epochFileName);
+
+        try
+        {
+            var copy = CompileMutantControlCopy("FailedFlushAssembly");
+            copy.IsActive(1001);
+
+            WriteEpochRequest(epochFilePath, 1);
+            // Give the poller (1ms cadence) ample time to observe the request and attempt its flush.
+            var deadline = DateTime.UtcNow + TimeSpan.FromSeconds(2);
+            while (DateTime.UtcNow < deadline && ReadEpochAck(epochFilePath) != 1)
+            {
+                Thread.Sleep(5);
+            }
+
+            ReadEpochAck(epochFilePath).ShouldNotBe(1,
+                "the epoch must not be acknowledged when the coverage flush failed - the runner reads the file on this signal");
+        }
+        finally
+        {
+            Environment.SetEnvironmentVariable("STRYKER_COVERAGE_FILE", null);
+            Environment.SetEnvironmentVariable("STRYKER_COVERAGE_EPOCH_FILE", null);
+            if (Directory.Exists(coverageFilePath))
+            {
+                Directory.Delete(coverageFilePath, true);
+            }
+            if (File.Exists(epochFilePath))
+            {
+                File.Delete(epochFilePath);
+            }
+        }
+    }
+
     private static void WriteEpochRequest(string epochFilePath, int epoch)
     {
         using var stream = new FileStream(epochFilePath, FileMode.Open, FileAccess.ReadWrite, FileShare.ReadWrite);
