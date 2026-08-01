@@ -122,7 +122,7 @@ public class ValidateStrykerResults
         var report = await strykerRunOutput.DeserializeJsonReportAsync();
 
         CheckReportMutants(report, total: 667, ignored: 272, survived: 3, killed: 4, timeout: 2, nocoverage: 350, runtimeError: 2);
-        CheckReportTestCounts(report, total: 4);
+        CheckReportTestCounts(report, total: 5);
     }
 
     [Fact]
@@ -205,8 +205,11 @@ public class ValidateStrykerResults
         // by the MSTest project count as covered (1 survived + 2 timeout), like in the MSTestMTP run.
         // Before coverage files were split per test host, the final flush overwrote the shared
         // file, usually losing exactly those three mutants to NoCoverage.
-        CheckReportMutants(report, total: 670, ignored: 274, survived: 2, killed: 1, timeout: 2, nocoverage: 357);
-        CheckReportTestCounts(report, total: 10);
+        // TestFibonacci puts a second mutated assembly (Library) in the MSTest host: its seven
+        // covered mutants (6 survived + 1 runtime error) only stay covered if every MutantControl
+        // copy's flush survives in the host's shared coverage file.
+        CheckReportMutants(report, total: 670, ignored: 274, survived: 8, killed: 1, timeout: 2, nocoverage: 350, runtimeError: 1);
+        CheckReportTestCounts(report, total: 11);
     }
 
     [Fact]

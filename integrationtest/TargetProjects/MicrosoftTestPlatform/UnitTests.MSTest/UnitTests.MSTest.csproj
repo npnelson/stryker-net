@@ -12,6 +12,7 @@
   </PropertyGroup>
 
   <ItemGroup>
+    <ProjectReference Include="..\..\NetCore\Library\Library.csproj" />
     <ProjectReference Include="..\..\NetCore\TargetProject\TargetProject.csproj" />
   </ItemGroup>
 
