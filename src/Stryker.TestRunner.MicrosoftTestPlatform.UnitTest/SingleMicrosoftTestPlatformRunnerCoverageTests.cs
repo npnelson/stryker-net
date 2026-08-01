@@ -618,4 +618,29 @@ public class SingleMicrosoftTestPlatformRunnerCoverageTests
         runner.SetPerTestCoverageMode(false);
         ((bool)modeField.GetValue(runner)!).ShouldBeFalse();
     }
+
+    [TestMethod]
+    public void ReadCoverageData_ShouldUnionMultipleFlushLines()
+    {
+        using var runner = CreateRunner(710);
+        var coverageFilePath = runner.GetCoverageFilePath("union-test-assembly.dll");
+
+        try
+        {
+            // Every mutated assembly's injected MutantControl flushes one line to the shared
+            // coverage file; a host with two mutated assemblies produces one line per copy
+            File.WriteAllText(coverageFilePath, "1,2;\n3;10\n");
+
+            var (covered, statics) = runner.ReadCoverageData();
+
+            covered.ShouldBe(new[] { 1, 2, 3 }, ignoreOrder: true,
+                "coverage must be the union of every flushed line, not a single line");
+            statics.ShouldBe(new[] { 10 },
+                "static ids must union across lines too");
+        }
+        finally
+        {
+            File.Delete(coverageFilePath);
+        }
+    }
 }

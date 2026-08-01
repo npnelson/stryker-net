@@ -310,11 +310,18 @@ public class SingleMicrosoftTestPlatformRunner : IDisposable
                 return (Array.Empty<int>(), Array.Empty<int>());
             }
 
-            var parts = content.Split(';');
-            var coveredMutants = ParseMutantIds(parts.Length > 0 ? parts[0] : string.Empty);
-            var staticMutants = ParseMutantIds(parts.Length > 1 ? parts[1] : string.Empty);
+            // One line per flush (each mutated assembly's MutantControl appends its own line);
+            // union them all so no assembly's coverage is lost.
+            var covered = new HashSet<int>();
+            var statics = new HashSet<int>();
+            foreach (var line in content.Split('\n'))
+            {
+                var parts = line.Split(';');
+                covered.UnionWith(ParseMutantIds(parts.Length > 0 ? parts[0] : string.Empty));
+                statics.UnionWith(ParseMutantIds(parts.Length > 1 ? parts[1] : string.Empty));
+            }
 
-            return (coveredMutants, staticMutants);
+            return (covered.ToList(), statics.ToList());
         }
         catch (Exception ex)
         {
@@ -495,6 +502,9 @@ public class SingleMicrosoftTestPlatformRunner : IDisposable
                     _perTestEpochCounters[assembly] = epoch;
                 }
 
+                // The flush appends, so clear the previous test's lines before requesting this
+                // test's flush; what remains after the ack is this test's coverage only.
+                DeleteFileIfExists(coverageFilePath);
                 WriteEpochRequest(epochFilePath, epoch);
 
                 var acked = await WaitForEpochAckAsync(epochFilePath, epoch, TimeSpan.FromSeconds(10)).ConfigureAwait(false);
@@ -550,8 +560,11 @@ public class SingleMicrosoftTestPlatformRunner : IDisposable
         try
         {
             // Discard any server left over from a previous isolated test (or another mode) so this
-            // test starts in a fresh process rather than one that already ran other code.
+            // test starts in a fresh process rather than one that already ran other code, and clear
+            // the coverage file so a failed flush can never attribute a previous test's coverage
+            // (the ProcessExit flush appends) to this one.
             await DiscardServerAsync(assembly).ConfigureAwait(false);
+            DeleteFileIfExists(coverageFilePath);
 
             var server = await GetOrCreateServerAsync(assembly).ConfigureAwait(false);
             var (_, timedOut) = await server.RunTestsAsync(new[] { test }, CalculateSingleTestTimeout(test)).ConfigureAwait(false);

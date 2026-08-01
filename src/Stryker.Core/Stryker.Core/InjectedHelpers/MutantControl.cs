@@ -272,7 +272,26 @@ namespace Stryker
                     string covered = string.Join(",", _coveredMutants);
                     string staticMutants = string.Join(",", _coveredStaticMutants);
                     string content = covered + ";" + staticMutants;
-                    System.IO.File.WriteAllText(_cachedCoverageFilePath, content);
+                    // Append one line per flush instead of overwriting: every mutated assembly's
+                    // injected MutantControl flushes to the same file, and an overwrite would keep
+                    // only the last copy's coverage. The runner unions all lines when reading.
+                    // Appends from another copy's relay thread can collide briefly, so retry.
+                    for (int attempt = 0; ; attempt++)
+                    {
+                        try
+                        {
+                            System.IO.File.AppendAllText(_cachedCoverageFilePath, content + System.Environment.NewLine);
+                            break;
+                        }
+                        catch (System.IO.IOException)
+                        {
+                            if (attempt >= 10)
+                            {
+                                throw;
+                            }
+                            System.Threading.Thread.Sleep(1);
+                        }
+                    }
                     ResetCoverage();
                 }
             }
