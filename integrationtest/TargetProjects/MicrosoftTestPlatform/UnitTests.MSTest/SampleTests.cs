@@ -34,4 +34,15 @@ public class SampleTests
         // which the MTP runner reports as a RuntimeError mutant.
         Assert.AreEqual(6, sut.SumTo(3));
     }
+
+    [TestMethod]
+    public void TestFibonacci()
+    {
+        // Runs mid-suite by design: this is the first test to execute code from a second
+        // mutated assembly (Library), so its injected MutantControl copy initializes while
+        // the per-test epoch relay is already mid-session
+        var sut = new ExampleClassLibrary.RecursiveMath();
+
+        Assert.AreEqual(0, sut.Fibonacci(3));
+    }
 }
