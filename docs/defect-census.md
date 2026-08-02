@@ -96,7 +96,7 @@ of interpretation:
 
 | base | coverage analysis **off** | coverage analysis **on** (the default) |
 |---|---|---|
-| master `ee06d3a1` | 7 tested, **all killed** — score **100.00 %** | **7 × NoCoverage**, 0 tested — score **0.00 %** |
+| master `ee06d3a1` | 7 tested — 6 killed, 1 runtime error — score **100.00 %**, `# no cov` **0** | 0 tested — score **0.00 %**, `# no cov` **7** |
 | `fbf2ed61` ([#3752](https://github.com/stryker-mutator/stryker-net/pull/3752)) | identical | identical |
 
 Two identical runs on master and three on `fbf2ed61`, all the same: this is deterministic, not flaky. Seven

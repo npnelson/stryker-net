@@ -16,7 +16,7 @@ by name from that test:
 
 | the same command, on master | verdicts |
 |---|---|
-| coverage analysis **off** — ground truth | 7 tested, **all killed** — mutation score **100.00 %** |
+| coverage analysis **off** — ground truth | 7 tested — 6 killed, 1 runtime error — mutation score **100.00 %** |
 | coverage analysis **on** — the default | **7 × NoCoverage** ("Not covered by any test"), 0 tested — score **0.00 %** |
 
 Not a measurement dispute, and not a matter of interpretation: the added test asserts on what
