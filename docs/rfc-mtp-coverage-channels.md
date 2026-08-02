@@ -29,7 +29,8 @@ No Stryker run needed to see it — a test-only branch
 ([diff](https://github.com/stryker-mutator/stryker-net/compare/fbf2ed618ff81c4643feb7a2d7263ba1127cb3e4...npnelson:stryker-net:test/mtp-channel-defects)):
 
 ```bash
-git fetch https://github.com/npnelson/stryker-net test/mtp-channel-defects && git checkout FETCH_HEAD
+git clone --branch test/mtp-channel-defects --single-branch --depth 1 https://github.com/npnelson/stryker-net.git mtp-defects
+cd mtp-defects
 dotnet test src/Stryker.TestRunner.MicrosoftTestPlatform.UnitTest              # 217 tests, 5 fail
 dotnet test src/Stryker.Core/Stryker.Core.UnitTest --filter InjectedHelperTests #  26 tests, 3 fail
 ```

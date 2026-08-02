@@ -68,10 +68,11 @@ Eight of these are demonstrated rather than argued.
 [`npnelson:test/mtp-channel-defects`](https://github.com/npnelson/stryker-net/tree/test/mtp-channel-defects)
 sits on `fbf2ed61` and adds **only tests** — no production file is touched
 ([diff](https://github.com/stryker-mutator/stryker-net/compare/fbf2ed618ff81c4643feb7a2d7263ba1127cb3e4...npnelson:stryker-net:test/mtp-channel-defects)).
-Two commands run them all:
+From nothing, two `dotnet test` invocations run them all:
 
 ```bash
-git fetch https://github.com/npnelson/stryker-net test/mtp-channel-defects && git checkout FETCH_HEAD
+git clone --branch test/mtp-channel-defects --single-branch --depth 1 https://github.com/npnelson/stryker-net.git mtp-defects
+cd mtp-defects
 dotnet test src/Stryker.TestRunner.MicrosoftTestPlatform.UnitTest              # 217 tests, 5 fail
 dotnet test src/Stryker.Core/Stryker.Core.UnitTest --filter InjectedHelperTests #  26 tests, 3 fail
 ```
@@ -96,6 +97,8 @@ adds a test executing a second mutated assembly to the repo's own MTP fixture; i
 onto master **and** onto `fbf2ed61`:
 
 ```bash
+git clone https://github.com/stryker-mutator/stryker-net.git
+cd stryker-net
 git fetch https://github.com/npnelson/stryker-net repro/mtp-second-assembly && git cherry-pick FETCH_HEAD
 cd integrationtest/TargetProjects
 # ground truth: coverage analysis off, scoped to Library's mutants (~30 s)
@@ -105,8 +108,9 @@ dotnet run --project ../../src/Stryker.CLI/Stryker.CLI -c Release -- --solution 
 ```
 
 Master: **7 × No coverage** with analysis on (two identical runs) versus all 7 tested with it off
-(6 survived + 1 runtime error). On `fbf2ed61` the same commands additionally vary between identical runs —
-three runs produced three different verdict sets, with no warning in any of them (**C2**).
+(6 survived + 1 runtime error). On `fbf2ed61` — check it out before the cherry-pick — the same commands
+additionally vary between identical runs: three runs produced three different verdict sets, with no warning
+in any of them (**C2**).
 
 **A5** is also visible without any code: `ls /tmp/stryker-epoch-* /tmp/stryker-coverage-pt-* | wc -l`
 before and after a `perTest` run — the count only grows.

@@ -10,6 +10,8 @@ Needs only the .NET SDK. Two files, no dependencies.
 ## Run it
 
 ```bash
+git clone --branch docs/mtp-channel-rfc --single-branch --depth 1 https://github.com/npnelson/stryker-net.git mtp-rfc
+cd mtp-rfc/docs/mmap-survive-check
 dotnet run -c Release -- write     # writes bytes 1..10 through the mapping, then kills itself
 dotnet run -c Release -- verify    # separate process: reads the file, prints PASS or FAIL
 ```
