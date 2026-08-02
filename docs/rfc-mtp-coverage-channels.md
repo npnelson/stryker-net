@@ -31,14 +31,22 @@ No Stryker run needed to see it — a test-only branch
 
 ```bash
 git clone --branch test/mtp-channel-defects --single-branch --depth 1 https://github.com/npnelson/stryker-net.git mtp-defects
+
+# MTP suite — 44 tests, 5 fail
 cd mtp-defects/src/Stryker.TestRunner.MicrosoftTestPlatform.UnitTest
-dotnet test                                       # 217 tests, 5 fail
+dotnet build -v q -p:WarningLevel=0 -p:NoWarn=NU1608 -p:NuGetAudit=false
+dotnet test --no-build --filter "FullyQualifiedName~SingleMicrosoftTestPlatformRunnerCoverageTests|FullyQualifiedName~MicrosoftTestPlatformRunnerPoolTests"
+
+# injected-helper suite — 26 tests, 3 fail
 cd ../Stryker.Core/Stryker.Core.UnitTest
-dotnet test --filter InjectedHelperTests          # 26 tests, 3 fail
+dotnet build -v q -p:WarningLevel=0 -p:NoWarn=NU1608 -p:NuGetAudit=false
+dotnet test --no-build --filter InjectedHelperTests
 ```
 
-(Each from inside its own project, as `unit-test.yaml` does — the MTP project's `global.json` opts
-`dotnet test` into the MTP runner and is resolved from the working directory.)
+(Run from inside each project because the MTP one's `global.json` selects the MTP runner from the working
+directory; built quietly then `--no-build` so the output is the assertion messages and little else; filtered
+because `SingleMicrosoftTestPlatformRunnerTests.cs` carries 60 pre-existing `[Timeout(1000)]` attributes
+that make an unfiltered count machine-dependent. The census explains each.)
 
 Eight failures, each naming a defect; everything else passes. Nineteen defects across three channels are
 catalogued with per-line receipts in the companion census, which ranks them by how likely a user is to meet

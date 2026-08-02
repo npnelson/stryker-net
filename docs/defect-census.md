@@ -78,20 +78,34 @@ Seven of these are demonstrated rather than argued.
 [`npnelson:test/mtp-channel-defects`](https://github.com/npnelson/stryker-net/tree/test/mtp-channel-defects)
 sits on `fbf2ed61` and adds **only tests** — no production file is touched
 ([diff](https://github.com/stryker-mutator/stryker-net/compare/fbf2ed618ff81c4643feb7a2d7263ba1127cb3e4...npnelson:stryker-net:test/mtp-channel-defects)).
-From nothing, two `dotnet test` invocations run them all:
+From nothing:
 
 ```bash
 git clone --branch test/mtp-channel-defects --single-branch --depth 1 https://github.com/npnelson/stryker-net.git mtp-defects
+
+# MTP suite — 44 tests, 5 fail
 cd mtp-defects/src/Stryker.TestRunner.MicrosoftTestPlatform.UnitTest
-dotnet test                                       # 217 tests, 5 fail
+dotnet build -v q -p:WarningLevel=0 -p:NoWarn=NU1608 -p:NuGetAudit=false
+dotnet test --no-build --filter "FullyQualifiedName~SingleMicrosoftTestPlatformRunnerCoverageTests|FullyQualifiedName~MicrosoftTestPlatformRunnerPoolTests"
+
+# injected-helper suite — 26 tests, 3 fail
 cd ../Stryker.Core/Stryker.Core.UnitTest
-dotnet test --filter InjectedHelperTests          # 26 tests, 3 fail
+dotnet build -v q -p:WarningLevel=0 -p:NoWarn=NU1608 -p:NuGetAudit=false
+dotnet test --no-build --filter InjectedHelperTests
 ```
 
-Each runs from inside its own project, as `unit-test.yaml` does. The MTP suite requires it: that project's
-`global.json` opts `dotnet test` into the Microsoft.Testing.Platform runner and is resolved from the working
-directory, so from the repo root .NET 10 answers *"Testing with VSTest target is no longer supported"*
-instead of running anything.
+That prints the eight assertion messages and almost nothing else. Three things in it are deliberate:
+
+- **Run from inside each project.** The MTP one requires it — its `global.json` selects the
+  Microsoft.Testing.Platform runner and is resolved from the working directory, which is why
+  `unit-test.yaml` sets `working-directory` for it. From the repo root, .NET 10 answers *"Testing with
+  VSTest target is no longer supported"* and runs nothing.
+- **Build quietly, then `--no-build`.** The flags mute pre-existing repo-wide restore and nullable
+  warnings — roughly 400 lines of them — and nothing else. Drop them to see everything.
+- **The filter.** `SingleMicrosoftTestPlatformRunnerTests.cs` puts a hard `[Timeout(1000)]` on 60 tests.
+  That is on master and has nothing to do with this branch, but on a slower or loaded machine many of them
+  time out, so an unfiltered run reports a different number every time. The two classes above hold all five
+  MTP defect tests and carry no timeout attributes, so the count is the same everywhere.
 
 | defect | test | what it prints |
 |---|---|---|
@@ -106,8 +120,8 @@ instead of running anything.
 That branch carries an eighth failing test, for **C1** — but C1's evidence belongs to
 [#3753](https://github.com/stryker-mutator/stryker-net/issues/3753), which has the failing test, the
 solution-level reproduction on the repo's own MTP fixture and the run-to-run numbers. It is not repeated
-here. Every other test in both suites still passes (212 and 23), so the failures are the defects and
-nothing else.
+here. Every other test in both filtered suites still passes (39 and 23), so the failures are the defects
+and nothing else.
 
 **C2** is the one other defect visible end to end: the same reproduction, cherry-picked onto `fbf2ed61`
 instead of master, produces *three different verdict sets in three identical runs* with no warning — see
