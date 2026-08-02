@@ -31,10 +31,14 @@ No Stryker run needed to see it — a test-only branch
 
 ```bash
 git clone --branch test/mtp-channel-defects --single-branch --depth 1 https://github.com/npnelson/stryker-net.git mtp-defects
-cd mtp-defects
-dotnet test src/Stryker.TestRunner.MicrosoftTestPlatform.UnitTest              # 217 tests, 5 fail
-dotnet test src/Stryker.Core/Stryker.Core.UnitTest --filter InjectedHelperTests #  26 tests, 3 fail
+cd mtp-defects/src/Stryker.TestRunner.MicrosoftTestPlatform.UnitTest
+dotnet test                                       # 217 tests, 5 fail
+cd ../Stryker.Core/Stryker.Core.UnitTest
+dotnet test --filter InjectedHelperTests          # 26 tests, 3 fail
 ```
+
+(Each from inside its own project, as `unit-test.yaml` does — the MTP project's `global.json` opts
+`dotnet test` into the MTP runner and is resolved from the working directory.)
 
 Eight failures, each naming a defect; everything else passes. Nineteen defects across three channels are
 catalogued with per-line receipts in the companion census, which ranks them by how likely a user is to meet
