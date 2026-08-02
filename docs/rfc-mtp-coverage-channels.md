@@ -55,9 +55,10 @@ need an unlucky condition, and thirteen exist only on `feature/per-test-coverage
 anything today.
 
 The count is not the argument — the *shape* is. They are not independent bugs: they share six root causes,
-and the same ground keeps getting re-broken. E2 reintroduces the exact per-project scoping bug
-[#3516](https://github.com/stryker-mutator/stryker-net/pull/3516) had already fixed, and the new per-test
-filenames do not carry the pid and nonce that
+and the same ground keeps getting worked twice. E2 is the per-project scoping bug that
+[#3516](https://github.com/stryker-mutator/stryker-net/pull/3516) caught and fixed in review back in May —
+but #3516 is still open, and #3752 is a second, independent run at the same feature that has the bug again.
+Meanwhile the new per-test filenames do not carry the pid and nonce that
 [#3696](https://github.com/stryker-mutator/stryker-net/pull/3696) added to the aggregate coverage file three
 weeks earlier — so a crashed run's leftovers cannot be identified, let alone reclaimed. Patching nineteen
 symptoms would leave the shape that produced them. That is why this is a discussion and not nineteen
