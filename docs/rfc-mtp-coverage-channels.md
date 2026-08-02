@@ -43,10 +43,12 @@ need an unlucky condition, and thirteen exist only on `feature/per-test-coverage
 anything today.
 
 The count is not the argument — the *shape* is. They are not independent bugs: they share six root causes,
-and two are *recurrences*, a naming scheme weaker than the one #3696 established and a per-project scoping
-bug #3516 had already fixed. Patching nineteen symptoms would leave the shape that produced them. That is
-why this is a discussion and not nineteen issues. (#3706, open, is very likely this family in CI and
-probably closable.)
+and two are *recurrences*, a naming scheme weaker than the one
+[#3696](https://github.com/stryker-mutator/stryker-net/pull/3696) established and a per-project scoping bug
+[#3516](https://github.com/stryker-mutator/stryker-net/pull/3516) had already fixed. Patching nineteen
+symptoms would leave the shape that produced them. That is why this is a discussion and not nineteen
+issues. ([#3706](https://github.com/stryker-mutator/stryker-net/issues/3706), open, is very likely this
+family in CI and probably closable.)
 
 **None of this requires the redesign below.** Six of the nineteen are one-to-five-line fixes with failing
 tests already written, and should land regardless.
