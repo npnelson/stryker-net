@@ -14,17 +14,17 @@ mutants as *No coverage* and never tests them. On the repo's own MTPSolution fix
 that executes the second mutated assembly, for `RecursiveMath`'s 7 non-ignored mutants — every one called
 by name from that test:
 
-| run, on master | verdicts |
+| the same command, on master | verdicts |
 |---|---|
-| coverage analysis **off** — ground truth | all 7 tested: 6 survived + 1 runtime error |
-| coverage analysis **on** — the default | **7 × No coverage** ("Not covered by any test"), two identical runs |
+| coverage analysis **off** — ground truth | 7 tested, **all killed** — mutation score **100.00 %** |
+| coverage analysis **on** — the default | **7 × NoCoverage** ("Not covered by any test"), 0 tested — score **0.00 %** |
 
-That these mutants are covered is a source-level fact, not a measurement dispute: coverage analysis is an
-optimisation whose correctness condition is that it only skips mutants no test executes. Run-to-run
-stability proves nothing here — on master the wrong answer is identical every time. On
-`feature/per-test-coverage-mtp` the same commands additionally vary between runs: three runs, three verdict
-sets, no warning. Commands and full numbers are in
-[#3753](https://github.com/stryker-mutator/stryker-net/issues/3753).
+Not a measurement dispute, and not a matter of interpretation: the added test asserts on what
+`RecursiveMath` prints, so a test kills every one of those mutants outright — and with the default settings
+Stryker reports them as covered by nothing and never runs them. Coverage analysis is an optimisation whose
+correctness condition is that it only skips mutants no test executes. Nor is it flakiness: two identical
+runs on master and three on `feature/per-test-coverage-mtp` all print the same thing. Commands and the
+verification table are in [#3753](https://github.com/stryker-mutator/stryker-net/issues/3753).
 
 No Stryker run needed to see it — a test-only branch
 ([diff](https://github.com/stryker-mutator/stryker-net/compare/fbf2ed618ff81c4643feb7a2d7263ba1127cb3e4...npnelson:stryker-net:test/mtp-channel-defects)):
