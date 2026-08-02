@@ -23,7 +23,8 @@ That these mutants are covered is a source-level fact, not a measurement dispute
 optimisation whose correctness condition is that it only skips mutants no test executes. Run-to-run
 stability proves nothing here — on master the wrong answer is identical every time. On
 `feature/per-test-coverage-mtp` the same commands additionally vary between runs: three runs, three verdict
-sets, no warning. Commands and full numbers are in the linked issue.
+sets, no warning. Commands and full numbers are in
+[#3753](https://github.com/stryker-mutator/stryker-net/issues/3753).
 
 No Stryker run needed to see it — a test-only branch
 ([diff](https://github.com/stryker-mutator/stryker-net/compare/fbf2ed618ff81c4643feb7a2d7263ba1127cb3e4...npnelson:stryker-net:test/mtp-channel-defects)):
@@ -36,10 +37,16 @@ dotnet test src/Stryker.Core/Stryker.Core.UnitTest --filter InjectedHelperTests 
 ```
 
 Eight failures, each naming a defect; everything else passes. Nineteen defects across three channels are
-catalogued with per-line receipts in the companion census. They are not independent bugs — they share six
-root causes, and two are *recurrences*: a naming scheme weaker than the one #3696 established, and a
-per-project scoping bug #3516 had already fixed. That is the argument for discussing structure rather than
-patching again. (#3706, open, is very likely this family in CI and probably closable.)
+catalogued with per-line receipts in the companion census, which ranks them by how likely a user is to meet
+one: **the run above is the only released defect an ordinary project reaches**, five more are released but
+need an unlucky condition, and thirteen exist only on `feature/per-test-coverage-mtp` and cost nobody
+anything today.
+
+The count is not the argument — the *shape* is. They are not independent bugs: they share six root causes,
+and two are *recurrences*, a naming scheme weaker than the one #3696 established and a per-project scoping
+bug #3516 had already fixed. Patching nineteen symptoms would leave the shape that produced them. That is
+why this is a discussion and not nineteen issues. (#3706, open, is very likely this family in CI and
+probably closable.)
 
 **None of this requires the redesign below.** Six of the nineteen are one-to-five-line fixes with failing
 tests already written, and should land regardless.
