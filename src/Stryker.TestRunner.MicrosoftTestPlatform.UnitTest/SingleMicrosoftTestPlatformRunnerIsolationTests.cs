@@ -283,8 +283,7 @@ public class SingleMicrosoftTestPlatformRunnerIsolationTests
 
         public int ReadMutantFile()
         {
-            var path = Path.Combine(Path.GetTempPath(), $"stryker-mutant-{RunnerId}.txt");
-            return BitConverter.ToInt32(File.ReadAllBytes(path), 0);
+            return BitConverter.ToInt32(File.ReadAllBytes(MutantFilePath), 0);
         }
 
         public override async Task ResetServerAsync()
@@ -294,7 +293,7 @@ public class SingleMicrosoftTestPlatformRunnerIsolationTests
         }
 
         internal override Task<(TestRunResult? Result, bool TimedOut, List<TestNode>? DiscoveredTests)> RunAssemblyTestsAsync(
-            string assembly, ITimeoutValueCalculator? timeoutCalc)
+            string assembly, ITimeoutValueCalculator? timeoutCalc, Func<TestNode, bool>? testUidFilter = null)
         {
             Events.Add($"run:{assembly}");
             ActiveMutantIds.Add(ReadMutantFile());
