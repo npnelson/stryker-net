@@ -40,6 +40,14 @@ public class CommandLineConfigReaderTests
     }
 
     [TestMethod]
+    public void ShouldHandleAdditionalTimeout()
+    {
+        _target.ReadCommandLineConfig(["--additional-timeout 15000"], _app, _inputs);
+
+        _inputs.AdditionalTimeoutInput.SuppliedInput.ShouldBe(15000);
+    }
+
+    [TestMethod]
     public void ShouldHandleSingleOrNoValueWithNoValue()
     {
         _target.ReadCommandLineConfig(["--since"], _app, _inputs);
