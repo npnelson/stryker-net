@@ -131,7 +131,9 @@ internal sealed class AssemblyTestServer : IDisposable
         return results;
     }
 
-    public async Task<(List<TestNodeUpdate> Results, bool TimedOut)> RunTestsAsync(TestNode[]? testsToRun, TimeSpan? timeout)
+    public async Task<(List<TestNodeUpdate> Results, TestRunTimeoutStage? TimeoutStage)> RunTestsAsync(
+        TestNode[]? testsToRun,
+        TimeSpan? timeout)
     {
         if (!_isInitialized || _client is null)
         {
@@ -162,7 +164,7 @@ internal sealed class AssemblyTestServer : IDisposable
             catch (TimeoutException ex)
             {
                 _logger.LogDebug(ex, "{RunnerId}: Test run RPC call timed out for {Assembly}", _runnerId, _assembly);
-                return (testResults.ToList(), true);
+                return (testResults.ToList(), TestRunTimeoutStage.RpcDispatch);
             }
 
             var completionTask = executeTestsResponse.WaitCompletionAsync(timeout.Value);
@@ -170,7 +172,7 @@ internal sealed class AssemblyTestServer : IDisposable
             ThrowIfHostCrashed(completionTask);
 
             var completed = await completionTask.ConfigureAwait(false);
-            return (testResults.ToList(), !completed);
+            return (testResults.ToList(), completed ? null : TestRunTimeoutStage.RunCompletion);
         }
 
         var response = await _client.RunTestsAsync(runId, onUpdate, testsToRun).ConfigureAwait(false);
@@ -179,7 +181,7 @@ internal sealed class AssemblyTestServer : IDisposable
         ThrowIfHostCrashed(responseCompletion);
 
         await responseCompletion.ConfigureAwait(false);
-        return (testResults.ToList(), false);
+        return (testResults.ToList(), null);
     }
 
     /// <summary>

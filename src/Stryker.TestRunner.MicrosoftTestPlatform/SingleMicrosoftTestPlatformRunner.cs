@@ -42,6 +42,7 @@ public class SingleMicrosoftTestPlatformRunner : IDisposable
 
     private readonly Dictionary<string, AssemblyTestServer> _assemblyServers = new();
     private readonly object _serverLock = new();
+    private int _activeMutantId = -1;
     private bool _disposed;
     private bool _coverageMode;
 
@@ -234,6 +235,8 @@ public class SingleMicrosoftTestPlatformRunner : IDisposable
 
     private void WriteMutantIdToFile(int mutantId)
     {
+        _activeMutantId = mutantId;
+
         try
         {
             // Publish the active mutant id as a fixed 4-byte int through a file-backed memory-mapped view.
@@ -585,12 +588,13 @@ public class SingleMicrosoftTestPlatformRunner : IDisposable
             try
             {
                 var server = await GetOrCreateServerAsync(assembly).ConfigureAwait(false);
-                var (_, timedOut) = await server.RunTestsAsync(new[] { test }, CalculateSingleTestTimeout(test)).ConfigureAwait(false);
-                if (timedOut)
+                var timeout = CalculateSingleTestTimeout(test);
+                var (_, timeoutStage) = await server.RunTestsAsync(new[] { test }, timeout).ConfigureAwait(false);
+                if (timeoutStage is not null)
                 {
                     _logger.LogWarning(
-                        "{RunnerId}: Test run timed out while capturing per-test coverage for {TestId}; marking as Dubious",
-                        RunnerId, testId);
+                        "{RunnerId}: MTP test run timed out during {TimeoutStage} while capturing per-test coverage for {TestId} after a {TimeoutMs} ms budget; discarding the test server and marking coverage as Dubious",
+                        RunnerId, timeoutStage, testId, timeout.TotalMilliseconds);
                     await DiscardServerAsync(assembly).ConfigureAwait(false);
                     return CoverageRunResult.Create(testId, CoverageConfidence.Dubious,
                         Array.Empty<int>(), Array.Empty<int>(), Array.Empty<int>());
@@ -669,12 +673,13 @@ public class SingleMicrosoftTestPlatformRunner : IDisposable
             DeleteFileIfExists(coverageFilePath);
 
             var server = await GetOrCreateServerAsync(assembly).ConfigureAwait(false);
-            var (_, timedOut) = await server.RunTestsAsync(new[] { test }, CalculateSingleTestTimeout(test)).ConfigureAwait(false);
-            if (timedOut)
+            var timeout = CalculateSingleTestTimeout(test);
+            var (_, timeoutStage) = await server.RunTestsAsync(new[] { test }, timeout).ConfigureAwait(false);
+            if (timeoutStage is not null)
             {
                 _logger.LogWarning(
-                    "{RunnerId}: Test run timed out while capturing isolated coverage for {TestId}; marking as Dubious",
-                    RunnerId, testId);
+                    "{RunnerId}: MTP test run timed out during {TimeoutStage} while capturing isolated coverage for {TestId} after a {TimeoutMs} ms budget; discarding the test server and marking coverage as Dubious",
+                    RunnerId, timeoutStage, testId, timeout.TotalMilliseconds);
                 await DiscardServerAsync(assembly).ConfigureAwait(false);
                 return CoverageRunResult.Create(testId, CoverageConfidence.Dubious,
                     Array.Empty<int>(), Array.Empty<int>(), Array.Empty<int>());
@@ -1118,21 +1123,44 @@ public class SingleMicrosoftTestPlatformRunner : IDisposable
                 return (new TestRunResult(false, ex.Message), false);
             }
 
-            var startTime = DateTime.UtcNow;
+            var stopwatch = Stopwatch.StartNew();
             try
             {
-                var (testResults, timedOut) = await server.RunTestsAsync(testsToRun, timeout).ConfigureAwait(false);
+                var (testResults, timeoutStage) = await server.RunTestsAsync(testsToRun, timeout).ConfigureAwait(false);
 
-                var duration = DateTime.UtcNow - startTime;
+                var duration = stopwatch.Elapsed;
                 var result = BuildTestRunResult(testResults, tests?.Count ?? 0, duration);
 
-                return (result, timedOut);
+                if (timeoutStage is not null)
+                {
+                    _logger.LogWarning(
+                        "{RunnerId}: MTP test run timed out during {TimeoutStage} for mutant {MutantId} in {Assembly} after {ElapsedMs} ms (timeout {TimeoutMs} ms; selected {SelectedTestCount} of {DiscoveredTestCount} tests; attempt {Attempt}/{MaxAttempts}); the test server will be force-restarted",
+                        RunnerId,
+                        timeoutStage,
+                        _activeMutantId,
+                        Path.GetFileName(assembly),
+                        duration.TotalMilliseconds,
+                        timeout?.TotalMilliseconds,
+                        testsToRun?.Length ?? tests?.Count ?? 0,
+                        tests?.Count ?? 0,
+                        attempt,
+                        maxRunAttempts);
+                }
+
+                return (result, timeoutStage is not null);
             }
             catch (Exception ex)
             {
                 lastRunException = ex;
-                _logger.LogDebug(ex, "{RunnerId}: Test run for {Assembly} failed on attempt {Attempt}/{MaxAttempts}; discarding crashed server",
-                    RunnerId, Path.GetFileName(assembly), attempt, maxRunAttempts);
+                _logger.LogWarning(ex,
+                    "{RunnerId}: MTP test run for mutant {MutantId} in {Assembly} failed after {ElapsedMs} ms with {SelectedTestCount} selected tests on attempt {Attempt}/{MaxAttempts}; discarding the crashed test server",
+                    RunnerId,
+                    _activeMutantId,
+                    Path.GetFileName(assembly),
+                    stopwatch.Elapsed.TotalMilliseconds,
+                    testsToRun?.Length ?? tests?.Count ?? 0,
+                    attempt,
+                    maxRunAttempts);
 
                 // The server most likely crashed; drop it so the next attempt starts a fresh one.
                 await DiscardServerAsync(assembly).ConfigureAwait(false);

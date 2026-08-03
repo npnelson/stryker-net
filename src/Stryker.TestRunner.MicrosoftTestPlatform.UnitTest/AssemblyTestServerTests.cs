@@ -376,7 +376,7 @@ public class AssemblyTestServerTests
     }
 
     [TestMethod]
-    public async Task RunTestsAsync_WithTimeout_ShouldReturnTimedOutFalse_WhenCompletesInTime()
+    public async Task RunTestsAsync_WithTimeout_ShouldReturnNullTimeoutStage_WhenCompletesInTime()
     {
         SetupSuccessfulConnection();
 
@@ -388,13 +388,13 @@ public class AssemblyTestServerTests
 
         using var server = CreateServer();
         await server.StartAsync();
-        var (_, timedOut) = await server.RunTestsAsync(null, TimeSpan.FromSeconds(10));
+        var (_, timeoutStage) = await server.RunTestsAsync(null, TimeSpan.FromSeconds(10));
 
-        timedOut.ShouldBeFalse();
+        timeoutStage.ShouldBeNull();
     }
 
     [TestMethod]
-    public async Task RunTestsAsync_WithTimeout_ShouldReturnTimedOutTrue_WhenTimesOut()
+    public async Task RunTestsAsync_WithTimeout_ShouldReturnRunCompletionStage_WhenCompletionTimesOut()
     {
         SetupSuccessfulConnection();
 
@@ -406,9 +406,9 @@ public class AssemblyTestServerTests
 
         using var server = CreateServer();
         await server.StartAsync();
-        var (_, timedOut) = await server.RunTestsAsync(null, TimeSpan.FromMilliseconds(50));
+        var (_, timeoutStage) = await server.RunTestsAsync(null, TimeSpan.FromMilliseconds(50));
 
-        timedOut.ShouldBeTrue();
+        timeoutStage.ShouldBe(TestRunTimeoutStage.RunCompletion);
     }
 
     [TestMethod]
@@ -453,7 +453,7 @@ public class AssemblyTestServerTests
     }
 
     [TestMethod]
-    public async Task RunTestsAsync_WithTimeout_ShouldReturnTimedOutTrue_WhenRpcCallBlocks()
+    public async Task RunTestsAsync_WithTimeout_ShouldReturnRpcDispatchStage_WhenRpcCallBlocks()
     {
         SetupSuccessfulConnection();
 
@@ -463,9 +463,9 @@ public class AssemblyTestServerTests
 
         using var server = CreateServer();
         await server.StartAsync();
-        var (_, timedOut) = await server.RunTestsAsync(null, TimeSpan.FromMilliseconds(50));
+        var (_, timeoutStage) = await server.RunTestsAsync(null, TimeSpan.FromMilliseconds(50));
 
-        timedOut.ShouldBeTrue();
+        timeoutStage.ShouldBe(TestRunTimeoutStage.RpcDispatch);
     }
 
     [TestMethod]
