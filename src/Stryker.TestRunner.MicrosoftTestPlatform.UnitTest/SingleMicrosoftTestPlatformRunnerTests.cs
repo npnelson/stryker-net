@@ -347,6 +347,22 @@ public class SingleMicrosoftTestPlatformRunnerTests
     }
 
     [TestMethod, Timeout(1000)]
+    public async Task RunAssemblyTestsInternalAsync_SkipsServer_WhenFilterMatchesNoTests()
+    {
+        const string assembly = "/nonexistent/filtered-assembly.dll";
+        _testsByAssembly[assembly] = [new TestNode("test1", "TestMethod1", "test", "discovered")];
+        using var runner = CreateRunner();
+
+        var (result, timedOut) = await runner.RunAssemblyTestsInternalAsync(assembly, _ => false);
+
+        timedOut.ShouldBeFalse();
+        result.ResultMessage.ShouldBeNullOrEmpty();
+        result.ExecutedTests.GetIdentifiers().ShouldBeEmpty();
+        result.FailingTests.GetIdentifiers().ShouldBeEmpty();
+        result.TimedOutTests.GetIdentifiers().ShouldBeEmpty();
+    }
+
+    [TestMethod, Timeout(1000)]
     public async Task RunAssemblyTestsAsync_WithTimeout_DoesNotHangOnRealAssembly()
     {
         // Arrange - This test ensures we don't try to start real servers that would hang

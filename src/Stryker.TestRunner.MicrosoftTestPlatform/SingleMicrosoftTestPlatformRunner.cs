@@ -1083,6 +1083,21 @@ public class SingleMicrosoftTestPlatformRunner : IDisposable
         Func<TestNode, bool>? testUidFilter,
         TimeSpan? timeout = null)
     {
+        List<TestNode>? tests = null;
+        lock (_discoveryLock)
+        {
+            if (_testsByAssembly.TryGetValue(assembly, out var assemblyTests))
+            {
+                tests = assemblyTests;
+            }
+        }
+
+        var testsToRun = tests?.Where(t => testUidFilter is null || testUidFilter(t)).ToArray();
+        if (testUidFilter is not null && testsToRun is { Length: 0 })
+        {
+            return (BuildTestRunResult([], tests?.Count ?? 0, TimeSpan.Zero), false);
+        }
+
         // A crashed test host tears down the RPC connection, so the run throws (rather than timing out).
         // Retry once on a freshly started server: a crash caused by a *previous* mutant then self-heals
         // for the current mutant instead of corrupting its result.
@@ -1106,17 +1121,6 @@ public class SingleMicrosoftTestPlatformRunner : IDisposable
             var startTime = DateTime.UtcNow;
             try
             {
-                List<TestNode>? tests = null;
-                lock (_discoveryLock)
-                {
-                    if (_testsByAssembly.TryGetValue(assembly, out var assemblyTests))
-                    {
-                        tests = assemblyTests;
-                    }
-                }
-
-                var testsToRun = tests?.Where(t => testUidFilter is null || testUidFilter(t)).ToArray();
-
                 var (testResults, timedOut) = await server.RunTestsAsync(testsToRun, timeout).ConfigureAwait(false);
 
                 var duration = DateTime.UtcNow - startTime;
