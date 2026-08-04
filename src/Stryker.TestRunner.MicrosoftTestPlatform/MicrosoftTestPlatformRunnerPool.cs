@@ -31,6 +31,8 @@ public sealed class MicrosoftTestPlatformRunnerPool : ITestRunner
     private readonly ISingleRunnerFactory _runnerFactory;
     private readonly IStrykerOptions _options;
     private readonly MtpPerformanceMetrics _leasePerformanceMetrics = new();
+    private readonly IReadOnlyDictionary<MtpRunnerPhase, MtpPhasePerformanceMetrics> _phasePerformanceMetrics =
+        Enum.GetValues<MtpRunnerPhase>().ToDictionary(phase => phase, _ => new MtpPhasePerformanceMetrics());
     private readonly Stopwatch _poolLifetime = new();
     private int _waitingRunnerRequests;
 
@@ -61,6 +63,12 @@ public sealed class MicrosoftTestPlatformRunnerPool : ITestRunner
             return snapshot;
         }
     }
+
+    internal IReadOnlyDictionary<MtpRunnerPhase, MtpPhasePerformanceSnapshot> PhasePerformanceSnapshots =>
+        _phasePerformanceMetrics
+            .Select(pair => new KeyValuePair<MtpRunnerPhase, MtpPhasePerformanceSnapshot>(pair.Key, pair.Value.Snapshot()))
+            .Where(pair => pair.Value.LeaseCount > 0)
+            .ToDictionary();
 
     public void ResetTestProcesses()
     {
@@ -96,7 +104,7 @@ public sealed class MicrosoftTestPlatformRunnerPool : ITestRunner
             return false;
         }
 
-        return await RunThisAsync(runner => runner.DiscoverTestsAsync(assembly)).ConfigureAwait(false);
+        return await RunThisAsync(MtpRunnerPhase.Discovery, runner => runner.DiscoverTestsAsync(assembly)).ConfigureAwait(false);
     }
 
     public ITestSet GetTests(IProjectAndTests project) => _testSet;
@@ -109,7 +117,7 @@ public sealed class MicrosoftTestPlatformRunnerPool : ITestRunner
             return new TestRunResult(false, "No test assemblies found");
         }
 
-        var results = await RunThisAsync(runner => runner.InitialTestAsync(project)).ConfigureAwait(false);
+        var results = await RunThisAsync(MtpRunnerPhase.InitialTest, runner => runner.InitialTestAsync(project)).ConfigureAwait(false);
 
         // reset all test processes after the initial test run
         ResetTestProcesses();
@@ -148,7 +156,7 @@ public sealed class MicrosoftTestPlatformRunnerPool : ITestRunner
         try
         {
             // Run all tests with coverage tracking enabled
-            var testResult = RunThisAsync(runner => runner.InitialTestAsync(project)).GetAwaiter().GetResult();
+            var testResult = RunThisAsync(MtpRunnerPhase.AggregateCoverage, runner => runner.InitialTestAsync(project)).GetAwaiter().GetResult();
 
             if (testResult.FailingTests.IsEveryTest)
             {
@@ -239,7 +247,7 @@ public sealed class MicrosoftTestPlatformRunnerPool : ITestRunner
 
             Parallel.ForEach(allTests, new ParallelOptions { MaxDegreeOfParallelism = _countOfRunners }, testInfo =>
             {
-                var result = RunThisAsync(runner =>
+                var result = RunThisAsync(MtpRunnerPhase.PerTestCoverage, runner =>
                         runner.RunSingleTestForCoverageInReusedProcessAsync(testInfo.Assembly, testInfo.Test, testInfo.TestId))
                     .GetAwaiter().GetResult();
                 results.Add(result);
@@ -298,7 +306,7 @@ public sealed class MicrosoftTestPlatformRunnerPool : ITestRunner
 
             Parallel.ForEach(allTests, new ParallelOptions { MaxDegreeOfParallelism = _countOfRunners }, testInfo =>
             {
-                var result = RunThisAsync(runner =>
+                var result = RunThisAsync(MtpRunnerPhase.IsolatedCoverage, runner =>
                         runner.RunSingleTestForCoverageInIsolatedProcessAsync(testInfo.Assembly, testInfo.Test, testInfo.TestId))
                     .GetAwaiter().GetResult();
                 results.Add(result);
@@ -329,13 +337,13 @@ public sealed class MicrosoftTestPlatformRunnerPool : ITestRunner
             return new TestRunResult(false, "No test assemblies found");
         }
 
-        return await RunThisAsync(runner => runner.TestMultipleMutantsAsync(project, timeoutCalc, mutants, update)).ConfigureAwait(false);
+        return await RunThisAsync(MtpRunnerPhase.Mutation, runner => runner.TestMultipleMutantsAsync(project, timeoutCalc, mutants, update)).ConfigureAwait(false);
     }
 
-    private async Task<T> RunThisAsync<T>(Func<SingleMicrosoftTestPlatformRunner, Task<T>> task)
+    private async Task<T> RunThisAsync<T>(MtpRunnerPhase phase, Func<SingleMicrosoftTestPlatformRunner, Task<T>> task)
     {
         SingleMicrosoftTestPlatformRunner? runner;
-        var queueWaitStarted = Stopwatch.GetTimestamp();
+        var leaseRequestStarted = Stopwatch.GetTimestamp();
         var contended = false;
 
         // Try to get a runner with a timeout to prevent indefinite blocking
@@ -349,6 +357,7 @@ public sealed class MicrosoftTestPlatformRunnerPool : ITestRunner
             contended = true;
             var queueDepth = Interlocked.Increment(ref _waitingRunnerRequests);
             _leasePerformanceMetrics.ObserveQueueDepth(queueDepth);
+            _phasePerformanceMetrics[phase].ObserveQueueDepth(queueDepth);
 
             try
             {
@@ -376,7 +385,7 @@ public sealed class MicrosoftTestPlatformRunnerPool : ITestRunner
             }
         }
 
-        var queueWait = contended ? Stopwatch.GetElapsedTime(queueWaitStarted) : TimeSpan.Zero;
+        var queueWait = contended ? Stopwatch.GetElapsedTime(leaseRequestStarted) : TimeSpan.Zero;
         var runnerBusyStarted = Stopwatch.GetTimestamp();
         try
         {
@@ -384,9 +393,17 @@ public sealed class MicrosoftTestPlatformRunnerPool : ITestRunner
         }
         finally
         {
+            var leaseCompleted = Stopwatch.GetTimestamp();
+            var runnerBusy = Stopwatch.GetElapsedTime(runnerBusyStarted, leaseCompleted);
             _leasePerformanceMetrics.RecordLease(
                 queueWait,
-                Stopwatch.GetElapsedTime(runnerBusyStarted),
+                runnerBusy,
+                contended);
+            _phasePerformanceMetrics[phase].RecordLease(
+                leaseRequestStarted,
+                leaseCompleted,
+                queueWait,
+                runnerBusy,
                 contended);
             _availableRunners.Add(runner);
             _runnerAvailableHandler.Set();
@@ -436,6 +453,27 @@ public sealed class MicrosoftTestPlatformRunnerPool : ITestRunner
             snapshot.MaxRpcDispatch.TotalMilliseconds,
             snapshot.TotalRunCompletion.TotalMilliseconds,
             snapshot.MaxRunCompletion.TotalMilliseconds);
+
+        foreach (var (phase, phaseSnapshot) in PhasePerformanceSnapshots.OrderBy(pair => pair.Key))
+        {
+            var phaseSummary = MtpPerformanceSummary.Create(
+                phaseSnapshot.TotalRunnerBusy,
+                _countOfRunners,
+                phaseSnapshot.Elapsed);
+            _logger.LogInformation(
+                "MTP phase performance: {Phase}; {LeaseCount} leases over {ElapsedMs} ms ({ContendedLeaseCount} contended, max queue depth {MaxQueueDepth}, total queue wait {TotalQueueWaitMs} ms, max queue wait {MaxQueueWaitMs} ms); leased runner busy {RunnerBusyMs} ms, idle {RunnerIdleMs} ms, capacity {RunnerCapacityMs} ms, utilization {RunnerUtilizationPercent}%",
+                phase,
+                phaseSnapshot.LeaseCount,
+                phaseSnapshot.Elapsed.TotalMilliseconds,
+                phaseSnapshot.ContendedLeaseCount,
+                phaseSnapshot.MaxQueueDepth,
+                phaseSnapshot.TotalQueueWait.TotalMilliseconds,
+                phaseSnapshot.MaxQueueWait.TotalMilliseconds,
+                phaseSnapshot.TotalRunnerBusy.TotalMilliseconds,
+                phaseSummary.RunnerIdle.TotalMilliseconds,
+                phaseSummary.RunnerCapacity.TotalMilliseconds,
+                phaseSummary.RunnerUtilizationPercent);
+        }
         _runnerAvailableHandler.Dispose();
     }
 }

@@ -1,3 +1,5 @@
+using System.Diagnostics;
+
 namespace Stryker.TestRunner.MicrosoftTestPlatform;
 
 internal enum MtpTestRunOutcome
@@ -7,6 +9,127 @@ internal enum MtpTestRunOutcome
     RunCompletionTimeout,
     Failed,
 }
+
+internal enum MtpRunnerPhase
+{
+    Discovery,
+    InitialTest,
+    AggregateCoverage,
+    PerTestCoverage,
+    IsolatedCoverage,
+    Mutation,
+}
+
+internal sealed class MtpPhasePerformanceMetrics
+{
+    private long _leaseCount;
+    private long _contendedLeaseCount;
+    private long _totalQueueWaitTicks;
+    private long _maxQueueWaitTicks;
+    private long _totalRunnerBusyTicks;
+    private long _maxRunnerBusyTicks;
+    private int _maxQueueDepth;
+    private long _firstLeaseRequestTimestamp = long.MaxValue;
+    private long _lastLeaseCompletionTimestamp;
+
+    public void ObserveQueueDepth(int queueDepth) => SetMaximum(ref _maxQueueDepth, queueDepth);
+
+    public void RecordLease(
+        long leaseRequestTimestamp,
+        long leaseCompletionTimestamp,
+        TimeSpan queueWait,
+        TimeSpan runnerBusy,
+        bool contended)
+    {
+        Interlocked.Increment(ref _leaseCount);
+        SetMinimum(ref _firstLeaseRequestTimestamp, leaseRequestTimestamp);
+        SetMaximum(ref _lastLeaseCompletionTimestamp, leaseCompletionTimestamp);
+
+        if (contended)
+        {
+            Interlocked.Increment(ref _contendedLeaseCount);
+            Interlocked.Add(ref _totalQueueWaitTicks, queueWait.Ticks);
+            SetMaximum(ref _maxQueueWaitTicks, queueWait.Ticks);
+        }
+
+        Interlocked.Add(ref _totalRunnerBusyTicks, runnerBusy.Ticks);
+        SetMaximum(ref _maxRunnerBusyTicks, runnerBusy.Ticks);
+    }
+
+    public MtpPhasePerformanceSnapshot Snapshot()
+    {
+        var firstLeaseRequestTimestamp = Interlocked.Read(ref _firstLeaseRequestTimestamp);
+        var lastLeaseCompletionTimestamp = Interlocked.Read(ref _lastLeaseCompletionTimestamp);
+        var elapsed = firstLeaseRequestTimestamp == long.MaxValue || lastLeaseCompletionTimestamp < firstLeaseRequestTimestamp
+            ? TimeSpan.Zero
+            : Stopwatch.GetElapsedTime(firstLeaseRequestTimestamp, lastLeaseCompletionTimestamp);
+
+        return new MtpPhasePerformanceSnapshot(
+            Interlocked.Read(ref _leaseCount),
+            Interlocked.Read(ref _contendedLeaseCount),
+            TimeSpan.FromTicks(Interlocked.Read(ref _totalQueueWaitTicks)),
+            TimeSpan.FromTicks(Interlocked.Read(ref _maxQueueWaitTicks)),
+            TimeSpan.FromTicks(Interlocked.Read(ref _totalRunnerBusyTicks)),
+            TimeSpan.FromTicks(Interlocked.Read(ref _maxRunnerBusyTicks)),
+            Volatile.Read(ref _maxQueueDepth),
+            elapsed);
+    }
+
+    private static void SetMinimum(ref long target, long candidate)
+    {
+        var current = Interlocked.Read(ref target);
+        while (candidate < current)
+        {
+            var observed = Interlocked.CompareExchange(ref target, candidate, current);
+            if (observed == current)
+            {
+                return;
+            }
+
+            current = observed;
+        }
+    }
+
+    private static void SetMaximum(ref long target, long candidate)
+    {
+        var current = Interlocked.Read(ref target);
+        while (candidate > current)
+        {
+            var observed = Interlocked.CompareExchange(ref target, candidate, current);
+            if (observed == current)
+            {
+                return;
+            }
+
+            current = observed;
+        }
+    }
+
+    private static void SetMaximum(ref int target, int candidate)
+    {
+        var current = Volatile.Read(ref target);
+        while (candidate > current)
+        {
+            var observed = Interlocked.CompareExchange(ref target, candidate, current);
+            if (observed == current)
+            {
+                return;
+            }
+
+            current = observed;
+        }
+    }
+}
+
+internal readonly record struct MtpPhasePerformanceSnapshot(
+    long LeaseCount,
+    long ContendedLeaseCount,
+    TimeSpan TotalQueueWait,
+    TimeSpan MaxQueueWait,
+    TimeSpan TotalRunnerBusy,
+    TimeSpan MaxRunnerBusy,
+    int MaxQueueDepth,
+    TimeSpan Elapsed);
 
 internal sealed class MtpPerformanceMetrics
 {
@@ -192,10 +315,15 @@ internal readonly record struct MtpPerformanceSummary(
     public static MtpPerformanceSummary Create(
         MtpPerformanceSnapshot snapshot,
         int runnerCount,
+        TimeSpan elapsed) => Create(snapshot.TotalRunnerBusy, runnerCount, elapsed);
+
+    public static MtpPerformanceSummary Create(
+        TimeSpan runnerBusy,
+        int runnerCount,
         TimeSpan elapsed)
     {
         var capacityTicks = elapsed.Ticks * (double)runnerCount;
-        var busyTicks = snapshot.TotalRunnerBusy.Ticks;
+        var busyTicks = runnerBusy.Ticks;
         var idleTicks = Math.Max(0, capacityTicks - busyTicks);
         var utilizationPercent = capacityTicks <= 0
             ? 0

@@ -361,7 +361,8 @@ public class MicrosoftTestPlatformRunnerPoolTests : TestBase
         var project = new Mock<IProjectAndTests>();
         project.Setup(x => x.GetTestAssemblies()).Returns(new[] { "assembly.dll" });
 
-        using var pool = new MicrosoftTestPlatformRunnerPool(options.Object, NullLogger.Instance, runnerFactory.Object);
+        var logger = new Mock<ILogger>();
+        using var pool = new MicrosoftTestPlatformRunnerPool(options.Object, logger.Object, runnerFactory.Object);
 
         // Act
         var coverage = pool.CaptureCoverage(project.Object).ToList();
@@ -380,6 +381,26 @@ public class MicrosoftTestPlatformRunnerPoolTests : TestBase
         cov2.MutationsCovered.ShouldNotContain(1);
 
         pool.PerformanceSnapshot.LeaseCount.ShouldBe(2, "each per-test coverage operation should be measured as one runner lease");
+        pool.PhasePerformanceSnapshots.Keys.ShouldBe([MtpRunnerPhase.PerTestCoverage]);
+        pool.PhasePerformanceSnapshots[MtpRunnerPhase.PerTestCoverage].LeaseCount.ShouldBe(2);
+
+        pool.Dispose();
+        logger.Verify(
+            x => x.Log(
+                Microsoft.Extensions.Logging.LogLevel.Information,
+                It.IsAny<EventId>(),
+                It.Is<It.IsAnyType>((state, _) => state.ToString()!.StartsWith("MTP phase performance: PerTestCoverage; 2 leases")),
+                It.IsAny<Exception?>(),
+                It.IsAny<Func<It.IsAnyType, Exception?, string>>()),
+            Times.Once);
+        logger.Verify(
+            x => x.Log(
+                Microsoft.Extensions.Logging.LogLevel.Information,
+                It.IsAny<EventId>(),
+                It.Is<It.IsAnyType>((state, _) => state.ToString()!.StartsWith("MTP phase performance:")),
+                It.IsAny<Exception?>(),
+                It.IsAny<Func<It.IsAnyType, Exception?, string>>()),
+            Times.Once);
     }
 
     [TestMethod]
