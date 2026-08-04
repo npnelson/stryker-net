@@ -1,4 +1,5 @@
 using System.Collections.Concurrent;
+using System.Diagnostics;
 using Microsoft.Extensions.Logging;
 using Stryker.Abstractions;
 using Stryker.Abstractions.Options;
@@ -29,6 +30,9 @@ public sealed class MicrosoftTestPlatformRunnerPool : ITestRunner
     private readonly object _discoveryLock = new();
     private readonly ISingleRunnerFactory _runnerFactory;
     private readonly IStrykerOptions _options;
+    private readonly MtpPerformanceMetrics _leasePerformanceMetrics = new();
+    private readonly Stopwatch _poolLifetime = new();
+    private int _waitingRunnerRequests;
 
     public IEnumerable<SingleMicrosoftTestPlatformRunner> Runners => _availableRunners;
 
@@ -41,6 +45,21 @@ public sealed class MicrosoftTestPlatformRunnerPool : ITestRunner
         _logger.LogWarning("The Microsoft Test Platform testrunner is currently in preview. Results should be verified since this feature is still being tested.");
 
         Initialize();
+        _poolLifetime.Start();
+    }
+
+    internal MtpPerformanceSnapshot PerformanceSnapshot
+    {
+        get
+        {
+            var snapshot = _leasePerformanceMetrics.Snapshot();
+            foreach (var runner in _allRunners)
+            {
+                snapshot = snapshot.Add(runner.PerformanceSnapshot);
+            }
+
+            return snapshot;
+        }
     }
 
     public void ResetTestProcesses()
@@ -316,6 +335,8 @@ public sealed class MicrosoftTestPlatformRunnerPool : ITestRunner
     private async Task<T> RunThisAsync<T>(Func<SingleMicrosoftTestPlatformRunner, Task<T>> task)
     {
         SingleMicrosoftTestPlatformRunner? runner;
+        var queueWaitStarted = Stopwatch.GetTimestamp();
+        var contended = false;
 
         // Try to get a runner with a timeout to prevent indefinite blocking
         var attempts = 0;
@@ -323,30 +344,50 @@ public sealed class MicrosoftTestPlatformRunnerPool : ITestRunner
         const int waitIntervalMs = 1000; // Check every second
         var maxAttempts = maxWaitTimeSeconds * 1000 / waitIntervalMs;
 
-        while (!_availableRunners.TryTake(out runner))
+        if (!_availableRunners.TryTake(out runner))
         {
-            if (!_runnerAvailableHandler.WaitOne(waitIntervalMs))
-            {
-                attempts++;
-                if (attempts >= maxAttempts)
-                {
-                    throw new TimeoutException($"Timed out waiting for an available test runner after {maxWaitTimeSeconds} seconds. Available runners: {_availableRunners.Count}, Total runners: {_countOfRunners}");
-                }
+            contended = true;
+            var queueDepth = Interlocked.Increment(ref _waitingRunnerRequests);
+            _leasePerformanceMetrics.ObserveQueueDepth(queueDepth);
 
-                if (attempts % 30 == 0) // Log every 30 seconds
+            try
+            {
+                while (!_availableRunners.TryTake(out runner))
                 {
-                    _logger.LogWarning("Waiting for available test runner... ({Attempts}s elapsed, {Available}/{Total} runners available)",
-                        attempts, _availableRunners.Count, _countOfRunners);
+                    if (!_runnerAvailableHandler.WaitOne(waitIntervalMs))
+                    {
+                        attempts++;
+                        if (attempts >= maxAttempts)
+                        {
+                            throw new TimeoutException($"Timed out waiting for an available test runner after {maxWaitTimeSeconds} seconds. Available runners: {_availableRunners.Count}, Total runners: {_countOfRunners}");
+                        }
+
+                        if (attempts % 30 == 0) // Log every 30 seconds
+                        {
+                            _logger.LogWarning("Waiting for available test runner... ({Attempts}s elapsed, {Available}/{Total} runners available)",
+                                attempts, _availableRunners.Count, _countOfRunners);
+                        }
+                    }
                 }
+            }
+            finally
+            {
+                Interlocked.Decrement(ref _waitingRunnerRequests);
             }
         }
 
+        var queueWait = contended ? Stopwatch.GetElapsedTime(queueWaitStarted) : TimeSpan.Zero;
+        var runnerBusyStarted = Stopwatch.GetTimestamp();
         try
         {
             return await task(runner).ConfigureAwait(false);
         }
         finally
         {
+            _leasePerformanceMetrics.RecordLease(
+                queueWait,
+                Stopwatch.GetElapsedTime(runnerBusyStarted),
+                contended);
             _availableRunners.Add(runner);
             _runnerAvailableHandler.Set();
         }
@@ -360,11 +401,41 @@ public sealed class MicrosoftTestPlatformRunnerPool : ITestRunner
         }
 
         _disposed = true;
+        _poolLifetime.Stop();
 
         foreach (var runner in _allRunners)
         {
             runner.Dispose();
         }
+
+        var snapshot = PerformanceSnapshot;
+        var summary = MtpPerformanceSummary.Create(snapshot, _countOfRunners, _poolLifetime.Elapsed);
+        _logger.LogInformation(
+            "MTP performance summary: {RunnerCount} runners over {ElapsedMs} ms; {LeaseCount} leases ({ContendedLeaseCount} contended, max queue depth {MaxQueueDepth}, total queue wait {TotalQueueWaitMs} ms, max queue wait {MaxQueueWaitMs} ms); leased runner busy {RunnerBusyMs} ms, idle {RunnerIdleMs} ms, capacity {RunnerCapacityMs} ms, utilization {RunnerUtilizationPercent}%; {HostStartCount} host starts ({HostStartFailureCount} failed, total {HostStartMs} ms, max {MaxHostStartMs} ms); {TestRunCount} test runs ({CompletedTestRunCount} completed, {FailedTestRunCount} failed, {RpcDispatchTimeoutCount} RPC timeouts, {RunCompletionTimeoutCount} completion timeouts); RPC dispatch {RpcDispatchMs} ms total/{MaxRpcDispatchMs} ms max; run completion {RunCompletionMs} ms total/{MaxRunCompletionMs} ms max",
+            _countOfRunners,
+            _poolLifetime.Elapsed.TotalMilliseconds,
+            snapshot.LeaseCount,
+            snapshot.ContendedLeaseCount,
+            snapshot.MaxQueueDepth,
+            snapshot.TotalQueueWait.TotalMilliseconds,
+            snapshot.MaxQueueWait.TotalMilliseconds,
+            snapshot.TotalRunnerBusy.TotalMilliseconds,
+            summary.RunnerIdle.TotalMilliseconds,
+            summary.RunnerCapacity.TotalMilliseconds,
+            summary.RunnerUtilizationPercent,
+            snapshot.HostStartCount,
+            snapshot.HostStartFailureCount,
+            snapshot.TotalHostStart.TotalMilliseconds,
+            snapshot.MaxHostStart.TotalMilliseconds,
+            snapshot.TestRunCount,
+            snapshot.CompletedTestRunCount,
+            snapshot.FailedTestRunCount,
+            snapshot.RpcDispatchTimeoutCount,
+            snapshot.RunCompletionTimeoutCount,
+            snapshot.TotalRpcDispatch.TotalMilliseconds,
+            snapshot.MaxRpcDispatch.TotalMilliseconds,
+            snapshot.TotalRunCompletion.TotalMilliseconds,
+            snapshot.MaxRunCompletion.TotalMilliseconds);
         _runnerAvailableHandler.Dispose();
     }
 }

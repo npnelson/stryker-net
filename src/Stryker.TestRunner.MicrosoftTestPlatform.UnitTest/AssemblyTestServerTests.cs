@@ -32,8 +32,14 @@ public class AssemblyTestServerTests
         _processMock.SetupGet(p => p.HasExited).Returns(false);
     }
 
-    private AssemblyTestServer CreateServer() =>
-        new(TestAssembly, _envVars, NullLogger.Instance, TestRunnerId, connectionFactory: _factoryMock.Object);
+    private AssemblyTestServer CreateServer(MtpPerformanceMetrics? performanceMetrics = null) =>
+        new(
+            TestAssembly,
+            _envVars,
+            NullLogger.Instance,
+            TestRunnerId,
+            connectionFactory: _factoryMock.Object,
+            performanceMetrics: performanceMetrics);
 
     private void SetupSuccessfulConnection(int port = 12345)
     {
@@ -373,6 +379,31 @@ public class AssemblyTestServerTests
         var result = await server.RunTestsAsync(null);
 
         result.Count.ShouldBe(2);
+    }
+
+    [TestMethod]
+    public async Task StartAndRunTestsAsync_ShouldRecordNormalPathHostAndRpcMeasurements()
+    {
+        SetupSuccessfulConnection();
+
+        var listener = new TestNodeUpdatesResponseListener(Guid.NewGuid(), _ => Task.CompletedTask);
+        listener.Complete();
+        _clientMock.Setup(c => c.RunTestsAsync(It.IsAny<Guid>(), It.IsAny<Func<TestNodeUpdate[], Task>>(), null))
+            .ReturnsAsync(listener);
+        var metrics = new MtpPerformanceMetrics();
+
+        using var server = CreateServer(metrics);
+        await server.StartAsync();
+        await server.RunTestsAsync(null);
+
+        var snapshot = metrics.Snapshot();
+        snapshot.HostStartCount.ShouldBe(1);
+        snapshot.HostStartFailureCount.ShouldBe(0);
+        snapshot.TestRunCount.ShouldBe(1);
+        snapshot.CompletedTestRunCount.ShouldBe(1);
+        snapshot.FailedTestRunCount.ShouldBe(0);
+        snapshot.RpcDispatchTimeoutCount.ShouldBe(0);
+        snapshot.RunCompletionTimeoutCount.ShouldBe(0);
     }
 
     [TestMethod]

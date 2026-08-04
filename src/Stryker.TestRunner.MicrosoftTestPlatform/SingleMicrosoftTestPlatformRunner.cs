@@ -39,6 +39,7 @@ public class SingleMicrosoftTestPlatformRunner : IDisposable
     // own file and unioning them at read time makes coverage independent of both.
     private readonly ConcurrentDictionary<string, string> _coverageFilePaths = new();
     private readonly IStrykerOptions? _options;
+    private readonly MtpPerformanceMetrics _performanceMetrics = new();
 
     private readonly Dictionary<string, AssemblyTestServer> _assemblyServers = new();
     private readonly object _serverLock = new();
@@ -59,6 +60,8 @@ public class SingleMicrosoftTestPlatformRunner : IDisposable
     /// Path of the mutant-id control file this runner shares with its test hosts. Exposed for unit testing.
     /// </summary>
     internal string MutantFilePath => _mutantFilePath;
+
+    internal MtpPerformanceSnapshot PerformanceSnapshot => _performanceMetrics.Snapshot();
 
     public SingleMicrosoftTestPlatformRunner(
         int id,
@@ -219,7 +222,7 @@ public class SingleMicrosoftTestPlatformRunner : IDisposable
     public virtual async Task ResetServerAsync()
     {
         _logger.LogDebug("{RunnerId}: Resetting test servers to reload assemblies", RunnerId);
-        
+
         lock (_serverLock)
         {
             foreach (var server in _assemblyServers.Values)
@@ -228,7 +231,7 @@ public class SingleMicrosoftTestPlatformRunner : IDisposable
             }
             _assemblyServers.Clear();
         }
-        
+
         _logger.LogDebug("{RunnerId}: Test servers reset complete", RunnerId);
         await Task.CompletedTask;
     }
@@ -731,7 +734,13 @@ public class SingleMicrosoftTestPlatformRunner : IDisposable
         }
 
         var environmentVariables = BuildEnvironmentVariables(assembly);
-        var server = new AssemblyTestServer(assembly, environmentVariables, _logger, RunnerId, _options);
+        var server = new AssemblyTestServer(
+            assembly,
+            environmentVariables,
+            _logger,
+            RunnerId,
+            _options,
+            performanceMetrics: _performanceMetrics);
 
         var started = await server.StartAsync().ConfigureAwait(false);
         if (!started)
@@ -816,11 +825,11 @@ public class SingleMicrosoftTestPlatformRunner : IDisposable
                         : 0;
                 }
             });
-        
+
         var timeoutMs = timeoutCalc.CalculateTimeoutValue(estimatedTimeMs);
         _logger.LogDebug("{RunnerId}: Using {TimeoutMs} ms as test run timeout for {Assembly}",
             RunnerId, timeoutMs, Path.GetFileName(assembly));
-        
+
         return TimeSpan.FromMilliseconds(timeoutMs);
     }
 
@@ -848,13 +857,13 @@ public class SingleMicrosoftTestPlatformRunner : IDisposable
         _logger.LogDebug("{RunnerId}: Test run timed out for {Assembly}", RunnerId, Path.GetFileName(assembly));
 
         allTimedOutTests.AddRange(discoveredTests.Select(t => t.Uid));
-        
+
         AssemblyTestServer? server;
         lock (_serverLock)
         {
             _assemblyServers.TryGetValue(assembly, out server);
         }
-        
+
         if (server is not null)
         {
             _logger.LogDebug("{RunnerId}: Restarting test server for {Assembly} after timeout", RunnerId, Path.GetFileName(assembly));

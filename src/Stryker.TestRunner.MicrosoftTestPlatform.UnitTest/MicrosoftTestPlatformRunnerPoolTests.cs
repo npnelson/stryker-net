@@ -198,6 +198,26 @@ public class MicrosoftTestPlatformRunnerPoolTests : TestBase
     }
 
     [TestMethod]
+    public void Dispose_ShouldLogOneBoundedPerformanceSummaryAtInformationLevel()
+    {
+        var options = new Mock<IStrykerOptions>();
+        options.Setup(x => x.Concurrency).Returns(1);
+        var logger = new Mock<ILogger>();
+        var pool = new MicrosoftTestPlatformRunnerPool(options.Object, logger.Object);
+
+        pool.Dispose();
+
+        logger.Verify(
+            x => x.Log(
+                Microsoft.Extensions.Logging.LogLevel.Information,
+                It.IsAny<EventId>(),
+                It.Is<It.IsAnyType>((state, _) => state.ToString()!.StartsWith("MTP performance summary: 1 runners")),
+                It.IsAny<Exception?>(),
+                It.IsAny<Func<It.IsAnyType, Exception?, string>>()),
+            Times.Once);
+    }
+
+    [TestMethod]
     public void Constructor_ShouldCreateMultipleRunners_WhenConcurrencyIsHigh()
     {
         // Arrange
@@ -322,8 +342,10 @@ public class MicrosoftTestPlatformRunnerPoolTests : TestBase
                     // Populate the pool's shared dictionaries so it discovers the same tests set up above.
                     if (tba.Count == 0)
                     {
-                        foreach (var kvp in testsByAssembly) tba[kvp.Key] = kvp.Value;
-                        foreach (var kvp in testDescriptions) td[kvp.Key] = kvp.Value;
+                        foreach (var kvp in testsByAssembly)
+                            tba[kvp.Key] = kvp.Value;
+                        foreach (var kvp in testDescriptions)
+                            td[kvp.Key] = kvp.Value;
                     }
                     return new TestableRunner(id, tba, td, ts, dl,
                         () => { },
@@ -356,6 +378,8 @@ public class MicrosoftTestPlatformRunnerPoolTests : TestBase
         var cov2 = coverage.First(c => c.TestId == desc2.Id);
         cov2.MutationsCovered.ShouldContain(3);
         cov2.MutationsCovered.ShouldNotContain(1);
+
+        pool.PerformanceSnapshot.LeaseCount.ShouldBe(2, "each per-test coverage operation should be measured as one runner lease");
     }
 
     [TestMethod]
