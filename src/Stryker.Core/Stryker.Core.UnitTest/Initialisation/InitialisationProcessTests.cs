@@ -29,6 +29,44 @@ namespace Stryker.Core.UnitTest.Initialisation;
 public class InitialisationProcessTests : TestBase
 {
     [TestMethod]
+    public void InitialisationProcess_ShouldPassTargetFrameworkToProjectBuild()
+    {
+        var fileSystem = new MockFileSystem();
+        var inputFileResolverMock = new Mock<IInputFileResolver>(MockBehavior.Strict);
+        var initialBuildProcessMock = new Mock<IInitialBuildProcess>(MockBehavior.Strict);
+        var testProjectAnalyzerResult = TestHelper.SetupProjectAnalyzerResult(
+            projectFilePath: "/repo/Tests.csproj",
+            targetFramework: "net10.0").Object;
+        var project = new SourceProjectInfo
+        {
+            AnalyzerResult = TestHelper.SetupProjectAnalyzerResult(references: []).Object,
+            TestProjectsInfo = new TestProjectsInfo(fileSystem)
+            {
+                TestProjects = [new TestProject(fileSystem, testProjectAnalyzerResult)]
+            }
+        };
+        var target = new InitialisationProcess(
+            inputFileResolverMock.Object,
+            initialBuildProcessMock.Object,
+            Mock.Of<IInitialTestProcess>(),
+            Mock.Of<ILogger<InitialisationProcess>>());
+        var options = new StrykerOptions { TargetFramework = "net10.0" };
+
+        initialBuildProcessMock.Setup(x => x.InitialBuild(
+            false,
+            "/repo/Tests.csproj",
+            null,
+            It.IsAny<string>(),
+            It.IsAny<string>(),
+            "net10.0",
+            It.IsAny<string>()));
+
+        target.BuildProjects(options, [project]);
+
+        initialBuildProcessMock.VerifyAll();
+    }
+
+    [TestMethod]
     public void InitialisationProcess_ShouldCallNeededResolvers()
     {
         var inputFileResolverMock = new Mock<IInputFileResolver>(MockBehavior.Strict);

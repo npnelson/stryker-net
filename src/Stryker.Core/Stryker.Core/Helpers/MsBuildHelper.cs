@@ -87,6 +87,13 @@ public class MsBuildHelper
             fullOptions.Add($"{(usingMsBuild ? "/" : "--")}property:Platform={QuotesIfNeeded(platform)}");
         }
 
+        if (!string.IsNullOrEmpty(forcedFramework))
+        {
+            fullOptions.Add(usingMsBuild
+                ? $"/property:TargetFramework={QuotesIfNeeded(forcedFramework)}"
+                : $"-f {QuotesIfNeeded(forcedFramework)}");
+        }
+
         if (options is not null)
         {
             fullOptions.Add(options);
