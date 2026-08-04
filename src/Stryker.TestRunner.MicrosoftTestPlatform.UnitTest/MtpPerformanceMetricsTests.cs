@@ -1,3 +1,4 @@
+using System.Diagnostics;
 using Shouldly;
 
 namespace Stryker.TestRunner.MicrosoftTestPlatform.UnitTest;
@@ -86,5 +87,40 @@ public class MtpPerformanceMetricsTests
         combined.HostStartFailureCount.ShouldBe(1);
         combined.TotalHostStart.ShouldBe(TimeSpan.FromMilliseconds(300));
         combined.MaxHostStart.ShouldBe(TimeSpan.FromMilliseconds(200));
+    }
+
+    [TestMethod]
+    public void PhaseSnapshot_ShouldTrackConcurrentLeaseSpanOccupancyAndContention()
+    {
+        var metrics = new MtpPhasePerformanceMetrics();
+        var origin = Stopwatch.GetTimestamp();
+        metrics.ObserveQueueDepth(2);
+        metrics.RecordLease(
+            origin,
+            origin + Stopwatch.Frequency,
+            TimeSpan.FromMilliseconds(100),
+            TimeSpan.FromMilliseconds(900),
+            contended: true);
+        metrics.RecordLease(
+            origin + Stopwatch.Frequency / 2,
+            origin + Stopwatch.Frequency * 2,
+            TimeSpan.Zero,
+            TimeSpan.FromMilliseconds(500),
+            contended: false);
+
+        var snapshot = metrics.Snapshot();
+        var summary = MtpPerformanceSummary.Create(snapshot.TotalRunnerBusy, runnerCount: 2, snapshot.Elapsed);
+
+        snapshot.LeaseCount.ShouldBe(2);
+        snapshot.ContendedLeaseCount.ShouldBe(1);
+        snapshot.TotalQueueWait.ShouldBe(TimeSpan.FromMilliseconds(100));
+        snapshot.MaxQueueWait.ShouldBe(TimeSpan.FromMilliseconds(100));
+        snapshot.TotalRunnerBusy.ShouldBe(TimeSpan.FromMilliseconds(1400));
+        snapshot.MaxRunnerBusy.ShouldBe(TimeSpan.FromMilliseconds(900));
+        snapshot.MaxQueueDepth.ShouldBe(2);
+        snapshot.Elapsed.ShouldBe(TimeSpan.FromSeconds(2));
+        summary.RunnerCapacity.ShouldBe(TimeSpan.FromSeconds(4));
+        summary.RunnerIdle.ShouldBe(TimeSpan.FromMilliseconds(2600));
+        summary.RunnerUtilizationPercent.ShouldBe(35);
     }
 }

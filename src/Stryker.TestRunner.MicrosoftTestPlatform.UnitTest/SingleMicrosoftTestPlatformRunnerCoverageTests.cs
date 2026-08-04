@@ -651,6 +651,29 @@ public class SingleMicrosoftTestPlatformRunnerCoverageTests
         result.MutationsCovered.ShouldBeEmpty();
     }
 
+    [TestMethod, Timeout(5000)]
+    public async Task RunTestCohortForCoverageInReusedProcessAsync_ReturnsDubiousForEveryTest_WhenServerCannotStart()
+    {
+        using var runner = new SingleMicrosoftTestPlatformRunner(
+            705, _testsByAssembly, _testDescriptions, _testSet, _discoveryLock, NullLogger.Instance);
+
+        runner.SetPerTestCoverageMode(true);
+        var tests = new[]
+        {
+            new TestNode("test-1", "Test1", "test", "discovered"),
+            new TestNode("test-2", "Test2", "test", "discovered"),
+        };
+
+        var results = await runner.RunTestCohortForCoverageInReusedProcessAsync(
+            "/nonexistent/assembly.dll",
+            tests,
+            ["test-1", "test-2"]);
+
+        results.Select(result => result.TestId).ShouldBe(["test-1", "test-2"]);
+        results.ShouldAllBe(result => result.Confidence == CoverageConfidence.Dubious);
+        results.ShouldAllBe(result => result.MutationsCovered.Count == 0);
+    }
+
     [TestMethod]
     public void SetPerTestCoverageMode_ShouldResetPerAssemblyState_WhenToggled()
     {

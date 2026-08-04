@@ -566,6 +566,35 @@ public class SingleMicrosoftTestPlatformRunner : IDisposable
     internal virtual async Task<ICoverageRunResult> RunSingleTestForCoverageInReusedProcessAsync(
         string assembly, TestNode test, string testId)
     {
+        var results = await RunTestCohortForCoverageInReusedProcessAsync(
+            assembly,
+            [test],
+            [testId]).ConfigureAwait(false);
+        return results[0];
+    }
+
+    /// <summary>
+    /// Captures the union of a bounded test cohort in one MTP request and conservatively attributes
+    /// that union to every member. This reduces request overhead without risking false no-coverage
+    /// classifications; the tradeoff is a larger test selection for mutants covered by the cohort.
+    /// </summary>
+    internal virtual async Task<IReadOnlyList<ICoverageRunResult>> RunTestCohortForCoverageInReusedProcessAsync(
+        string assembly,
+        IReadOnlyList<TestNode> tests,
+        IReadOnlyList<string> testIds)
+    {
+        ArgumentNullException.ThrowIfNull(tests);
+        ArgumentNullException.ThrowIfNull(testIds);
+        if (tests.Count == 0)
+        {
+            throw new ArgumentException("A coverage cohort must contain at least one test.", nameof(tests));
+        }
+
+        if (tests.Count != testIds.Count)
+        {
+            throw new ArgumentException("Coverage cohort tests and identifiers must have the same count.", nameof(testIds));
+        }
+
         var coverageFilePath = GetPerTestCoverageFilePath(assembly);
         var epochFilePath = GetPerTestEpochFilePath(assembly);
 
@@ -591,16 +620,19 @@ public class SingleMicrosoftTestPlatformRunner : IDisposable
             try
             {
                 var server = await GetOrCreateServerAsync(assembly).ConfigureAwait(false);
-                var timeout = CalculateSingleTestTimeout(test);
-                var (_, timeoutStage) = await server.RunTestsAsync(new[] { test }, timeout).ConfigureAwait(false);
+                var timeout = CalculateCoverageTimeout(tests);
+                var (_, timeoutStage) = await server.RunTestsAsync(tests.ToArray(), timeout).ConfigureAwait(false);
                 if (timeoutStage is not null)
                 {
                     _logger.LogWarning(
-                        "{RunnerId}: MTP test run timed out during {TimeoutStage} while capturing per-test coverage for {TestId} after a {TimeoutMs} ms budget; discarding the test server and marking coverage as Dubious",
-                        RunnerId, timeoutStage, testId, timeout.TotalMilliseconds);
+                        "{RunnerId}: MTP test run timed out during {TimeoutStage} while capturing coverage for a cohort of {TestCount} tests after a {TimeoutMs} ms budget; discarding the test server and marking coverage as Dubious",
+                        RunnerId, timeoutStage, testIds.Count, timeout.TotalMilliseconds);
                     await DiscardServerAsync(assembly).ConfigureAwait(false);
-                    return CoverageRunResult.Create(testId, CoverageConfidence.Dubious,
-                        Array.Empty<int>(), Array.Empty<int>(), Array.Empty<int>());
+                    return CreateCoverageResults(
+                        testIds,
+                        CoverageConfidence.Dubious,
+                        Array.Empty<int>(),
+                        Array.Empty<int>());
                 }
 
                 int epoch;
@@ -620,21 +652,24 @@ public class SingleMicrosoftTestPlatformRunner : IDisposable
                 if (!acked)
                 {
                     _logger.LogWarning(
-                        "{RunnerId}: Timed out waiting for coverage relay ack for test {TestId}; marking as Dubious",
-                        RunnerId, testId);
-                    return CoverageRunResult.Create(testId, CoverageConfidence.Dubious,
-                        Array.Empty<int>(), Array.Empty<int>(), Array.Empty<int>());
+                        "{RunnerId}: Timed out waiting for coverage relay ack for a cohort of {TestCount} tests; marking coverage as Dubious",
+                        RunnerId, testIds.Count);
+                    return CreateCoverageResults(
+                        testIds,
+                        CoverageConfidence.Dubious,
+                        Array.Empty<int>(),
+                        Array.Empty<int>());
                 }
 
                 var (covered, staticMutants) = ReadCoverageDataFrom(coverageFilePath);
-                return CoverageRunResult.Create(testId, CoverageConfidence.Normal, covered, staticMutants, Array.Empty<int>());
+                return CreateCoverageResults(testIds, CoverageConfidence.Normal, covered, staticMutants);
             }
             catch (Exception ex)
             {
                 lastRunException = ex;
                 _logger.LogDebug(ex,
-                    "{RunnerId}: Per-test coverage capture for {TestId} failed on attempt {Attempt}/{MaxAttempts}; discarding crashed server",
-                    RunnerId, testId, attempt, maxRunAttempts);
+                    "{RunnerId}: Coverage capture for a cohort of {TestCount} tests failed on attempt {Attempt}/{MaxAttempts}; discarding crashed server",
+                    RunnerId, testIds.Count, attempt, maxRunAttempts);
 
                 // The server most likely crashed; drop it so the next attempt (or the next test on this
                 // runner) starts a fresh one instead of reusing a dead RPC connection.
@@ -643,11 +678,28 @@ public class SingleMicrosoftTestPlatformRunner : IDisposable
         }
 
         _logger.LogWarning(lastRunException,
-            "{RunnerId}: Failed to capture per-test coverage for {TestId} after {MaxAttempts} attempts",
-            RunnerId, testId, maxRunAttempts);
-        return CoverageRunResult.Create(testId, CoverageConfidence.Dubious,
-            Array.Empty<int>(), Array.Empty<int>(), Array.Empty<int>());
+            "{RunnerId}: Failed to capture coverage for a cohort of {TestCount} tests after {MaxAttempts} attempts",
+            RunnerId, testIds.Count, maxRunAttempts);
+        return CreateCoverageResults(
+            testIds,
+            CoverageConfidence.Dubious,
+            Array.Empty<int>(),
+            Array.Empty<int>());
     }
+
+    private static IReadOnlyList<ICoverageRunResult> CreateCoverageResults(
+        IReadOnlyList<string> testIds,
+        CoverageConfidence confidence,
+        IReadOnlyList<int> covered,
+        IReadOnlyList<int> staticMutants) =>
+        testIds
+            .Select(testId => (ICoverageRunResult)CoverageRunResult.Create(
+                testId,
+                confidence,
+                covered,
+                staticMutants,
+                Array.Empty<int>()))
+            .ToArray();
 
     /// <summary>
     /// Captures coverage for a single test with full process isolation: the test host is discarded and
@@ -843,10 +895,16 @@ public class SingleMicrosoftTestPlatformRunner : IDisposable
 
     internal TimeSpan CalculateSingleTestTimeout(TestNode test)
     {
+        return CalculateCoverageTimeout([test]);
+    }
+
+    internal TimeSpan CalculateCoverageTimeout(IReadOnlyList<TestNode> tests)
+    {
         var additionalTimeout = TimeSpan.FromMilliseconds(_options?.AdditionalTimeout ?? 0);
-        var estimatedRunTime = _testDescriptions.TryGetValue(test.Uid, out var description)
-            ? description.InitialRunTime
-            : TimeSpan.Zero;
+        var estimatedRunTime = TimeSpan.FromTicks(tests.Sum(test =>
+            _testDescriptions.TryGetValue(test.Uid, out var description)
+                ? description.InitialRunTime.Ticks
+                : 0));
 
         var calculated = (estimatedRunTime * SingleTestCoverageTimeoutRatio) + additionalTimeout;
         return calculated > _minimumSingleTestCoverageTimeout ? calculated : _minimumSingleTestCoverageTimeout;
