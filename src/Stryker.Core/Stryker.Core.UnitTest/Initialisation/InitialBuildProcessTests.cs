@@ -172,6 +172,26 @@ public class InitialBuildProcessTests : TestBase
             Times.Once);
     }
 
+    [TestMethod]
+    public void InitialBuildProcess_ShouldUseProvidedTargetFramework()
+    {
+        var processMock = new Mock<IProcessExecutor>(MockBehavior.Strict);
+        var mockFileSystem = new MockFileSystem();
+
+        processMock.SetupProcessMockToReturn("");
+
+        var target = new InitialBuildProcess(processMock.Object, mockFileSystem, TestLoggerFactory.CreateLogger<InitialBuildProcess>());
+
+        target.InitialBuild(false, "/", "./ExampleProject.csproj", targetFramework: "net10.0");
+
+        processMock.Verify(x => x.Start(It.IsAny<string>(),
+                "dotnet",
+                It.Is<string>(arguments => arguments.Contains("build ExampleProject.csproj -f net10.0")),
+                It.IsAny<IEnumerable<KeyValuePair<string, string>>>(),
+                It.IsAny<int>()),
+            Times.Once);
+    }
+
 
     [TestMethod]
     public void InitialBuildProcess_ShouldRunDotnetBuildIfNotDotnetFramework()

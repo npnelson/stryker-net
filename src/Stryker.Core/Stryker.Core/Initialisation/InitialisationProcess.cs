@@ -101,6 +101,7 @@ public class InitialisationProcess : IInitialisationProcess
                     options.SolutionPath,
                     testProjects[i].GetProperty("Configuration"),
                     testProjects[i].GetProperty("Platform"),
+                    targetFramework: options.TargetFramework,
                     msbuildPath: options.MsBuildPath ?? testProjects[i].MsBuildPath());
             }
         }
