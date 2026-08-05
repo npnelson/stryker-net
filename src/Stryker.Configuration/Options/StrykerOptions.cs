@@ -132,7 +132,7 @@ public class StrykerOptions : IStrykerOptions
 
     public bool StandbyPrewarm { get; init; }
 
-    public int CoverageCohortSize { get; init; } = 32;
+    public int CoverageCohortSize { get; init; } = 1;
 
     /// <summary>
     /// When multiple possible projects are found by stryker, this filter is used to determine the project that should be mutated.

@@ -18,7 +18,7 @@ namespace Stryker.TestRunner.MicrosoftTestPlatform;
 /// </summary>
 public sealed class MicrosoftTestPlatformRunnerPool : ITestRunner
 {
-    private const int DefaultCoverageCohortSize = 32;
+    private const int DefaultCoverageCohortSize = 1;
     private const int MaximumCoverageCohortSize = 1024;
     private readonly AutoResetEvent _runnerAvailableHandler = new(false);
     private readonly ConcurrentBag<SingleMicrosoftTestPlatformRunner> _availableRunners = new();
