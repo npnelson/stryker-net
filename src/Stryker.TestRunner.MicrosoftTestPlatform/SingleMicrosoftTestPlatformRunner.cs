@@ -307,7 +307,7 @@ public class SingleMicrosoftTestPlatformRunner : IDisposable
     {
         // Only the opt-in whole-run isolation flag uses standby. The pre-existing static-mutant carve-out
         // keeps starting its host on demand, so its behaviour (and its tests) are untouched.
-        if (_options?.IsolateMutants != true)
+        if (_options?.IsolateMutants != true || _options?.StandbyPrewarm != true)
         {
             return;
         }

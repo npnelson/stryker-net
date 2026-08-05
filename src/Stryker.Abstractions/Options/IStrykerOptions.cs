@@ -25,6 +25,12 @@ public interface IStrykerOptions
     /// between mutants (stryker-net#3742), at the cost of a host start per mutant.
     /// </summary>
     bool IsolateMutants { get; init; }
+
+    /// <summary>
+    /// Pre-start the next isolated test host during the current mutant's run. Optimisation only; see
+    /// StandbyPrewarmInput for the [ModuleInitializer] caveat.
+    /// </summary>
+    bool StandbyPrewarm { get; init; }
     string Configuration { get; init; }
     string DashboardApiKey { get; init; }
     string DashboardUrl { get; init; }

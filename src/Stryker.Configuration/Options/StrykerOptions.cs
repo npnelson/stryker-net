@@ -130,6 +130,8 @@ public class StrykerOptions : IStrykerOptions
 
     public bool IsolateMutants { get; init; }
 
+    public bool StandbyPrewarm { get; init; }
+
     /// <summary>
     /// When multiple possible projects are found by stryker, this filter is used to determine the project that should be mutated.
     /// </summary>
