@@ -44,9 +44,28 @@ public class InitialTestProcess : IInitialTestProcess
         // timings
         _logger.LogDebug("Initial test run output: {ResultMessage}.", initTestRunResult.ResultMessage);
 
-        TimeoutValueCalculator = new TimeoutValueCalculator(options.AdditionalTimeout,
-            (int)stopwatch.ElapsedMilliseconds,
-            (int)initTestRunResult.Duration.TotalMilliseconds);
+        var sessionTime = (int)stopwatch.ElapsedMilliseconds;
+        var aggregatedTestTime = (int)initTestRunResult.Duration.TotalMilliseconds;
+
+        TimeoutValueCalculator = new TimeoutValueCalculator(options.AdditionalTimeout, sessionTime, aggregatedTestTime);
+
+        // The initialization allowance is inferred by subtraction (see TimeoutValueCalculator), so it is
+        // only meaningful when the initial run executed its tests sequentially in one host. Surface the
+        // inputs so a collapsed allowance is visible rather than silently inherited by every mutant.
+        var initializationTime = Math.Max(sessionTime - aggregatedTestTime, 0);
+        _logger.LogInformation(
+            "Initial test run timings: wall clock {SessionTime} ms, aggregated test time {AggregatedTestTime} ms, "
+            + "derived initialization allowance {InitializationTime} ms, default mutant timeout {DefaultTimeout} ms.",
+            sessionTime, aggregatedTestTime, initializationTime, TimeoutValueCalculator.DefaultTimeout);
+
+        if (sessionTime < aggregatedTestTime)
+        {
+            _logger.LogWarning(
+                "Initial test run wall clock ({SessionTime} ms) is below its aggregated test time ({AggregatedTestTime} ms), "
+                + "so the derived initialization allowance clamped to zero and mutant timeouts carry no startup budget. "
+                + "This happens when the initial run executes tests concurrently or across several hosts; timeouts may fire spuriously.",
+                sessionTime, aggregatedTestTime);
+        }
 
         return new InitialTestRun(initTestRunResult, TimeoutValueCalculator);
     }

@@ -139,7 +139,7 @@ public class StrykerInputs : IStrykerInputs
             OutputPath = outputPath,
             ReportFileName = reportFileNameInput,
             Concurrency = ConcurrencyInput.Validate(),
-            IsolateMutants = IsolateMutantsInput.Validate(),
+            IsolateMutants = IsolateMutantsInput.Validate(testRunner),
             MutationLevel = MutationLevelInput.Validate(),
             DiagMode = DiagModeInput.Validate(),
             MsBuildPath = MsBuildPathInput.Validate(_fileSystem),
