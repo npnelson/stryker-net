@@ -17,6 +17,7 @@ public interface IStrykerInputs
     BaselineOutputInput BaselineOutputInput { get; init; }
     BasePathInput BasePathInput { get; init; }
     ConcurrencyInput ConcurrencyInput { get; init; }
+    IsolateMutantsInput IsolateMutantsInput { get; init; }
     ConfigurationInput ConfigurationInput { get; init; }
     CoverageAnalysisInput CoverageAnalysisInput { get; init; }
     DashboardApiKeyInput DashboardApiKeyInput { get; init; }
@@ -85,6 +86,7 @@ public class StrykerInputs : IStrykerInputs
     public AdditionalTimeoutInput AdditionalTimeoutInput { get; init; } = new();
     public LanguageVersionInput LanguageVersionInput { get; init; } = new();
     public ConcurrencyInput ConcurrencyInput { get; init; } = new();
+    public IsolateMutantsInput IsolateMutantsInput { get; init; } = new();
     public SourceProjectNameInput SourceProjectNameInput { get; init; } = new();
     public TestProjectsInput TestProjectsInput { get; init; } = new();
     public TestCaseFilterInput TestCaseFilterInput { get; init; } = new();
@@ -137,6 +139,7 @@ public class StrykerInputs : IStrykerInputs
             OutputPath = outputPath,
             ReportFileName = reportFileNameInput,
             Concurrency = ConcurrencyInput.Validate(),
+            IsolateMutants = IsolateMutantsInput.Validate(),
             MutationLevel = MutationLevelInput.Validate(),
             DiagMode = DiagModeInput.Validate(),
             MsBuildPath = MsBuildPathInput.Validate(_fileSystem),
