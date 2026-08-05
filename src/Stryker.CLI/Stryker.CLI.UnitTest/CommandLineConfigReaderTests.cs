@@ -32,6 +32,14 @@ public class CommandLineConfigReaderTests
     }
 
     [TestMethod]
+    public void ShouldHandleIsolateMutants()
+    {
+        _target.ReadCommandLineConfig(new[] { "--isolate-mutants" }, _app, _inputs);
+
+        _inputs.IsolateMutantsInput.SuppliedInput.ShouldBe(true);
+    }
+
+    [TestMethod]
     public void ShouldHandleSingleValue()
     {
         _target.ReadCommandLineConfig(new[] { "--concurrency 4" }, _app, _inputs);

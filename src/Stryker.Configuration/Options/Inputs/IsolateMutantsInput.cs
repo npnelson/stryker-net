@@ -1,3 +1,7 @@
+using Microsoft.Extensions.Logging;
+using Stryker.Abstractions.Options;
+using Stryker.Utilities.Logging;
+
 namespace Stryker.Configuration.Options.Inputs;
 
 public class IsolateMutantsInput : Input<bool?>
@@ -11,5 +15,18 @@ once, under whichever mutant was active at the time, and observed by every later
 which can report provably surviving mutants as killed. Enable this when the code under test memoises in
 static state. Costs one test-host start per mutant.";
 
-    public bool Validate() => SuppliedInput ?? Default!.Value;
+    public bool Validate(TestRunner testRunner = TestRunner.VsTest, ILogger<IsolateMutantsInput> logger = null)
+    {
+        var value = SuppliedInput ?? Default!.Value;
+
+        if (value && testRunner != TestRunner.MicrosoftTestPlatform)
+        {
+            logger ??= ApplicationLogging.LoggerFactory.CreateLogger<IsolateMutantsInput>();
+            logger.LogWarning(
+                "Mutant process isolation was requested but only applies to the Microsoft Test Platform runner; "
+                + "it is ignored for the {TestRunner} runner.", testRunner);
+        }
+
+        return value;
+    }
 }

@@ -2,6 +2,7 @@ using Microsoft.Extensions.Logging.Abstractions;
 using Moq;
 using Shouldly;
 using Stryker.Abstractions;
+using Stryker.Abstractions.Options;
 using Stryker.Abstractions.Testing;
 using Stryker.TestRunner.MicrosoftTestPlatform.Models;
 using Stryker.TestRunner.Results;
@@ -52,8 +53,8 @@ public class SingleMicrosoftTestPlatformRunnerIsolationTests
         return project.Object;
     }
 
-    private SessionTrackingRunner CreateRunner() =>
-        new(_testsByAssembly, _testDescriptions, _testSet, _discoveryLock);
+    private SessionTrackingRunner CreateRunner(IStrykerOptions? options = null) =>
+        new(_testsByAssembly, _testDescriptions, _testSet, _discoveryLock, options);
 
     [TestMethod, Timeout(1000)]
     public async Task TestMultipleMutantsAsync_StaticMutant_RunsActivatedOnDedicatedServer()
@@ -104,6 +105,20 @@ public class SingleMicrosoftTestPlatformRunnerIsolationTests
 
         // Process reuse is the point of the MTP runner; non-static mutants must not pay for a restart.
         runner.Events.ShouldBe(["run:/test.dll"]);
+        runner.ActiveMutantIds.ShouldBe([5]);
+    }
+
+    [TestMethod, Timeout(1000)]
+    public async Task TestMultipleMutantsAsync_IsolateMutantsOption_RunsRegularMutantOnDedicatedServer()
+    {
+        var options = new Mock<IStrykerOptions>();
+        options.SetupGet(x => x.IsolateMutants).Returns(true);
+        using var runner = CreateRunner(options.Object);
+
+        await runner.TestMultipleMutantsAsync(
+            CreateProject("/test.dll"), null, [CreateMutant(5)], null);
+
+        runner.Events.ShouldBe(["reset", "run:/test.dll", "reset"]);
         runner.ActiveMutantIds.ShouldBe([5]);
     }
 
@@ -276,8 +291,9 @@ public class SingleMicrosoftTestPlatformRunnerIsolationTests
             Dictionary<string, List<TestNode>> testsByAssembly,
             Dictionary<string, MtpTestDescription> testDescriptions,
             TestSet testSet,
-            object discoveryLock)
-            : base(RunnerId, testsByAssembly, testDescriptions, testSet, discoveryLock, NullLogger.Instance)
+            object discoveryLock,
+            IStrykerOptions? options = null)
+            : base(RunnerId, testsByAssembly, testDescriptions, testSet, discoveryLock, NullLogger.Instance, options)
         {
         }
 
