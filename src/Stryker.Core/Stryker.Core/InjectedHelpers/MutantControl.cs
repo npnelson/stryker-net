@@ -22,11 +22,22 @@ namespace Stryker
         // mutant runs and has no per-run reset hook, so reading every call (rather than caching) is what
         // keeps this correct: any cached or event-based scheme would race the start of the next run.
         // _mutantMmf / _mutantAccessor are typed as object and initialized to a non-null sentinel only to
-        // root them (and avoid nullable warnings); the accessor is cast back to its real type when read.
+        // root them (and avoid nullable warnings). Nothing reads through them: they exist so the mapping
+        // and its view stay alive for the life of the process, which is what keeps _mutantPtr valid.
         private static object _mutantMmf = new System.Object();
         private static object _mutantAccessor = new System.Object();
         private static bool _mutantMmfReady;
         private static bool _mutantMmfFailed;
+
+        // Base address of the mapped view, resolved once when the mapping is created. Reading the id
+        // through this pointer with Marshal.ReadInt32 skips the SafeBuffer ref-counting (a
+        // DangerousAddRef/DangerousRelease pair) that MemoryMappedViewAccessor.ReadInt32 performs on
+        // every call. That ref-counting, not the mapped read itself, dominated the cost of IsActive.
+        private static System.IntPtr _mutantPtr = System.IntPtr.Zero;
+
+        // Whether file-based mutant control is in use. Cached so the IsActive hot path tests a bool
+        // rather than re-checking the path string on every call.
+        private static bool _useFileControl;
 
         // Coverage file path for MTP runner (file-based IPC)
         private static string _cachedCoverageFilePath = string.Empty;
@@ -97,9 +108,10 @@ namespace Stryker
                 // coalesce null to empty string so _cachedMutantFilePath is never null
                 _cachedMutantFilePath = System.Environment.GetEnvironmentVariable("STRYKER_MUTANT_FILE") ?? string.Empty;
                 _mutantFilePathCached = true;
+                _useFileControl = _cachedMutantFilePath.Length > 0;
             }
 
-            if (string.IsNullOrEmpty(_cachedMutantFilePath))
+            if (!_useFileControl)
             {
                 return false;
             }
@@ -117,7 +129,7 @@ namespace Stryker
                 {
                     try
                     {
-                        mutantId = ((System.IO.MemoryMappedFiles.MemoryMappedViewAccessor)_mutantAccessor).ReadInt32(0);
+                        mutantId = System.Runtime.InteropServices.Marshal.ReadInt32(_mutantPtr);
                         return true;
                     }
                     catch
@@ -170,6 +182,11 @@ namespace Stryker
 
                 _mutantMmf = mmf;
                 _mutantAccessor = accessor;
+                // Resolve the view's base address once. The mapping and accessor are held in static
+                // fields for the life of the process, so the handle is never released and the pointer
+                // cannot dangle. PointerOffset accounts for any alignment padding the OS applied.
+                _mutantPtr = new System.IntPtr(
+                    accessor.SafeMemoryMappedViewHandle.DangerousGetHandle().ToInt64() + accessor.PointerOffset);
                 _mutantMmfReady = true;
             }
             catch
@@ -270,7 +287,7 @@ namespace Stryker
 
             // Check for file-based mutant control (used by MTP runner for process reuse)
             // Cache check: only call TryReadMutantFromFile if we might be using file-based control
-            if (!_mutantFilePathCached || !string.IsNullOrEmpty(_cachedMutantFilePath))
+            if (!_mutantFilePathCached || _useFileControl)
             {
                 int fileMutantId;
                 if (TryReadMutantFromFile(out fileMutantId))
@@ -279,7 +296,7 @@ namespace Stryker
                 }
 
                 // If we cached the file path and it's set, always use file-based control
-                if (_mutantFilePathCached && !string.IsNullOrEmpty(_cachedMutantFilePath))
+                if (_mutantFilePathCached && _useFileControl)
                 {
                     return id == ActiveMutant;
                 }
