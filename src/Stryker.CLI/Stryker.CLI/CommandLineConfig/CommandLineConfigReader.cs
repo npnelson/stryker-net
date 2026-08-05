@@ -187,6 +187,7 @@ public class CommandLineConfigReader
         AddCliInput(inputs.ConcurrencyInput, "concurrency", "c", argumentHint: "number");
         AddCliInput(inputs.IsolateMutantsInput, "isolate-mutants", null, optionType: CommandOptionType.NoValue, category: InputCategory.Misc);
         AddCliInput(inputs.StandbyPrewarmInput, "standby-prewarm", null, optionType: CommandOptionType.NoValue, category: InputCategory.Misc);
+        AddCliInput(inputs.CoverageCohortSizeInput, "coverage-cohort-size", null, argumentHint: "number", category: InputCategory.Misc);
         AddCliInput(inputs.AdditionalTimeoutInput, "additional-timeout", null, argumentHint: "milliseconds");
         AddCliInput(inputs.DisableBailInput, "disable-bail", null, optionType: CommandOptionType.NoValue);
         // Category: Build

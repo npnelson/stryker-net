@@ -103,6 +103,45 @@ public class CoverageAnalyser : ICoverageAnalyser
             CoverageForThisMutant(mutant, mutationToResultMap, allTest, allTestsExceptTrusted,
                 new TestIdentifierList(dubiousTests), failedTests);
         }
+
+        LogAssessingTestsFootprint(mutantsToScan);
+    }
+
+    /// <summary>
+    /// The total assessing-test footprint is what the mutation phase actually pays for: every mutant runs
+    /// against its own set, and every set is held in memory for the whole run. Coverage attribution width
+    /// (cohort size, coverage confidence, the static-mutant fallback) all land here, so log it directly
+    /// rather than leaving it to be inferred from wall clock or RSS.
+    /// </summary>
+    private void LogAssessingTestsFootprint(IEnumerable<IMutant> mutants)
+    {
+        var scanned = 0;
+        var everyTest = 0;
+        long total = 0;
+        var max = 0;
+
+        foreach (var mutant in mutants)
+        {
+            scanned++;
+            if (mutant.AssessingTests.IsEveryTest)
+            {
+                everyTest++;
+                continue;
+            }
+
+            var count = mutant.AssessingTests.Count;
+            total += count;
+            if (count > max)
+            {
+                max = count;
+            }
+        }
+
+        var counted = scanned - everyTest;
+        _logger.LogInformation(
+            "Assessing-test footprint: {Scanned} mutants, {TotalTestReferences} total test references, "
+            + "mean {Mean:F1}, max {Max}, {EveryTest} assessed against every test.",
+            scanned, total, counted > 0 ? (double)total / counted : 0, max, everyTest);
     }
 
     private void CoverageForThisMutant(IMutant mutant,

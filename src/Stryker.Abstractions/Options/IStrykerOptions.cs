@@ -31,6 +31,12 @@ public interface IStrykerOptions
     /// StandbyPrewarmInput for the [ModuleInitializer] caveat.
     /// </summary>
     bool StandbyPrewarm { get; init; }
+
+    /// <summary>
+    /// Tests per coverage-capture request for the MTP runner. Coverage is shared across a cohort, so this
+    /// trades coverage-phase speed against mutation-phase width and memory.
+    /// </summary>
+    int CoverageCohortSize { get; init; }
     string Configuration { get; init; }
     string DashboardApiKey { get; init; }
     string DashboardUrl { get; init; }

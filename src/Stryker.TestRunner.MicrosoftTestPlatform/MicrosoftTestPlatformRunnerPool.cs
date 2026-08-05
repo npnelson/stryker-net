@@ -43,7 +43,7 @@ public sealed class MicrosoftTestPlatformRunnerPool : ITestRunner
     internal int CoverageCohortSize => _coverageCohortSize;
 
     public MicrosoftTestPlatformRunnerPool(IStrykerOptions options, ILogger? logger = null, ISingleRunnerFactory? runnerFactory = null)
-        : this(options, logger, runnerFactory, DefaultCoverageCohortSize)
+        : this(options, logger, runnerFactory, options.CoverageCohortSize > 0 ? options.CoverageCohortSize : DefaultCoverageCohortSize)
     {
     }
 
