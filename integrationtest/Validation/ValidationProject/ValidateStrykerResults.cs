@@ -121,8 +121,43 @@ public class ValidateStrykerResults
 
         var report = await strykerRunOutput.DeserializeJsonReportAsync();
 
-        CheckReportMutants(report, total: 667, ignored: 272, survived: 3, killed: 4, timeout: 2, nocoverage: 350, runtimeError: 2);
-        CheckReportTestCounts(report, total: 5);
+        CheckReportMutants(report, total: 670, ignored: 274, survived: 353, killed: 5, timeout: 2, nocoverage: 0, runtimeError: 2);
+        CheckReportTestCounts(report, total: 7);
+    }
+
+    [Fact]
+    [Trait("Category", "MSTestMTP")]
+    [Trait("Runtime", "netcore")]
+    public async Task CSharp_NetCore_MSTestMTP_IsolatedStaticState()
+    {
+        var isolationDirectory = new DirectoryInfo("../../../../../TargetProjects/MicrosoftTestPlatform/UnitTests.MSTest/StrykerIsolationOutput");
+        isolationDirectory.GetFiles("*.json", SearchOption.AllDirectories).ShouldNotBeEmpty("No isolation report available to assert");
+
+        var latestIsolationReport = isolationDirectory.GetFiles(MutationReportJson, SearchOption.AllDirectories)
+            .OrderByDescending(f => f.LastWriteTime)
+            .First();
+
+        using var isolationRunOutput = File.OpenRead(latestIsolationReport.FullName);
+        var isolationReport = await isolationRunOutput.DeserializeJsonReportAsync();
+        CheckReportMutants(isolationReport, total: 3, ignored: 0, survived: 2, killed: 1, timeout: 0, nocoverage: 0);
+
+        var cachedRulesMutants = isolationReport.Files
+            .Single(file => file.Key.EndsWith("CachedRules.cs", StringComparison.Ordinal))
+            .Value.Mutants
+            .ToArray();
+
+        cachedRulesMutants.Length.ShouldBe(3);
+
+        var arithmeticMutant = cachedRulesMutants.Single(mutant => mutant.MutatorName == "Arithmetic mutation");
+        arithmeticMutant.Replacement.ShouldBe("10 - 5");
+        arithmeticMutant.Status.ShouldBe(MutantStatus.Killed.ToString());
+        arithmeticMutant.KilledBy.ShouldNotBeEmpty();
+
+        var stringMutants = cachedRulesMutants.Where(mutant => mutant.MutatorName == "String mutation").ToArray();
+        stringMutants.Length.ShouldBe(2);
+        stringMutants.ShouldAllBe(mutant => mutant.Replacement == "\"\"" &&
+            mutant.Status == MutantStatus.Survived.ToString() &&
+            !mutant.KilledBy.Any());
     }
 
     [Fact]

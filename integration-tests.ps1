@@ -123,7 +123,18 @@ function Run-Category {
     'MSTestMTP' {
       if ($Runtime -ne 'netcore') { throw "MSTestMTP only supports runtime 'netcore'." }
       $mtpWd = Join-Path $RepoRoot 'integrationtest\TargetProjects\MicrosoftTestPlatform\UnitTests.MSTest'
-      if (Test-Path $mtpWd) { Run-Stryker -WorkingDirectory $mtpWd } else { Write-Warn "MTP test project not found at $mtpWd" }
+      if (Test-Path $mtpWd) {
+        Run-Stryker -WorkingDirectory $mtpWd
+        Run-Stryker -WorkingDirectory $mtpWd -Arguments @(
+          '--config-file'
+          'stryker-isolation-config.json'
+          '--isolate-mutants'
+          '--output'
+          'StrykerIsolationOutput'
+        )
+      } else {
+        Write-Warn "MTP test project not found at $mtpWd"
+      }
       break
     }
     'XUnitMTP' {
