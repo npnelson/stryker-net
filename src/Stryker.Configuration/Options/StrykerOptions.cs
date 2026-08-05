@@ -128,6 +128,8 @@ public class StrykerOptions : IStrykerOptions
     /// </summary>
     public int Concurrency { get; init; }
 
+    public bool IsolateMutants { get; init; }
+
     /// <summary>
     /// When multiple possible projects are found by stryker, this filter is used to determine the project that should be mutated.
     /// </summary>

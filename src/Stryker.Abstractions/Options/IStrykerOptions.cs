@@ -18,6 +18,13 @@ public interface IStrykerOptions
     string BaselineOutputPath { get; init; }
     bool BreakOnInitialTestFailure { get; set; }
     int Concurrency { get; init; }
+
+    /// <summary>
+    /// Run every mutant in its own test-host process instead of reusing one host across mutant
+    /// sessions. Prevents state the code under test caches in process-global memory from leaking
+    /// between mutants (stryker-net#3742), at the cost of a host start per mutant.
+    /// </summary>
+    bool IsolateMutants { get; init; }
     string Configuration { get; init; }
     string DashboardApiKey { get; init; }
     string DashboardUrl { get; init; }

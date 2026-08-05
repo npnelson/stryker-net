@@ -138,7 +138,8 @@ public class SingleMicrosoftTestPlatformRunner : IDisposable
     /// fresh host initializes them, the mutated state is baked in for the process lifetime, so its
     /// test failures repeat in every later session and kill unrelated mutants (false Killed).
     /// </summary>
-    private static bool RequiresProcessIsolation(IReadOnlyList<IMutant> mutants) =>
+    private bool RequiresProcessIsolation(IReadOnlyList<IMutant> mutants) =>
+        _options?.IsolateMutants == true ||
         mutants.Any(m => m.IsStaticValue || m.MustBeTestedInIsolation);
 
     /// <summary>
