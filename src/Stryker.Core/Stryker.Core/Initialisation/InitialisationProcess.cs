@@ -148,10 +148,28 @@ public class InitialisationProcess : IInitialisationProcess
                 throw new InputException("Initial testrun has failing tests.", result.Result.ResultMessage);
             }
 
-            if (throwIfFails && (double)failingTestsCount / result.Result.ExecutedTests.Count >= .5)
+            // ExecutedTests can be the "every test" sentinel when a runner does not report which
+            // tests it ran - the MTP runner does exactly that - and its Count is then 0. Dividing by
+            // it yields Infinity, which trips this guard for any number of failing tests, so a single
+            // pre-existing failure aborts the whole run with a misleading message.
+            var executedTestsCount = result.Result.ExecutedTests.Count;
+            if (throwIfFails)
             {
-                throw new InputException("Initial testrun has more than 50% failing tests.",
-                        result.Result.ResultMessage);
+                if (executedTestsCount > 0)
+                {
+                    if ((double)failingTestsCount / executedTestsCount >= .5)
+                    {
+                        throw new InputException("Initial testrun has more than 50% failing tests.",
+                                result.Result.ResultMessage);
+                    }
+                }
+                else
+                {
+                    _logger.LogWarning(
+                        "The test runner did not report which tests it executed, so the share of failing "
+                        + "tests could not be checked against the 50% limit. Continuing with {FailingTestsCount} failing tests.",
+                        failingTestsCount);
+                }
             }
 
             _logger.LogWarning(

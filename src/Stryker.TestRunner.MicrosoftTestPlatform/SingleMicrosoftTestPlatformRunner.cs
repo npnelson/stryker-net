@@ -1,5 +1,6 @@
 using System.Collections.Concurrent;
 using System.Diagnostics;
+using System.Threading.Channels;
 using System.IO.MemoryMappedFiles;
 using System.Security.Cryptography;
 using System.Text;
@@ -163,6 +164,7 @@ public class SingleMicrosoftTestPlatformRunner : IDisposable
                 RunnerId, mutant.Id);
 
             await ResetServerAsync().ConfigureAwait(false);
+            await PrimeFromStandbyAsync(assemblies).ConfigureAwait(false);
             try
             {
                 results.Add(await RunAllTestsAsync(assemblies, mutant.Id, [mutant], update, timeoutCalc).ConfigureAwait(false));
@@ -218,6 +220,142 @@ public class SingleMicrosoftTestPlatformRunner : IDisposable
         var timedOutTests = new TestIdentifierList(results.SelectMany(r => r.TimedOutTests.GetIdentifiers()).Distinct());
 
         return new TestRunResult(testDescriptionValues, executedTests, failedTests, timedOutTests, message, messages, duration);
+    }
+
+    // ---- standby pre-warming -------------------------------------------------------------------
+    // Per-mutant isolation needs a host that has never run a test. Starting one costs ~0.5-1.5 s, but a
+    // parked host is measurably cold - it has run no static constructor, no assembly initializer and no
+    // test body - so the start can be overlapped with the previous mutant's run instead of paying for it
+    // serially. Depth 1 is enough whenever a mutant's tests take longer than a host start; deeper buffers
+    // only absorb variance and cost one live test-host process each.
+    //
+    // Caveat: [ModuleInitializer] DOES run at host start, before the mutant id is written, so mutants in
+    // or reachable from one must not be served from standby. That carve-out is not implemented here.
+    private const int StandbyDepth = 1;
+    private readonly Dictionary<string, Channel<AssemblyTestServer>> _standby = new();
+    private readonly Dictionary<string, Task> _standbyProducers = new();
+    private CancellationTokenSource? _standbyCts;
+
+    private Channel<AssemblyTestServer> EnsureStandbyChannel(string assembly)
+    {
+        lock (_serverLock)
+        {
+            if (_standby.TryGetValue(assembly, out var existing))
+            {
+                return existing;
+            }
+
+            _standbyCts ??= new CancellationTokenSource();
+            var channel = Channel.CreateBounded<AssemblyTestServer>(new BoundedChannelOptions(StandbyDepth)
+            {
+                FullMode = BoundedChannelFullMode.Wait,   // backpressure: never start more than we can hold
+                SingleReader = true,
+                SingleWriter = true
+            });
+
+            _standby[assembly] = channel;
+            _standbyProducers[assembly] = Task.Run(() => ProduceStandbyAsync(assembly, channel, _standbyCts.Token));
+            return channel;
+        }
+    }
+
+    private async Task ProduceStandbyAsync(string assembly, Channel<AssemblyTestServer> channel, CancellationToken ct)
+    {
+        try
+        {
+            while (await channel.Writer.WaitToWriteAsync(ct).ConfigureAwait(false))
+            {
+                var server = new AssemblyTestServer(
+                    assembly,
+                    BuildEnvironmentVariables(assembly),
+                    _logger,
+                    RunnerId,
+                    _options,
+                    performanceMetrics: _performanceMetrics);
+
+                if (!await server.StartAsync(ct).ConfigureAwait(false))
+                {
+                    // A failed start must not poison the channel; drop it and try again.
+                    await server.StopAsync(force: true).ConfigureAwait(false);
+                    continue;
+                }
+
+                if (!channel.Writer.TryWrite(server))
+                {
+                    await server.StopAsync(force: true).ConfigureAwait(false);
+                }
+            }
+        }
+        catch (OperationCanceledException)
+        {
+        }
+        catch (Exception ex)
+        {
+            _logger.LogDebug(ex, "{RunnerId}: standby producer for {Assembly} stopped", RunnerId, assembly);
+        }
+        finally
+        {
+            channel.Writer.TryComplete();
+        }
+    }
+
+    /// <summary>
+    /// Hands the runner a never-used host per assembly, so the mutant about to run starts from a process
+    /// with no code under test loaded. Blocks only if the producer has not finished a start yet.
+    /// </summary>
+    private async Task PrimeFromStandbyAsync(IReadOnlyList<string> assemblies)
+    {
+        // Only the opt-in whole-run isolation flag uses standby. The pre-existing static-mutant carve-out
+        // keeps starting its host on demand, so its behaviour (and its tests) are untouched.
+        if (_options?.IsolateMutants != true)
+        {
+            return;
+        }
+
+        foreach (var assembly in assemblies)
+        {
+            var channel = EnsureStandbyChannel(assembly);
+            var server = await channel.Reader.ReadAsync(_standbyCts!.Token).ConfigureAwait(false);
+            lock (_serverLock)
+            {
+                _assemblyServers[assembly] = server;
+            }
+        }
+    }
+
+    private async Task DrainStandbyAsync()
+    {
+        _standbyCts?.Cancel();
+
+        List<Channel<AssemblyTestServer>> channels;
+        List<Task> producers;
+        lock (_serverLock)
+        {
+            channels = _standby.Values.ToList();
+            producers = _standbyProducers.Values.ToList();
+            _standby.Clear();
+            _standbyProducers.Clear();
+        }
+
+        foreach (var channel in channels)
+        {
+            while (channel.Reader.TryRead(out var parked))
+            {
+                await parked.StopAsync(force: true).ConfigureAwait(false);
+            }
+        }
+
+        try
+        {
+            await Task.WhenAll(producers).ConfigureAwait(false);
+        }
+        catch
+        {
+            // producers are already cancelled; their processes are stopped above
+        }
+
+        _standbyCts?.Dispose();
+        _standbyCts = null;
     }
 
     public virtual async Task ResetServerAsync()
@@ -1338,6 +1476,17 @@ public class SingleMicrosoftTestPlatformRunner : IDisposable
 
         if (disposing)
         {
+            // Parked standby hosts are live processes that ResetServerAsync never sees, so they must be
+            // torn down explicitly or they outlive the run.
+            try
+            {
+                DrainStandbyAsync().GetAwaiter().GetResult();
+            }
+            catch (Exception ex)
+            {
+                _logger.LogDebug(ex, "{RunnerId}: failed to drain standby test servers", RunnerId);
+            }
+
             lock (_serverLock)
             {
                 foreach (var server in _assemblyServers.Values)
