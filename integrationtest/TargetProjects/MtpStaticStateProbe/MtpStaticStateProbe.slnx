@@ -1,0 +1,4 @@
+<Solution>
+  <Project Path="StaticStateProbe.Tests/StaticStateProbe.Tests.csproj" />
+  <Project Path="StaticStateProbe/StaticStateProbe.csproj" />
+</Solution>

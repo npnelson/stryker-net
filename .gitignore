@@ -292,3 +292,6 @@ StrykerLogs/
 .DS_Store
 .nuget/
 actionlint
+
+# MTP static-state probe: Stryker run output
+/integrationtest/TargetProjects/MtpStaticStateProbe/StrykerOutput/
