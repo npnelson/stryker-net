@@ -532,7 +532,8 @@ public class MicrosoftTestPlatformRunnerPoolTests : TestBase
 
         using var pool = new MicrosoftTestPlatformRunnerPool(options.Object, NullLogger.Instance);
 
-        pool.CoverageCohortSize.ShouldBe(32);
+        // 1 is per-test attribution, matching upstream; batching is opt-in via --coverage-cohort-size.
+        pool.CoverageCohortSize.ShouldBe(1);
     }
 
     [TestMethod]
