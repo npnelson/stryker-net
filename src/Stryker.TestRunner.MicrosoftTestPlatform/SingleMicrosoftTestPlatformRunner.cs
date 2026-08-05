@@ -41,6 +41,17 @@ public class SingleMicrosoftTestPlatformRunner : IDisposable
     private readonly IStrykerOptions? _options;
     private readonly MtpPerformanceMetrics _performanceMetrics = new();
 
+    private readonly List<TestNodeUpdate> _coverageRunOutcomes = new();
+    private readonly object _coverageOutcomeLock = new();
+
+    /// <summary>
+    /// Test outcomes observed during per-test coverage capture, where every mutant is inactive.
+    /// </summary>
+    internal IReadOnlyList<TestNodeUpdate> CoverageRunOutcomes
+    {
+        get { lock (_coverageOutcomeLock) { return _coverageRunOutcomes.ToList(); } }
+    }
+
     private readonly Dictionary<string, AssemblyTestServer> _assemblyServers = new();
     private readonly object _serverLock = new();
     private int _activeMutantId = -1;
@@ -621,7 +632,14 @@ public class SingleMicrosoftTestPlatformRunner : IDisposable
             {
                 var server = await GetOrCreateServerAsync(assembly).ConfigureAwait(false);
                 var timeout = CalculateCoverageTimeout(tests);
-                var (_, timeoutStage) = await server.RunTestsAsync(tests.ToArray(), timeout).ConfigureAwait(false);
+                var (cohortOutcomes, timeoutStage) = await server.RunTestsAsync(tests.ToArray(), timeout).ConfigureAwait(false);
+                // The coverage run executes every test with all mutants inactive (IsActive returns false
+                // whenever CaptureCoverage is set), so these outcomes are an unmutated baseline. They were
+                // being discarded; keep them so the separate initial test run can be checked against them.
+                lock (_coverageOutcomeLock)
+                {
+                    _coverageRunOutcomes.AddRange(cohortOutcomes);
+                }
                 if (timeoutStage is not null)
                 {
                     _logger.LogWarning(

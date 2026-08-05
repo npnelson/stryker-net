@@ -38,6 +38,7 @@ public sealed class MicrosoftTestPlatformRunnerPool : ITestRunner
     private readonly Stopwatch _poolLifetime = new();
     private readonly int _coverageCohortSize;
     private int _waitingRunnerRequests;
+    private ITestRunResult? _initialTestResult;
 
     public IEnumerable<SingleMicrosoftTestPlatformRunner> Runners => _availableRunners;
     internal int CoverageCohortSize => _coverageCohortSize;
@@ -141,6 +142,7 @@ public sealed class MicrosoftTestPlatformRunnerPool : ITestRunner
         }
 
         var results = await RunThisAsync(MtpRunnerPhase.InitialTest, runner => runner.InitialTestAsync(project)).ConfigureAwait(false);
+        _initialTestResult = results;
 
         // reset all test processes after the initial test run
         ResetTestProcesses();
@@ -237,6 +239,67 @@ public sealed class MicrosoftTestPlatformRunnerPool : ITestRunner
     /// Tests are distributed across the whole pool for parallelism; a runner keeps its per-assembly
     /// server warm across the tests it is handed rather than restarting it for every test.
     /// </summary>
+    /// <summary>
+    /// Spike instrumentation: the per-test coverage run already executes every test with all mutants
+    /// inactive, so it is an unmutated baseline in its own right. Compare it against the separate
+    /// initial test run to see whether that run could be dropped and its result derived from coverage.
+    /// </summary>
+    private void CompareCoverageOutcomesToInitialTestRun()
+    {
+        if (_initialTestResult is null)
+        {
+            return;
+        }
+
+        var updates = _allRunners.SelectMany(r => r.CoverageRunOutcomes).ToList();
+        var finished = updates.Where(u => TestNodeStates.IsFinished(u.Node.ExecutionState)).ToList();
+
+        string ToTestId(string uid)
+        {
+            lock (_discoveryLock)
+            {
+                return _testDescriptions.TryGetValue(uid, out var d) ? d.Id : uid;
+            }
+        }
+
+        var coverageFailed = finished
+            .Where(u => TestNodeStates.IsFailure(u.Node.ExecutionState) || TestNodeStates.IsTimeout(u.Node.ExecutionState))
+            .Select(u => ToTestId(u.Node.Uid))
+            .ToHashSet();
+
+        var initialFailed = _initialTestResult.FailingTests.IsEveryTest
+            ? null
+            : _initialTestResult.FailingTests.GetIdentifiers().ToHashSet();
+
+        if (initialFailed is null)
+        {
+            _logger.LogInformation(
+                "Baseline comparison: initial test run reported EveryTest failing; coverage run observed {CoverageFinished} finished tests, {CoverageFailed} failing. Not comparable.",
+                finished.Count, coverageFailed.Count);
+            return;
+        }
+
+        var onlyInitial = initialFailed.Except(coverageFailed).ToList();
+        var onlyCoverage = coverageFailed.Except(initialFailed).ToList();
+
+        _logger.LogInformation(
+            "Baseline comparison: initial run {InitialFinished} tests / {InitialFailed} failing; coverage run {CoverageFinished} tests / {CoverageFailed} failing; "
+            + "failing-set agreement {Agreement} (only-initial {OnlyInitial}, only-coverage {OnlyCoverage}).",
+            _initialTestResult.ExecutedTests.IsEveryTest ? -1 : _initialTestResult.ExecutedTests.Count,
+            initialFailed.Count, finished.Count, coverageFailed.Count,
+            onlyInitial.Count == 0 && onlyCoverage.Count == 0 ? "EXACT" : "DIVERGED",
+            onlyInitial.Count, onlyCoverage.Count);
+
+        foreach (var t in onlyInitial.Take(5))
+        {
+            _logger.LogInformation("  failing only in initial run: {TestId}", t);
+        }
+        foreach (var t in onlyCoverage.Take(5))
+        {
+            _logger.LogInformation("  failing only in coverage run: {TestId}", t);
+        }
+    }
+
     private IEnumerable<ICoverageRunResult> CaptureCoverageTestByTest(IProjectAndTests project)
     {
         _logger.LogInformation("Starting per-test coverage capture for MTP runner");
@@ -312,6 +375,8 @@ public sealed class MicrosoftTestPlatformRunnerPool : ITestRunner
                 "Coverage cohort capture complete: {TestCount} tests captured in {CohortCount} requests",
                 results.Count,
                 coverageCohorts.Count);
+
+            CompareCoverageOutcomesToInitialTestRun();
 
             return results;
         }
