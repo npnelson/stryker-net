@@ -45,4 +45,28 @@ public class SampleTests
 
         Assert.AreEqual(0, sut.Fibonacci(3));
     }
+
+    // --- stryker-net#3742 contamination fixture -------------------------------------------
+    // These three tests all reach CachedRules, whose static cache is populated once per
+    // process. On a reused test host, a ComputeLimit mutant tested earlier leaves the cache
+    // holding its mutated value, and the Describe mutant - which survives on a clean host -
+    // is then reported killed.
+
+    [TestMethod]
+    public void TestCachedLimitIsFifteen()
+    {
+        var sut = new CachedRules();
+
+        Assert.AreEqual(15, sut.GetLimit("default"));
+    }
+
+    [TestMethod]
+    public void TestDescribeMentionsTheLimit()
+    {
+        var sut = new CachedRules();
+
+        // Deliberately loose: mutating the "limit:" literal must survive on a clean host.
+        Assert.IsTrue(sut.Describe().Contains("15"));
+    }
 }
+
