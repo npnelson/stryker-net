@@ -1,0 +1,15 @@
+{
+  "stryker-config": {
+    "test-runner": "MTP",
+    "reporters": [
+      "Dots",
+      "Json"
+    ],
+    "project": "TargetProject.csproj",
+    "mutate": [
+      "**/CachedRules.cs"
+    ],
+    "mutation-level": "Complete",
+    "concurrency": 1
+  }
+}
