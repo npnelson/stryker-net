@@ -1,0 +1,22 @@
+core-mtp416 [08:24:01 INF] 1480 mutants created
+core-mtp416 [08:24:02 INF] Coverage capture complete: 0 mutations covered, 0 static mutations
+core-mtp416 [08:24:02 ERR] It looks like the test coverage capture failed. Disable coverage based optimisation.
+core-mtp416 [08:24:02 INF] 358   total mutants will be tested
+core-mtp416 [08:25:54 INF] Time Elapsed 00:02:55.3922390
+core-mtp416 [08:25:54 INF] Stryker was unable to calculate a mutation score
+core-mtp416 EXIT=0 WALL=178s
+core-mtp416-breakat [08:27:03 INF] 1480 mutants created
+core-mtp416-breakat [08:27:04 INF] Coverage capture complete: 0 mutations covered, 0 static mutations
+core-mtp416-breakat [08:27:04 ERR] It looks like the test coverage capture failed. Disable coverage based optimisation.
+core-mtp416-breakat [08:27:04 INF] 358   total mutants will be tested
+core-mtp416-breakat [08:28:56 INF] Time Elapsed 00:02:32.8524875
+core-mtp416-breakat [08:28:56 INF] Stryker was unable to calculate a mutation score
+core-mtp-branch [08:31:31 INF] 1480 mutants created
+core-mtp-branch [08:35:04 ERR] It looks like the test coverage capture failed. Disable coverage based optimisation.
+core-mtp-branch [08:35:04 INF] 358   total mutants will be tested
+core-mtp-branch [08:36:53 INF] Time Elapsed 00:06:09.0904671
+core-mtp-branch [08:36:53 INF] Stryker was unable to calculate a mutation score
+core-mtp-covoff [08:49:38 INF] 1480 mutants created
+core-mtp-covoff [08:49:38 INF] 2     total mutants will be tested
+core-mtp-covoff [08:49:41 INF] Time Elapsed 00:00:36.0724204
+core-mtp-covoff [08:49:41 INF] Stryker was unable to calculate a mutation score

@@ -1,0 +1,13 @@
+ Directory.Packages.props                                     |  9 +++++++--
+ eng/Test.targets                                             |  8 +++++++-
+ global.json                                                  |  5 ++++-
+ src/Snippets/Snippets.csproj                                 |  2 +-
+ .../Hedging/HedgingResilienceStrategyTests.cs                |  1 -
+ test/Polly.Core.Tests/Polly.Core.Tests.csproj                |  2 +-
+ test/Polly.Core.Tests/ResiliencePipelineTests.cs             |  2 +-
+ test/Polly.Specs/Helpers/Bulkhead/AnnotatedOutputHelper.cs   |  2 ++
+ test/Polly.Specs/Helpers/Bulkhead/SilentOutputHelper.cs      | 12 ++++++++++++
+ test/Polly.Specs/Polly.Specs.csproj                          |  1 -
+ 10 files changed, 35 insertions(+), 9 deletions(-)
+7f2769026db59ea48f0bad3b6ebe25e89b268cd7
+101d6af79738b2da9a95f216b525daf46cd07b5c
