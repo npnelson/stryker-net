@@ -237,6 +237,137 @@ public class Calculator
         }
     }
 
+    [TestMethod]
+    public void CompilingProcessTests_ShouldRewriteStaleAssemblyVersionToTheBuiltOne()
+    {
+        // The SDK-generated AssemblyInfo Stryker reconstructs from can be stale, holding the 1.0.0.0
+        // default rather than the version the project actually built with. Emitting the mutated
+        // assembly with that version breaks strong-named projects, whose test assembly binds to the
+        // original identity.
+        var version = CompileMutatedAgainstBuiltAssembly(
+            declaredSource: """
+                            [assembly: System.Reflection.AssemblyVersion("1.0.0.0")]
+
+                            namespace ExampleProject
+                            {
+                                public class Calculator
+                                {
+                                    public int Subtract(int first, int second) => first - second;
+                                }
+                            }
+                            """,
+            builtVersion: "8.0.0.0");
+
+        version.ShouldBe(new System.Version(8, 0, 0, 0));
+    }
+
+    [TestMethod]
+    public void CompilingProcessTests_ShouldAddAssemblyVersionWhenSourceDeclaresNone()
+    {
+        var version = CompileMutatedAgainstBuiltAssembly(
+            declaredSource: """
+                            namespace ExampleProject
+                            {
+                                public class Calculator
+                                {
+                                    public int Subtract(int first, int second) => first - second;
+                                }
+                            }
+                            """,
+            builtVersion: "8.0.0.0");
+
+        version.ShouldBe(new System.Version(8, 0, 0, 0));
+    }
+
+    [TestMethod]
+    public void CompilingProcessTests_ShouldKeepDeclaredAssemblyVersionWhenBuiltAssemblyIsMissing()
+    {
+        // Nothing to align against, so the previous behaviour has to survive untouched.
+        var version = CompileMutatedAgainstBuiltAssembly(
+            declaredSource: """
+                            [assembly: System.Reflection.AssemblyVersion("1.0.0.0")]
+
+                            namespace ExampleProject
+                            {
+                                public class Calculator
+                                {
+                                    public int Subtract(int first, int second) => first - second;
+                                }
+                            }
+                            """,
+            builtVersion: null);
+
+        version.ShouldBe(new System.Version(1, 0, 0, 0));
+    }
+
+    /// <summary>
+    /// Compiles <paramref name="declaredSource"/> through <see cref="CsharpCompilingProcess"/> while the
+    /// analyzer points at a real on-disk assembly built with <paramref name="builtVersion"/>, and returns
+    /// the assembly version actually emitted. A null <paramref name="builtVersion"/> leaves the analyzer
+    /// pointing at a path with no assembly on it.
+    /// </summary>
+    private static System.Version CompileMutatedAgainstBuiltAssembly(string declaredSource, string builtVersion)
+    {
+        const string assemblyName = "StrykerVersionAlignment";
+
+        var targetDir = Path.Combine(Path.GetTempPath(), "stryker-version-" + System.Guid.NewGuid().ToString("N"));
+        Directory.CreateDirectory(targetDir);
+        try
+        {
+            if (builtVersion is not null)
+            {
+                EmitAssembly(Path.Combine(targetDir, assemblyName + ".dll"), assemblyName, builtVersion);
+            }
+
+            var input = new MutationTestInput
+            {
+                SourceProjectInfo = new SourceProjectInfo
+                {
+                    AnalyzerResult = TestHelper.SetupProjectAnalyzerResult(
+                        projectFilePath: "/c/project.csproj",
+                        properties: new Dictionary<string, string>
+                        {
+                            { "TargetDir", targetDir },
+                            { "AssemblyName", assemblyName },
+                            { "TargetFileName", assemblyName + ".dll" },
+                        },
+                        references: [typeof(object).Assembly.Location]
+                    ).Object
+                }
+            };
+
+            var target = new CsharpCompilingProcess(
+                input,
+                new Mock<ICSharpRollbackProcess>(MockBehavior.Strict).Object,
+                syntaxTrees: [CSharpSyntaxTree.ParseText(declaredSource)]);
+
+            using var ms = new MemoryStream();
+            using var symbol = new MemoryStream();
+            target.Compile(ms, symbol).Success.ShouldBeTrue();
+
+            // Read the emitted version back the same way the production code reads the built one.
+            var emittedPath = Path.Combine(targetDir, "emitted.dll");
+            File.WriteAllBytes(emittedPath, ms.ToArray());
+            return AssemblyName.GetAssemblyName(emittedPath).Version;
+        }
+        finally
+        {
+            Directory.Delete(targetDir, recursive: true);
+        }
+    }
+
+    private static void EmitAssembly(string path, string assemblyName, string version)
+    {
+        var compilation = CSharpCompilation.Create(
+            assemblyName,
+            [CSharpSyntaxTree.ParseText($"[assembly: System.Reflection.AssemblyVersion(\"{version}\")]")],
+            [MetadataReference.CreateFromFile(typeof(object).Assembly.Location)],
+            new CSharpCompilationOptions(OutputKind.DynamicallyLinkedLibrary));
+
+        using var stream = File.Create(path);
+        compilation.Emit(stream).Success.ShouldBeTrue();
+    }
+
     private static string GetExampleCode(bool isBuildable) =>
         $$"""
           using System;

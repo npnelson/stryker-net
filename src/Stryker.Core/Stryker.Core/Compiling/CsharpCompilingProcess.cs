@@ -8,6 +8,7 @@ using System.Text;
 using Buildalyzer;
 using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.CSharp;
+using Microsoft.CodeAnalysis.CSharp.Syntax;
 using Microsoft.CodeAnalysis.Diagnostics;
 using Microsoft.CodeAnalysis.Emit;
 using Microsoft.Extensions.Logging;
@@ -152,6 +153,13 @@ public class CsharpCompilingProcess : ICSharpCompilingProcess, ICompilationConte
     public SemanticModel GetSemanticModel(SyntaxTree syntaxTree)
     {
         InitCSharpCompilation(_originalSyntaxTrees);
+        // Aligning the assembly version replaces the tree that declared it, so a caller holding the
+        // pre-rewrite instance would not find it in the compilation. Match it back by path.
+        if (!_compilation.ContainsSyntaxTree(syntaxTree) && !string.IsNullOrEmpty(syntaxTree.FilePath))
+        {
+            syntaxTree = _compilation.SyntaxTrees.FirstOrDefault(tree => tree.FilePath == syntaxTree.FilePath)
+                ?? syntaxTree;
+        }
         // extract semantic models from compilation
         return _compilation.GetSemanticModel(syntaxTree);
     }
@@ -188,7 +196,7 @@ public class CsharpCompilingProcess : ICSharpCompilingProcess, ICompilationConte
         var analyzerResult = _input.SourceProjectInfo.AnalyzerResult;
         // create the compilation context
         _compilation= CSharpCompilation.Create(AssemblyName,
-            originalSyntaxTrees,
+            AlignAssemblyVersionWithBuiltAssembly(originalSyntaxTrees, analyzerResult),
             analyzerResult.LoadReferences(),
             analyzerResult.GetCompilationOptions());
         // create the driver for source generators
@@ -200,6 +208,157 @@ public class CsharpCompilingProcess : ICSharpCompilingProcess, ICompilationConte
         // run the generators
         _needToRunGenerators = true;
         RunSourceGenerators();
+    }
+
+    /// <summary>
+    /// Forces the reconstructed compilation to carry the assembly version of the assembly the
+    /// project actually built.
+    /// </summary>
+    /// <remarks>
+    /// Stryker rebuilds the compilation from the sources the analyzer reports, which include the
+    /// SDK-generated AssemblyInfo. That generated file can be stale - it holds whatever version was
+    /// current when it was last written, typically the 1.0.0.0 default - so the mutated assembly is
+    /// emitted with a different version from the one on disk. For a strong-named project that is
+    /// fatal: the test assembly binds to the original identity (name, version and public key token),
+    /// and the mutated assembly dropped in its place no longer satisfies it, so the test host fails
+    /// to load it. The built assembly on disk is the authority on this, so its version wins.
+    /// <para>
+    /// When the built assembly cannot be read the trees are returned untouched, leaving the previous
+    /// behaviour in place rather than risking a project that used to build.
+    /// </para>
+    /// </remarks>
+    private IEnumerable<SyntaxTree> AlignAssemblyVersionWithBuiltAssembly(
+        IEnumerable<SyntaxTree> originalSyntaxTrees, IAnalyzerResult analyzerResult)
+    {
+        var syntaxTrees = originalSyntaxTrees as IList<SyntaxTree> ?? originalSyntaxTrees.ToList();
+
+        var builtVersion = ReadBuiltAssemblyVersion(analyzerResult);
+        if (builtVersion is null)
+        {
+            return syntaxTrees;
+        }
+
+        var version = builtVersion.ToString();
+        var aligned = new List<SyntaxTree>(syntaxTrees.Count + 1);
+        var declared = false;
+
+        foreach (var syntaxTree in syntaxTrees)
+        {
+            if (TryReplaceAssemblyVersion(syntaxTree, version, out var updated))
+            {
+                declared = true;
+                aligned.Add(updated);
+            }
+            else
+            {
+                aligned.Add(syntaxTree);
+            }
+        }
+
+        if (!declared)
+        {
+            // Nothing declared a version, so adding one cannot collide with an existing attribute.
+            aligned.Add(CSharpSyntaxTree.ParseText(
+                $"[assembly: global::System.Reflection.AssemblyVersionAttribute(\"{version}\")]",
+                syntaxTrees.FirstOrDefault()?.Options as CSharpParseOptions,
+                path: "StrykerAssemblyVersion.cs",
+                encoding: Encoding.UTF8));
+        }
+
+        _logger.LogDebug(
+            "Assembly version of the mutated compilation set to {Version} to match the built assembly ({Source}).",
+            version, declared ? "rewrote the declared attribute" : "added the attribute");
+
+        return aligned;
+    }
+
+    /// <summary>
+    /// Reads the assembly version of the assembly the project built, or null when it cannot be read.
+    /// </summary>
+    private Version ReadBuiltAssemblyVersion(IAnalyzerResult analyzerResult)
+    {
+        string assemblyPath;
+        try
+        {
+            if (!analyzerResult.BuildsAnAssembly())
+            {
+                return null;
+            }
+
+            assemblyPath = analyzerResult.GetAssemblyPath();
+        }
+        catch (Exception ex) when (ex is KeyNotFoundException or ArgumentException)
+        {
+            // The analyzer did not report where the assembly lands; nothing to align against.
+            _logger.LogDebug(ex, "Could not determine the built assembly path, leaving the assembly version as declared.");
+            return null;
+        }
+
+        if (string.IsNullOrEmpty(assemblyPath) || !File.Exists(assemblyPath))
+        {
+            _logger.LogDebug(
+                "No built assembly at '{AssemblyPath}', leaving the assembly version as declared.", assemblyPath);
+            return null;
+        }
+
+        try
+        {
+            return System.Reflection.AssemblyName.GetAssemblyName(assemblyPath).Version;
+        }
+        catch (Exception ex) when (ex is IOException or UnauthorizedAccessException
+            or BadImageFormatException or ArgumentException or System.Security.SecurityException)
+        {
+            _logger.LogDebug(ex,
+                "Could not read the assembly version from '{AssemblyPath}', leaving it as declared.", assemblyPath);
+            return null;
+        }
+    }
+
+    /// <summary>
+    /// Rewrites every assembly-targeted assembly-version attribute in the tree to the given version.
+    /// </summary>
+    /// <returns>True when the tree declared at least one, in which case <paramref name="updated"/> is the rewritten tree.</returns>
+    private static bool TryReplaceAssemblyVersion(SyntaxTree syntaxTree, string version, out SyntaxTree updated)
+    {
+        updated = null;
+        if (syntaxTree.GetRoot() is not CompilationUnitSyntax root)
+        {
+            return false;
+        }
+
+        var attributes = root.AttributeLists
+            .Where(list => list.Target?.Identifier.IsKind(SyntaxKind.AssemblyKeyword) == true)
+            .SelectMany(list => list.Attributes)
+            .Where(attribute => IsAssemblyVersionAttribute(attribute) && attribute.ArgumentList?.Arguments.Count > 0)
+            .ToList();
+
+        if (attributes.Count == 0)
+        {
+            return false;
+        }
+
+        var literal = SyntaxFactory.LiteralExpression(
+            SyntaxKind.StringLiteralExpression, SyntaxFactory.Literal(version));
+
+        var newRoot = root.ReplaceNodes(
+            attributes.Select(attribute => attribute.ArgumentList.Arguments[0].Expression),
+            (original, _) => literal.WithTriviaFrom(original));
+
+        updated = syntaxTree.WithRootAndOptions(newRoot, syntaxTree.Options);
+        return true;
+    }
+
+    private static bool IsAssemblyVersionAttribute(AttributeSyntax attribute)
+    {
+        var name = attribute.Name switch
+        {
+            QualifiedNameSyntax qualified => qualified.Right.Identifier.ValueText,
+            AliasQualifiedNameSyntax aliased => aliased.Name.Identifier.ValueText,
+            SimpleNameSyntax simple => simple.Identifier.ValueText,
+            _ => null
+        };
+
+        return name is "AssemblyVersion" or "AssemblyVersionAttribute";
     }
 
     private (IEnumerable<int>, EmitResult) TryCompilation(
