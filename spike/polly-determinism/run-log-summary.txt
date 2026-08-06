@@ -1,0 +1,30 @@
+core-vstest-1 [01:22:06 INF] 1480 mutants created
+core-vstest-1 [01:22:17 INF] 358   total mutants will be tested
+core-vstest-1 [01:28:53 INF] Time Elapsed 00:07:47.4673236
+core-vstest-1 [01:28:53 INF] The final mutation score is 100.00 %
+core-vstest-1 EXIT=0 WALL=469s
+core-vstest-2 [01:30:10 INF] 1480 mutants created
+core-vstest-2 [01:30:24 INF] 358   total mutants will be tested
+core-vstest-2 [01:35:37 INF] Time Elapsed 00:06:16.5860526
+core-vstest-2 [01:35:37 INF] The final mutation score is 100.00 %
+core-vstest-2 RUN2 EXIT=0 WALL=377s
+core-vstest-3 [01:36:27 INF] 1480 mutants created
+core-vstest-3 [01:36:38 INF] 358   total mutants will be tested
+core-vstest-3 [01:42:48 INF] Time Elapsed 00:07:10.2702520
+core-vstest-3 [01:42:48 INF] The final mutation score is 100.00 %
+core-vstest-3 RUN3 EXIT=0 WALL=431s
+core-t30-a [01:44:30 INF] 1480 mutants created
+core-t30-a [01:44:48 INF] 358   total mutants will be tested
+core-t30-a [01:56:05 INF] Time Elapsed 00:12:28.9216025
+core-t30-a [01:56:05 INF] The final mutation score is 100.00 %
+core-t30-a core-t30-a EXIT=0 WALL=750s
+core-t30-b [01:57:00 INF] 1480 mutants created
+core-t30-b [01:57:18 INF] 358   total mutants will be tested
+core-t30-b [02:06:40 INF] Time Elapsed 00:10:33.1628920
+core-t30-b [02:06:40 INF] The final mutation score is 100.00 %
+core-t30-b core-t30-b EXIT=0 WALL=634s
+core-nomix [02:07:37 INF] 1480 mutants created
+core-nomix [02:07:48 INF] 358   total mutants will be tested
+core-nomix [02:14:28 INF] Time Elapsed 00:07:47.3865992
+core-nomix [02:14:28 INF] The final mutation score is 100.00 %
+core-nomix core-nomix EXIT=0 WALL=468s

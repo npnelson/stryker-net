@@ -1,0 +1,1481 @@
+file,id,line,mutator,static,status,coveredBy,killedBy,replacement
+CircuitBreaker/BrokenCircuitException.cs,0,30,String mutation,False,Killed,1,1,"$"""""
+CircuitBreaker/CircuitBreakerManualControl.cs,1,29,Equality mutation,False,CompileError,0,0,_onIsolate.Count != 0
+CircuitBreaker/CircuitBreakerManualControl.cs,2,29,Linq method mutation (Count() to Sum()),False,CompileError,0,0,_onIsolate.Sum
+CircuitBreaker/CircuitBreakerManualControl.cs,3,32,Block removal mutation,False,Ignored,10,0,{}
+CircuitBreaker/CircuitBreakerManualControl.cs,4,35,Block removal mutation,False,CompileError,0,0,{}
+CircuitBreaker/CircuitBreakerManualControl.cs,5,36,Statement mutation,False,Ignored,10,0,;
+CircuitBreaker/CircuitBreakerManualControl.cs,6,37,Statement mutation,False,Ignored,10,0,;
+CircuitBreaker/CircuitBreakerManualControl.cs,7,42,Negate expression,False,Killed,10,7,!(isolated)
+CircuitBreaker/CircuitBreakerManualControl.cs,8,43,Block removal mutation,False,Ignored,3,0,{}
+CircuitBreaker/CircuitBreakerManualControl.cs,9,44,Boolean mutation,False,Killed,3,2,false
+CircuitBreaker/CircuitBreakerManualControl.cs,10,45,Statement mutation,False,Ignored,3,0,;
+CircuitBreaker/CircuitBreakerManualControl.cs,11,52,Block removal mutation,False,Ignored,6,0,{}
+CircuitBreaker/CircuitBreakerManualControl.cs,12,54,Block removal mutation,False,Ignored,6,0,{}
+CircuitBreaker/CircuitBreakerManualControl.cs,13,55,Statement mutation,False,Ignored,6,0,;
+CircuitBreaker/CircuitBreakerManualControl.cs,14,56,Statement mutation,False,Ignored,6,0,;
+CircuitBreaker/CircuitBreakerManualControl.cs,15,67,Block removal mutation,False,Ignored,7,0,{}
+CircuitBreaker/CircuitBreakerManualControl.cs,16,70,Block removal mutation,False,CompileError,0,0,{}
+CircuitBreaker/CircuitBreakerManualControl.cs,17,72,Boolean mutation,False,Killed,7,2,false
+CircuitBreaker/CircuitBreakerManualControl.cs,18,75,Boolean mutation,False,Killed,7,1,true
+CircuitBreaker/CircuitBreakerManualControl.cs,19,78,Block removal mutation,False,Ignored,7,0,{}
+CircuitBreaker/CircuitBreakerManualControl.cs,20,80,Block removal mutation,False,Ignored,4,0,{}
+CircuitBreaker/CircuitBreakerManualControl.cs,21,81,Statement mutation,False,Ignored,4,0,;
+CircuitBreaker/CircuitBreakerManualControl.cs,22,85,Block removal mutation,False,Ignored,7,0,{}
+CircuitBreaker/CircuitBreakerManualControl.cs,23,86,Statement mutation,False,Ignored,7,0,;
+CircuitBreaker/CircuitBreakerManualControl.cs,24,97,Block removal mutation,False,Ignored,8,0,{}
+CircuitBreaker/CircuitBreakerManualControl.cs,25,100,Block removal mutation,False,CompileError,0,0,{}
+CircuitBreaker/CircuitBreakerManualControl.cs,26,102,Boolean mutation,False,Killed,8,1,true
+CircuitBreaker/CircuitBreakerManualControl.cs,27,105,Boolean mutation,False,Killed,8,1,true
+CircuitBreaker/CircuitBreakerManualControl.cs,28,108,Block removal mutation,False,Ignored,8,0,{}
+CircuitBreaker/CircuitBreakerManualControl.cs,29,110,Block removal mutation,False,Ignored,5,0,{}
+CircuitBreaker/CircuitBreakerManualControl.cs,30,111,Statement mutation,False,Ignored,5,0,;
+CircuitBreaker/CircuitBreakerManualControl.cs,31,115,Block removal mutation,False,Ignored,8,0,{}
+CircuitBreaker/CircuitBreakerManualControl.cs,32,116,Statement mutation,False,Ignored,8,0,;
+CircuitBreaker/CircuitBreakerResiliencePipelineBuilderExtensions.cs,33,34,Block removal mutation,False,Ignored,9,0,{}
+CircuitBreaker/CircuitBreakerResiliencePipelineBuilderExtensions.cs,34,35,Statement mutation,False,Ignored,9,0,;
+CircuitBreaker/CircuitBreakerResiliencePipelineBuilderExtensions.cs,35,36,Statement mutation,False,Ignored,9,0,;
+CircuitBreaker/CircuitBreakerResiliencePipelineBuilderExtensions.cs,36,64,Block removal mutation,False,Ignored,2,0,{}
+CircuitBreaker/CircuitBreakerResiliencePipelineBuilderExtensions.cs,37,65,Statement mutation,False,Ignored,2,0,;
+CircuitBreaker/CircuitBreakerResiliencePipelineBuilderExtensions.cs,38,66,Statement mutation,False,Ignored,2,0,;
+CircuitBreaker/CircuitBreakerResiliencePipelineBuilderExtensions.cs,39,74,Block removal mutation,False,Ignored,9,0,{}
+CircuitBreaker/CircuitBreakerResilienceStrategy.cs,40,14,Block removal mutation,False,Ignored,18,0,{}
+CircuitBreaker/CircuitBreakerResilienceStrategy.cs,41,18,Statement mutation,False,Ignored,18,0,;
+CircuitBreaker/CircuitBreakerResilienceStrategy.cs,42,25,Block removal mutation,False,Ignored,3,0,{}
+CircuitBreaker/CircuitBreakerResilienceStrategy.cs,43,26,Statement mutation,False,Ignored,3,0,;
+CircuitBreaker/CircuitBreakerResilienceStrategy.cs,44,27,Statement mutation,False,Ignored,3,0,;
+CircuitBreaker/CircuitBreakerResilienceStrategy.cs,45,31,Block removal mutation,False,CompileError,0,0,{}
+CircuitBreaker/CircuitBreakerResilienceStrategy.cs,46,32,Equality mutation,False,CompileError,0,0,await _controller.OnActionPreExecuteAsync(context).ConfigureAwait(context.ContinueOnCapturedContext) is not Outcome<T> outcome
+CircuitBreaker/CircuitBreakerResilienceStrategy.cs,47,33,Block removal mutation,False,Ignored,5,0,{}
+CircuitBreaker/CircuitBreakerResilienceStrategy.cs,48,38,Block removal mutation,False,CompileError,0,0,{}
+CircuitBreaker/CircuitBreakerResilienceStrategy.cs,49,39,Statement mutation,False,Ignored,11,0,;
+CircuitBreaker/CircuitBreakerResilienceStrategy.cs,50,44,Block removal mutation,False,CompileError,0,0,{}
+CircuitBreaker/CircuitBreakerResilienceStrategy.cs,51,50,Negate expression,False,Ignored,11,0,!(await _handler(args).ConfigureAwait(context.ContinueOnCapturedContext))
+CircuitBreaker/CircuitBreakerResilienceStrategy.cs,52,51,Block removal mutation,False,Ignored,5,0,{}
+CircuitBreaker/CircuitBreakerResilienceStrategy.cs,53,52,Statement mutation,False,Ignored,5,0,;
+CircuitBreaker/CircuitBreakerResilienceStrategy.cs,54,55,Block removal mutation,False,Ignored,9,0,{}
+CircuitBreaker/CircuitBreakerResilienceStrategy.cs,55,56,Statement mutation,False,Ignored,9,0,;
+CircuitBreaker/CircuitBreakerStateProvider.cs,56,11,Block removal mutation,False,Ignored,4,0,{}
+CircuitBreaker/CircuitBreakerStateProvider.cs,57,12,Equality mutation,False,Killed,4,4,_circuitStateProvider == null
+CircuitBreaker/CircuitBreakerStateProvider.cs,58,13,Block removal mutation,False,Ignored,1,0,{}
+CircuitBreaker/CircuitBreakerStateProvider.cs,59,14,Statement mutation,False,Ignored,1,0,;
+CircuitBreaker/CircuitBreakerStateProvider.cs,60,14,String mutation,False,Ignored,1,0,"$"""""
+CircuitBreaker/CircuitBreakerStateProvider.cs,61,27,Equality mutation,False,Killed,2,1,_circuitStateProvider == null
+CircuitBreaker/CircuitBreakerStateProvider.cs,62,32,Null coalescing mutation (remove left),False,Killed,4,1,CircuitState.Closed
+CircuitBreaker/Controller/AdvancedCircuitBehavior.cs,63,12,Block removal mutation,False,Ignored,24,0,{}
+CircuitBreaker/Controller/AdvancedCircuitBehavior.cs,64,21,Block removal mutation,False,Ignored,12,0,{}
+CircuitBreaker/Controller/AdvancedCircuitBehavior.cs,65,25,Statement mutation,False,Ignored,9,0,;
+CircuitBreaker/Controller/AdvancedCircuitBehavior.cs,66,27,Logical mutation,False,Killed,9,1,info.Throughput >= _minimumThroughput || info.FailureRate >= _failureRatio
+CircuitBreaker/Controller/AdvancedCircuitBehavior.cs,67,27,Equality mutation,False,Killed,9,3,info.Throughput < _minimumThroughput
+CircuitBreaker/Controller/AdvancedCircuitBehavior.cs,68,27,Equality mutation,False,Killed,9,1,info.Throughput > _minimumThroughput
+CircuitBreaker/Controller/AdvancedCircuitBehavior.cs,69,27,Equality mutation,False,Killed,7,1,info.FailureRate < _failureRatio
+CircuitBreaker/Controller/AdvancedCircuitBehavior.cs,70,27,Equality mutation,False,Killed,7,1,info.FailureRate > _failureRatio
+CircuitBreaker/Controller/AdvancedCircuitBehavior.cs,71,37,Statement mutation,False,Ignored,2,0,;
+CircuitBreaker/Controller/AdvancedCircuitBehavior.cs,72,38,Boolean mutation,False,Killed,2,2,true
+CircuitBreaker/Controller/AdvancedCircuitBehavior.cs,73,41,Boolean mutation,False,Killed,3,1,true
+CircuitBreaker/Controller/CircuitStateController.cs,74,38,Block removal mutation,False,Ignored,46,0,{}
+CircuitBreaker/Controller/CircuitStateController.cs,75,52,Block removal mutation,False,Ignored,24,0,{}
+CircuitBreaker/Controller/CircuitStateController.cs,76,53,Statement mutation,False,Ignored,24,0,;
+CircuitBreaker/Controller/CircuitStateController.cs,77,56,Block removal mutation,False,Ignored,23,0,{}
+CircuitBreaker/Controller/CircuitStateController.cs,78,65,Block removal mutation,False,Ignored,3,0,{}
+CircuitBreaker/Controller/CircuitStateController.cs,79,66,Statement mutation,False,Ignored,3,0,;
+CircuitBreaker/Controller/CircuitStateController.cs,80,69,Block removal mutation,False,Ignored,2,0,{}
+CircuitBreaker/Controller/CircuitStateController.cs,81,78,Block removal mutation,False,Ignored,7,0,{}
+CircuitBreaker/Controller/CircuitStateController.cs,82,79,Statement mutation,False,Ignored,7,0,;
+CircuitBreaker/Controller/CircuitStateController.cs,83,82,Block removal mutation,False,Ignored,6,0,{}
+CircuitBreaker/Controller/CircuitStateController.cs,84,89,Block removal mutation,False,Ignored,7,0,{}
+CircuitBreaker/Controller/CircuitStateController.cs,85,90,Statement mutation,False,Ignored,7,0,;
+CircuitBreaker/Controller/CircuitStateController.cs,86,92,Statement mutation,False,Ignored,6,0,;
+CircuitBreaker/Controller/CircuitStateController.cs,87,92,Boolean mutation,False,Killed,6,1,true
+CircuitBreaker/Controller/CircuitStateController.cs,88,97,Block removal mutation,False,CompileError,0,0,{}
+CircuitBreaker/Controller/CircuitStateController.cs,89,99,Statement mutation,False,Ignored,6,0,;
+CircuitBreaker/Controller/CircuitStateController.cs,90,100,Statement mutation,False,Ignored,6,0,;
+CircuitBreaker/Controller/CircuitStateController.cs,91,101,Boolean mutation,False,Killed,6,2,false
+CircuitBreaker/Controller/CircuitStateController.cs,92,109,Block removal mutation,False,Ignored,10,0,{}
+CircuitBreaker/Controller/CircuitStateController.cs,93,110,Statement mutation,False,Ignored,10,0,;
+CircuitBreaker/Controller/CircuitStateController.cs,94,112,Statement mutation,False,Ignored,9,0,;
+CircuitBreaker/Controller/CircuitStateController.cs,95,112,Boolean mutation,False,Killed,9,1,true
+CircuitBreaker/Controller/CircuitStateController.cs,96,117,Block removal mutation,False,CompileError,0,0,{}
+CircuitBreaker/Controller/CircuitStateController.cs,97,118,Boolean mutation,False,Killed,9,1,false
+CircuitBreaker/Controller/CircuitStateController.cs,98,125,Block removal mutation,False,Ignored,32,0,{}
+CircuitBreaker/Controller/CircuitStateController.cs,99,126,Statement mutation,False,Ignored,32,0,;
+CircuitBreaker/Controller/CircuitStateController.cs,100,129,Boolean mutation,False,Killed,29,1,true
+CircuitBreaker/Controller/CircuitStateController.cs,101,134,Block removal mutation,False,Ignored,29,0,{}
+CircuitBreaker/Controller/CircuitStateController.cs,102,136,Logical mutation,False,Killed,29,5,_circuitState == CircuitState.Open || PermitHalfOpenCircuitTest_NeedsLock()
+CircuitBreaker/Controller/CircuitStateController.cs,103,136,Negate expression,False,Killed,29,10,!(_circuitState == CircuitState.Open && PermitHalfOpenCircuitTest_NeedsLock())
+CircuitBreaker/Controller/CircuitStateController.cs,104,136,Equality mutation,False,Killed,29,6,_circuitState != CircuitState.Open
+CircuitBreaker/Controller/CircuitStateController.cs,105,137,Block removal mutation,False,Ignored,14,0,{}
+CircuitBreaker/Controller/CircuitStateController.cs,106,138,Statement mutation,False,Ignored,14,0,;
+CircuitBreaker/Controller/CircuitStateController.cs,107,138,PostIncrementExpression to PostDecrementExpression mutation,False,Killed,14,1,_halfOpenAttempts--
+CircuitBreaker/Controller/CircuitStateController.cs,108,140,Statement mutation,False,Ignored,14,0,;
+CircuitBreaker/Controller/CircuitStateController.cs,109,141,Boolean mutation,False,Killed,14,2,false
+CircuitBreaker/Controller/CircuitStateController.cs,110,147,LogicalNotExpression to un-LogicalNotExpression mutation,False,Killed,14,1,isHalfOpen
+CircuitBreaker/Controller/CircuitStateController.cs,111,152,Logical mutation,False,Killed,29,6,isHalfOpen || _onHalfOpen is not null
+CircuitBreaker/Controller/CircuitStateController.cs,112,152,Negate expression,False,Killed,29,6,!(isHalfOpen && _onHalfOpen is not null)
+CircuitBreaker/Controller/CircuitStateController.cs,113,152,Equality mutation,False,Killed,14,11,_onHalfOpen is null
+CircuitBreaker/Controller/CircuitStateController.cs,114,153,Block removal mutation,False,Ignored,3,0,{}
+CircuitBreaker/Controller/CircuitStateController.cs,115,158,Equality mutation,False,Killed,29,10,exception is null
+CircuitBreaker/Controller/CircuitStateController.cs,116,159,Block removal mutation,False,Ignored,13,0,{}
+CircuitBreaker/Controller/CircuitStateController.cs,117,160,Statement mutation,False,Ignored,13,0,;
+CircuitBreaker/Controller/CircuitStateController.cs,118,167,LogicalNotExpression to un-LogicalNotExpression mutation,False,Ignored,0,0,task.IsCompleted
+CircuitBreaker/Controller/CircuitStateController.cs,119,168,Block removal mutation,False,Ignored,0,0,{}
+CircuitBreaker/Controller/CircuitStateController.cs,120,173,Statement mutation,False,Ignored,23,0,;
+CircuitBreaker/Controller/CircuitStateController.cs,121,173,String mutation,False,Ignored,23,0,""""""
+CircuitBreaker/Controller/CircuitStateController.cs,122,174,Statement mutation,False,Ignored,23,0,;
+CircuitBreaker/Controller/CircuitStateController.cs,123,180,Block removal mutation,False,Ignored,1,0,{}
+CircuitBreaker/Controller/CircuitStateController.cs,124,181,Statement mutation,False,Ignored,1,0,;
+CircuitBreaker/Controller/CircuitStateController.cs,125,186,Block removal mutation,False,Ignored,16,0,{}
+CircuitBreaker/Controller/CircuitStateController.cs,126,187,Statement mutation,False,Ignored,16,0,;
+CircuitBreaker/Controller/CircuitStateController.cs,127,192,Block removal mutation,False,Ignored,15,0,{}
+CircuitBreaker/Controller/CircuitStateController.cs,128,193,Statement mutation,False,Ignored,15,0,;
+CircuitBreaker/Controller/CircuitStateController.cs,129,201,Equality mutation,False,Killed,15,6,_circuitState != CircuitState.HalfOpen
+CircuitBreaker/Controller/CircuitStateController.cs,130,202,Block removal mutation,False,Ignored,7,0,{}
+CircuitBreaker/Controller/CircuitStateController.cs,131,203,Boolean mutation,False,Killed,7,1,true
+CircuitBreaker/Controller/CircuitStateController.cs,132,212,Block removal mutation,False,Ignored,28,0,{}
+CircuitBreaker/Controller/CircuitStateController.cs,133,213,Statement mutation,False,Ignored,28,0,;
+CircuitBreaker/Controller/CircuitStateController.cs,134,218,Block removal mutation,False,Ignored,27,0,{}
+CircuitBreaker/Controller/CircuitStateController.cs,135,219,Statement mutation,False,Ignored,27,0,;
+CircuitBreaker/Controller/CircuitStateController.cs,136,231,Logical mutation,False,Killed,27,20,_circuitState == CircuitState.HalfOpen && (_circuitState == CircuitState.Closed && shouldBreak)
+CircuitBreaker/Controller/CircuitStateController.cs,137,231,Negate expression,False,Killed,27,22,!(_circuitState == CircuitState.HalfOpen || (_circuitState == CircuitState.Closed && shouldBreak))
+CircuitBreaker/Controller/CircuitStateController.cs,138,231,Equality mutation,False,Killed,27,9,_circuitState != CircuitState.HalfOpen
+CircuitBreaker/Controller/CircuitStateController.cs,139,231,Logical mutation,False,Killed,27,2,_circuitState == CircuitState.Closed || shouldBreak
+CircuitBreaker/Controller/CircuitStateController.cs,140,231,Equality mutation,False,Killed,27,20,_circuitState != CircuitState.Closed
+CircuitBreaker/Controller/CircuitStateController.cs,141,232,Block removal mutation,False,Ignored,22,0,{}
+CircuitBreaker/Controller/CircuitStateController.cs,142,233,Boolean mutation,False,Killed,22,3,true
+CircuitBreaker/Controller/CircuitStateController.cs,143,241,Block removal mutation,False,Ignored,40,0,{}
+CircuitBreaker/Controller/CircuitStateController.cs,144,242,Statement mutation,False,Ignored,40,0,;
+CircuitBreaker/Controller/CircuitStateController.cs,145,243,Boolean mutation,False,Killed,40,1,false
+CircuitBreaker/Controller/CircuitStateController.cs,146,247,Block removal mutation,False,Ignored,38,0,{}
+CircuitBreaker/Controller/CircuitStateController.cs,147,249,Logical mutation,False,Ignored,0,0,context.IsSynchronous || !task.IsCompleted
+CircuitBreaker/Controller/CircuitStateController.cs,148,249,Negate expression,False,Ignored,0,0,!(context.IsSynchronous && !task.IsCompleted)
+CircuitBreaker/Controller/CircuitStateController.cs,149,249,LogicalNotExpression to un-LogicalNotExpression mutation,False,Ignored,0,0,task.IsCompleted
+CircuitBreaker/Controller/CircuitStateController.cs,150,250,Block removal mutation,False,Ignored,0,0,{}
+CircuitBreaker/Controller/CircuitStateController.cs,151,253,Statement mutation,False,Ignored,0,0,;
+CircuitBreaker/Controller/CircuitStateController.cs,152,261,Block removal mutation,False,Ignored,28,0,{}
+CircuitBreaker/Controller/CircuitStateController.cs,153,262,Arithmetic mutation,False,CompileError,0,0,DateTimeOffset.MaxValue + utcNow
+CircuitBreaker/Controller/CircuitStateController.cs,154,265,Equality mutation,False,Ignored,0,0,breakDuration < maxDifference
+CircuitBreaker/Controller/CircuitStateController.cs,155,265,Equality mutation,False,Ignored,0,0,breakDuration >= maxDifference
+CircuitBreaker/Controller/CircuitStateController.cs,156,282,Block removal mutation,False,Ignored,16,0,{}
+CircuitBreaker/Controller/CircuitStateController.cs,157,289,Statement mutation,False,Ignored,16,0,;
+CircuitBreaker/Controller/CircuitStateController.cs,158,291,Equality mutation,False,Killed,16,3,priorState == CircuitState.Closed
+CircuitBreaker/Controller/CircuitStateController.cs,159,292,Block removal mutation,False,Ignored,12,0,{}
+CircuitBreaker/Controller/CircuitStateController.cs,160,294,Statement mutation,False,Ignored,12,0,;
+CircuitBreaker/Controller/CircuitStateController.cs,161,296,Equality mutation,False,Killed,12,9,_onClosed is null
+CircuitBreaker/Controller/CircuitStateController.cs,162,297,Block removal mutation,False,Ignored,4,0,{}
+CircuitBreaker/Controller/CircuitStateController.cs,163,306,Block removal mutation,False,Ignored,19,0,{}
+CircuitBreaker/Controller/CircuitStateController.cs,164,308,Equality mutation,False,Killed,19,17,now < _blockedUntil
+CircuitBreaker/Controller/CircuitStateController.cs,165,308,Equality mutation,False,Killed,19,11,now > _blockedUntil
+CircuitBreaker/Controller/CircuitStateController.cs,166,308,Negate expression,False,Killed,19,17,!(now >= _blockedUntil)
+CircuitBreaker/Controller/CircuitStateController.cs,167,309,Block removal mutation,False,Ignored,14,0,{}
+CircuitBreaker/Controller/CircuitStateController.cs,168,310,Arithmetic mutation,False,Killed,14,1,now - _breakDuration
+CircuitBreaker/Controller/CircuitStateController.cs,169,311,Boolean mutation,False,Killed,14,12,false
+CircuitBreaker/Controller/CircuitStateController.cs,170,314,Boolean mutation,False,Killed,9,7,true
+CircuitBreaker/Controller/CircuitStateController.cs,171,318,Block removal mutation,False,Ignored,32,0,{}
+CircuitBreaker/Controller/CircuitStateController.cs,172,324,Block removal mutation,False,Ignored,10,0,{}
+CircuitBreaker/Controller/CircuitStateController.cs,173,325,Arithmetic mutation,False,CompileError,0,0,_blockedUntil + _timeProvider.GetUtcNow()
+CircuitBreaker/Controller/CircuitStateController.cs,174,331,Statement mutation,False,Ignored,10,0,;
+CircuitBreaker/Controller/CircuitStateController.cs,175,336,Block removal mutation,False,Ignored,28,0,{}
+CircuitBreaker/Controller/CircuitStateController.cs,176,339,Equality mutation,False,Killed,28,24,_breakDurationGenerator is null
+CircuitBreaker/Controller/CircuitStateController.cs,177,340,Block removal mutation,False,Ignored,3,0,{}
+CircuitBreaker/Controller/CircuitStateController.cs,178,348,Conditional (true) mutation,False,Killed,28,13,(true?DateTimeOffset.MaxValue :utcNow + breakDuration)
+CircuitBreaker/Controller/CircuitStateController.cs,179,348,Conditional (false) mutation,False,Killed,28,6,(false?DateTimeOffset.MaxValue :utcNow + breakDuration)
+CircuitBreaker/Controller/CircuitStateController.cs,180,348,Arithmetic mutation,False,Killed,22,9,utcNow - breakDuration
+CircuitBreaker/Controller/CircuitStateController.cs,181,352,Statement mutation,False,Ignored,28,0,;
+CircuitBreaker/Controller/CircuitStateController.cs,182,354,Equality mutation,False,Killed,28,23,_onOpened is null
+CircuitBreaker/Controller/CircuitStateController.cs,183,355,Block removal mutation,False,Ignored,7,0,{}
+CircuitBreaker/Controller/CircuitStateController.cs,184,363,Block removal mutation,False,Ignored,3,0,{}
+CircuitBreaker/Controller/ScheduledTaskExecutor.cs,185,19,Block removal mutation,False,Ignored,18,0,{}
+CircuitBreaker/Controller/ScheduledTaskExecutor.cs,186,21,Statement mutation,False,Ignored,18,0,;
+CircuitBreaker/Controller/ScheduledTaskExecutor.cs,187,31,Statement mutation,False,Ignored,18,0,;
+CircuitBreaker/Controller/ScheduledTaskExecutor.cs,188,32,Statement mutation,False,Ignored,18,0,;
+CircuitBreaker/Controller/ScheduledTaskExecutor.cs,189,37,Block removal mutation,False,Ignored,48,0,{}
+CircuitBreaker/Controller/ScheduledTaskExecutor.cs,190,38,Negate expression,False,Killed,48,2,!(_disposed)
+CircuitBreaker/Controller/ScheduledTaskExecutor.cs,191,39,Block removal mutation,False,Ignored,1,0,{}
+CircuitBreaker/Controller/ScheduledTaskExecutor.cs,192,40,Statement mutation,False,Ignored,1,0,;
+CircuitBreaker/Controller/ScheduledTaskExecutor.cs,193,43,Boolean mutation,False,Killed,48,2,false
+CircuitBreaker/Controller/ScheduledTaskExecutor.cs,194,44,Statement mutation,False,Ignored,48,0,;
+CircuitBreaker/Controller/ScheduledTaskExecutor.cs,195,46,Negate expression,False,Killed,48,38,!(_tasks.TryDequeue(out var e))
+CircuitBreaker/Controller/ScheduledTaskExecutor.cs,196,47,Block removal mutation,False,Ignored,1,0,{}
+CircuitBreaker/Controller/ScheduledTaskExecutor.cs,197,48,Statement mutation,False,Ignored,1,0,;
+CircuitBreaker/Controller/ScheduledTaskExecutor.cs,198,51,Statement mutation,False,Ignored,48,0,;
+CircuitBreaker/Controller/ScheduledTaskExecutor.cs,199,55,Block removal mutation,False,CompileError,0,0,{}
+CircuitBreaker/Controller/ScheduledTaskExecutor.cs,200,56,LogicalNotExpression to un-LogicalNotExpression mutation,False,CompileError,0,0,_disposed
+CircuitBreaker/Controller/ScheduledTaskExecutor.cs,201,57,Block removal mutation,False,CompileError,0,0,{}
+CircuitBreaker/Controller/ScheduledTaskExecutor.cs,202,58,Statement mutation,False,CompileError,0,0,;
+CircuitBreaker/Controller/ScheduledTaskExecutor.cs,203,58,Boolean mutation,False,CompileError,0,0,true
+CircuitBreaker/Controller/ScheduledTaskExecutor.cs,204,59,Logical mutation,False,CompileError,0,0,_disposed && !_tasks.TryDequeue(out var entry)
+CircuitBreaker/Controller/ScheduledTaskExecutor.cs,205,59,Negate expression,False,CompileError,0,0,!(_disposed || !_tasks.TryDequeue(out var entry))
+CircuitBreaker/Controller/ScheduledTaskExecutor.cs,206,59,LogicalNotExpression to un-LogicalNotExpression mutation,False,CompileError,0,0,_tasks.TryDequeue(out var entry)
+CircuitBreaker/Controller/ScheduledTaskExecutor.cs,207,60,Block removal mutation,False,CompileError,0,0,{}
+CircuitBreaker/Controller/ScheduledTaskExecutor.cs,208,61,Statement mutation,False,CompileError,0,0,;
+CircuitBreaker/Controller/ScheduledTaskExecutor.cs,209,65,Block removal mutation,False,CompileError,0,0,{}
+CircuitBreaker/Controller/ScheduledTaskExecutor.cs,210,66,Statement mutation,False,CompileError,0,0,;
+CircuitBreaker/Controller/ScheduledTaskExecutor.cs,211,66,Boolean mutation,False,CompileError,0,0,true
+CircuitBreaker/Controller/ScheduledTaskExecutor.cs,212,67,Statement mutation,False,CompileError,0,0,;
+CircuitBreaker/Controller/ScheduledTaskExecutor.cs,213,70,Block removal mutation,False,CompileError,0,0,{}
+CircuitBreaker/Controller/ScheduledTaskExecutor.cs,214,71,Statement mutation,False,CompileError,0,0,;
+CircuitBreaker/Controller/ScheduledTaskExecutor.cs,215,74,Block removal mutation,False,CompileError,0,0,{}
+CircuitBreaker/Controller/ScheduledTaskExecutor.cs,216,75,Statement mutation,False,CompileError,0,0,;
+CircuitBreaker/Health/HealthInfo.cs,217,6,Block removal mutation,False,Ignored,15,0,{}
+CircuitBreaker/Health/HealthInfo.cs,218,7,Arithmetic mutation,False,Killed,15,1,successes - failures
+CircuitBreaker/Health/HealthInfo.cs,219,8,Equality mutation,False,Killed,15,2,total != 0
+CircuitBreaker/Health/HealthInfo.cs,220,9,Block removal mutation,False,Ignored,8,0,{}
+CircuitBreaker/Health/HealthInfo.cs,221,13,Arithmetic mutation,False,Killed,7,2,failures * (double)total
+CircuitBreaker/Health/HealthMetrics.cs,222,15,Conditional (true) mutation,False,Killed,13,2,"(true?new SingleHealthMetrics(samplingDuration, timeProvider) :new RollingHealthMetrics(samplingDuration, NumberOfWindows, timeProvider))"
+CircuitBreaker/Health/HealthMetrics.cs,223,15,Conditional (false) mutation,False,Killed,13,2,"(false?new SingleHealthMetrics(samplingDuration, timeProvider) :new RollingHealthMetrics(samplingDuration, NumberOfWindows, timeProvider))"
+CircuitBreaker/Health/HealthMetrics.cs,224,15,Equality mutation,False,Killed,13,3,samplingDuration > TimeSpan.FromTicks(ResolutionOfCircuitTimer.Ticks * NumberOfWindows)
+CircuitBreaker/Health/HealthMetrics.cs,225,15,Equality mutation,False,Killed,13,1,samplingDuration <= TimeSpan.FromTicks(ResolutionOfCircuitTimer.Ticks * NumberOfWindows)
+CircuitBreaker/Health/HealthMetrics.cs,226,15,Arithmetic mutation,False,Killed,13,2,ResolutionOfCircuitTimer.Ticks / NumberOfWindows
+CircuitBreaker/Health/RollingHealthMetrics.cs,227,14,Block removal mutation,False,Ignored,18,0,{}
+CircuitBreaker/Health/RollingHealthMetrics.cs,228,16,Arithmetic mutation,False,Killed,18,4,_samplingDuration.Ticks * numberOfWindows
+CircuitBreaker/Health/RollingHealthMetrics.cs,229,20,PostIncrementExpression to PostDecrementExpression mutation,False,CompileError,0,0,UpdateCurrentWindow().Successes--
+CircuitBreaker/Health/RollingHealthMetrics.cs,230,22,PostIncrementExpression to PostDecrementExpression mutation,False,CompileError,0,0,UpdateCurrentWindow().Failures--
+CircuitBreaker/Health/RollingHealthMetrics.cs,231,25,Block removal mutation,False,Ignored,5,0,{}
+CircuitBreaker/Health/RollingHealthMetrics.cs,232,27,Statement mutation,False,Ignored,5,0,;
+CircuitBreaker/Health/RollingHealthMetrics.cs,233,31,Block removal mutation,False,Ignored,10,0,{}
+CircuitBreaker/Health/RollingHealthMetrics.cs,234,32,Statement mutation,False,Ignored,10,0,;
+CircuitBreaker/Health/RollingHealthMetrics.cs,235,37,Block removal mutation,False,Ignored,10,0,{}
+CircuitBreaker/Health/RollingHealthMetrics.cs,236,38,AddAssignmentExpression to SubtractAssignmentExpression mutation,False,Killed,10,3,successes -= window.Successes
+CircuitBreaker/Health/RollingHealthMetrics.cs,237,39,AddAssignmentExpression to SubtractAssignmentExpression mutation,False,Killed,10,5,failures -= window.Failures
+CircuitBreaker/Health/RollingHealthMetrics.cs,238,46,Block removal mutation,False,Ignored,11,0,{}
+CircuitBreaker/Health/RollingHealthMetrics.cs,239,48,Logical mutation,False,Killed,11,11,_currentWindow == null && now - _currentWindow.StartedAt >= _windowDuration
+CircuitBreaker/Health/RollingHealthMetrics.cs,240,48,Negate expression,False,Killed,11,1,!(_currentWindow == null || now - _currentWindow.StartedAt >= _windowDuration)
+CircuitBreaker/Health/RollingHealthMetrics.cs,241,48,Equality mutation,False,Killed,11,1,_currentWindow != null
+CircuitBreaker/Health/RollingHealthMetrics.cs,242,48,Equality mutation,False,Killed,8,4,now - _currentWindow.StartedAt < _windowDuration
+CircuitBreaker/Health/RollingHealthMetrics.cs,243,48,Equality mutation,False,Killed,8,1,now - _currentWindow.StartedAt > _windowDuration
+CircuitBreaker/Health/RollingHealthMetrics.cs,244,48,Arithmetic mutation,False,CompileError,0,0,now + _currentWindow.StartedAt
+CircuitBreaker/Health/RollingHealthMetrics.cs,245,49,Block removal mutation,False,Ignored,11,0,{}
+CircuitBreaker/Health/RollingHealthMetrics.cs,246,54,Statement mutation,False,Ignored,11,0,;
+CircuitBreaker/Health/RollingHealthMetrics.cs,247,57,Equality mutation,False,Killed,11,8,now - _windows.Peek().StartedAt < _samplingDuration
+CircuitBreaker/Health/RollingHealthMetrics.cs,248,57,Equality mutation,False,Killed,11,3,now - _windows.Peek().StartedAt > _samplingDuration
+CircuitBreaker/Health/RollingHealthMetrics.cs,249,57,Negate expression,False,Killed,11,11,!(now - _windows.Peek().StartedAt >= _samplingDuration)
+CircuitBreaker/Health/RollingHealthMetrics.cs,250,57,Arithmetic mutation,False,CompileError,0,0,now + _windows.Peek().StartedAt
+CircuitBreaker/Health/RollingHealthMetrics.cs,251,58,Block removal mutation,False,Ignored,4,0,{}
+CircuitBreaker/Health/RollingHealthMetrics.cs,252,59,Statement mutation,False,Ignored,4,0,;
+CircuitBreaker/Health/SingleHealthMetrics.cs,253,14,Block removal mutation,False,Ignored,6,0,{}
+CircuitBreaker/Health/SingleHealthMetrics.cs,254,20,Block removal mutation,False,Ignored,3,0,{}
+CircuitBreaker/Health/SingleHealthMetrics.cs,255,21,Statement mutation,False,Ignored,3,0,;
+CircuitBreaker/Health/SingleHealthMetrics.cs,256,22,Statement mutation,False,Ignored,3,0,;
+CircuitBreaker/Health/SingleHealthMetrics.cs,257,22,PostIncrementExpression to PostDecrementExpression mutation,False,Killed,3,1,_successes--
+CircuitBreaker/Health/SingleHealthMetrics.cs,258,26,Block removal mutation,False,Ignored,1,0,{}
+CircuitBreaker/Health/SingleHealthMetrics.cs,259,27,Statement mutation,False,Ignored,1,0,;
+CircuitBreaker/Health/SingleHealthMetrics.cs,260,28,Statement mutation,False,Ignored,1,0,;
+CircuitBreaker/Health/SingleHealthMetrics.cs,261,28,PostIncrementExpression to PostDecrementExpression mutation,False,Killed,1,1,_failures--
+CircuitBreaker/Health/SingleHealthMetrics.cs,262,32,Block removal mutation,False,Ignored,2,0,{}
+CircuitBreaker/Health/SingleHealthMetrics.cs,263,39,Block removal mutation,False,Ignored,4,0,{}
+CircuitBreaker/Health/SingleHealthMetrics.cs,264,40,Statement mutation,False,Ignored,4,0,;
+CircuitBreaker/Health/SingleHealthMetrics.cs,265,46,Block removal mutation,False,Ignored,4,0,{}
+CircuitBreaker/Health/SingleHealthMetrics.cs,266,47,Equality mutation,False,Killed,4,2,TimeProvider.GetUtcNow() - _startedAt < _samplingDuration
+CircuitBreaker/Health/SingleHealthMetrics.cs,267,47,Equality mutation,False,Killed,4,1,TimeProvider.GetUtcNow() - _startedAt > _samplingDuration
+CircuitBreaker/Health/SingleHealthMetrics.cs,268,47,Negate expression,False,Killed,4,2,!(TimeProvider.GetUtcNow() - _startedAt >= _samplingDuration)
+CircuitBreaker/Health/SingleHealthMetrics.cs,269,47,Arithmetic mutation,False,CompileError,0,0,TimeProvider.GetUtcNow() + _startedAt
+CircuitBreaker/Health/SingleHealthMetrics.cs,270,48,Block removal mutation,False,Ignored,1,0,{}
+CircuitBreaker/Health/SingleHealthMetrics.cs,271,49,Statement mutation,False,Ignored,1,0,;
+CircuitBreaker/IsolatedCircuitException.cs,272,19,String mutation,False,Killed,7,1,""""""
+Fallback/FallbackResiliencePipelineBuilderExtensions.cs,273,28,Block removal mutation,False,Ignored,2,0,{}
+Fallback/FallbackResiliencePipelineBuilderExtensions.cs,274,29,Statement mutation,False,Ignored,2,0,;
+Fallback/FallbackResiliencePipelineBuilderExtensions.cs,275,30,Statement mutation,False,Ignored,2,0,;
+Fallback/FallbackResiliencePipelineBuilderExtensions.cs,276,38,Block removal mutation,False,Ignored,1,0,{}
+Fallback/FallbackResilienceStrategy.cs,277,14,Block removal mutation,False,Ignored,10,0,{}
+Fallback/FallbackResilienceStrategy.cs,278,21,Block removal mutation,False,Ignored,8,0,{}
+Fallback/FallbackResilienceStrategy.cs,279,24,Block removal mutation,False,CompileError,0,0,{}
+Fallback/FallbackResilienceStrategy.cs,280,28,Block removal mutation,False,CompileError,0,0,{}
+Fallback/FallbackResilienceStrategy.cs,281,33,LogicalNotExpression to un-LogicalNotExpression mutation,False,Killed,8,8,await _handler.ShouldHandle(handleFallbackArgs).ConfigureAwait(context.ContinueOnCapturedContext)
+Fallback/FallbackResilienceStrategy.cs,282,34,Block removal mutation,False,Ignored,4,0,{}
+Fallback/FallbackResilienceStrategy.cs,283,40,Statement mutation,False,Ignored,4,0,;
+Fallback/FallbackResilienceStrategy.cs,284,42,Equality mutation,False,Killed,4,4,_onFallback is null
+Fallback/FallbackResilienceStrategy.cs,285,43,Block removal mutation,False,Ignored,2,0,{}
+Fallback/FallbackResilienceStrategy.cs,286,44,Statement mutation,False,Ignored,2,0,;
+Fallback/FallbackResilienceStrategy.cs,287,48,Block removal mutation,False,Ignored,4,0,{}
+Fallback/FallbackResilienceStrategy.cs,288,52,Block removal mutation,False,Ignored,1,0,{}
+Hedging/Controller/HedgingController.cs,289,18,Block removal mutation,False,Ignored,44,0,{}
+Hedging/Controller/HedgingController.cs,290,23,Block removal mutation,False,Ignored,35,0,{}
+Hedging/Controller/HedgingController.cs,291,24,Statement mutation,False,Ignored,35,0,;
+Hedging/Controller/HedgingController.cs,292,28,Block removal mutation,False,Ignored,35,0,{}
+Hedging/Controller/HedgingController.cs,293,29,Statement mutation,False,Ignored,35,0,;
+Hedging/Controller/HedgingController.cs,294,32,Boolean mutation,False,Ignored,0,0,false
+Hedging/Controller/HedgingController.cs,295,38,Block removal mutation,False,Ignored,36,0,{}
+Hedging/Controller/HedgingController.cs,296,39,Statement mutation,False,Ignored,36,0,;
+Hedging/Controller/HedgingController.cs,297,43,Block removal mutation,False,Ignored,36,0,{}
+Hedging/Controller/HedgingController.cs,298,44,Statement mutation,False,Ignored,36,0,;
+Hedging/Controller/HedgingController.cs,299,47,Boolean mutation,False,Ignored,0,0,false
+Hedging/Controller/HedgingController.cs,300,57,Block removal mutation,False,Ignored,36,0,{}
+Hedging/Controller/HedgingController.cs,301,59,Statement mutation,False,Ignored,36,0,;
+Hedging/Controller/HedgingExecutionContext.cs,302,25,Block removal mutation,False,Ignored,62,0,{}
+Hedging/Controller/HedgingExecutionContext.cs,303,34,Linq method mutation (Count() to Sum()),False,CompileError,0,0,_tasks.Sum
+Hedging/Controller/HedgingExecutionContext.cs,304,38,Equality mutation,False,Killed,1,1,PrimaryContext == null
+Hedging/Controller/HedgingExecutionContext.cs,305,47,Block removal mutation,False,Ignored,55,0,{}
+Hedging/Controller/HedgingExecutionContext.cs,306,48,Equality mutation,False,Killed,55,9,LoadedTasks < _maxAttempts
+Hedging/Controller/HedgingExecutionContext.cs,307,48,Equality mutation,False,Killed,55,1,LoadedTasks > _maxAttempts
+Hedging/Controller/HedgingExecutionContext.cs,308,48,Negate expression,False,Killed,55,9,!(LoadedTasks >= _maxAttempts)
+Hedging/Controller/HedgingExecutionContext.cs,309,49,Block removal mutation,False,Ignored,7,0,{}
+Hedging/Controller/HedgingExecutionContext.cs,310,62,Negate expression,False,Ignored,54,0,"!(await execution.InitializeAsync(type, PrimaryContext!, primaryCallback, state, LoadedTasks).ConfigureAwait(ContinueOnCapturedContext))"
+Hedging/Controller/HedgingExecutionContext.cs,311,63,Block removal mutation,False,Ignored,54,0,{}
+Hedging/Controller/HedgingExecutionContext.cs,312,65,Statement mutation,False,Ignored,54,0,;
+Hedging/Controller/HedgingExecutionContext.cs,313,66,Statement mutation,False,Ignored,54,0,;
+Hedging/Controller/HedgingExecutionContext.cs,314,67,Boolean mutation,False,Killed,54,4,false
+Hedging/Controller/HedgingExecutionContext.cs,315,70,Block removal mutation,False,Ignored,4,0,{}
+Hedging/Controller/HedgingExecutionContext.cs,316,71,Statement mutation,False,Ignored,4,0,;
+Hedging/Controller/HedgingExecutionContext.cs,317,77,Block removal mutation,False,Ignored,43,0,{}
+Hedging/Controller/HedgingExecutionContext.cs,318,78,Statement mutation,False,Ignored,43,0,;
+Hedging/Controller/HedgingExecutionContext.cs,319,82,Block removal mutation,False,Ignored,13,0,{}
+Hedging/Controller/HedgingExecutionContext.cs,320,83,Statement mutation,False,Ignored,13,0,;
+Hedging/Controller/HedgingExecutionContext.cs,321,87,Block removal mutation,False,Ignored,41,0,{}
+Hedging/Controller/HedgingExecutionContext.cs,322,88,Statement mutation,False,Ignored,41,0,;
+Hedging/Controller/HedgingExecutionContext.cs,323,88,Boolean mutation,False,Ignored,41,0,true
+Hedging/Controller/HedgingExecutionContext.cs,324,89,Statement mutation,False,Ignored,41,0,;
+Hedging/Controller/HedgingExecutionContext.cs,325,89,Boolean mutation,False,Ignored,41,0,true
+Hedging/Controller/HedgingExecutionContext.cs,326,90,Statement mutation,False,Ignored,41,0,;
+Hedging/Controller/HedgingExecutionContext.cs,327,93,Statement mutation,False,Ignored,43,0,;
+Hedging/Controller/HedgingExecutionContext.cs,328,97,Block removal mutation,False,Ignored,54,0,{}
+Hedging/Controller/HedgingExecutionContext.cs,329,99,Equality mutation,False,CompileError,0,0,TryRemoveExecutedTask() is not TaskExecution<T> execution
+Hedging/Controller/HedgingExecutionContext.cs,330,100,Block removal mutation,False,Ignored,38,0,{}
+Hedging/Controller/HedgingExecutionContext.cs,331,104,Equality mutation,False,Killed,24,1,LoadedTasks != _maxAttempts
+Hedging/Controller/HedgingExecutionContext.cs,332,105,Block removal mutation,False,Ignored,6,0,{}
+Hedging/Controller/HedgingExecutionContext.cs,333,106,Statement mutation,False,Ignored,6,0,;
+Hedging/Controller/HedgingExecutionContext.cs,334,108,Statement mutation,False,Ignored,6,0,;
+Hedging/Controller/HedgingExecutionContext.cs,335,108,Equality mutation,False,Ignored,6,0,task == null
+Hedging/Controller/HedgingExecutionContext.cs,336,108,String mutation,False,Ignored,6,0,""""""
+Hedging/Controller/HedgingExecutionContext.cs,337,112,Logical mutation,False,Killed,24,2,hedgingDelay == TimeSpan.Zero && LoadedTasks == 0
+Hedging/Controller/HedgingExecutionContext.cs,338,112,Negate expression,False,Killed,24,4,!(hedgingDelay == TimeSpan.Zero || LoadedTasks == 0)
+Hedging/Controller/HedgingExecutionContext.cs,339,112,Equality mutation,False,Killed,24,2,hedgingDelay != TimeSpan.Zero
+Hedging/Controller/HedgingExecutionContext.cs,340,112,Equality mutation,False,Killed,20,3,LoadedTasks != 0
+Hedging/Controller/HedgingExecutionContext.cs,341,113,Block removal mutation,False,Ignored,6,0,{}
+Hedging/Controller/HedgingExecutionContext.cs,342,119,Equality mutation,False,Ignored,0,0,hedgingDelay > TimeSpan.Zero
+Hedging/Controller/HedgingExecutionContext.cs,343,119,Equality mutation,False,Ignored,0,0,hedgingDelay <= TimeSpan.Zero
+Hedging/Controller/HedgingExecutionContext.cs,344,119,Negate expression,False,Killed,18,1,!(hedgingDelay < TimeSpan.Zero)
+Hedging/Controller/HedgingExecutionContext.cs,345,120,Block removal mutation,False,Ignored,2,0,{}
+Hedging/Controller/HedgingExecutionContext.cs,346,121,Statement mutation,False,Ignored,2,0,;
+Hedging/Controller/HedgingExecutionContext.cs,347,123,Statement mutation,False,Ignored,2,0,;
+Hedging/Controller/HedgingExecutionContext.cs,348,123,Equality mutation,False,Ignored,0,0,task == null
+Hedging/Controller/HedgingExecutionContext.cs,349,123,String mutation,False,Ignored,2,0,""""""
+Hedging/Controller/HedgingExecutionContext.cs,350,129,Statement mutation,False,Ignored,16,0,;
+Hedging/Controller/HedgingExecutionContext.cs,351,130,Bitwise mutation,False,Ignored,16,0,ConfigureAwaitOptions.SuppressThrowing & (ContinueOnCapturedContext ? ConfigureAwaitOptions.ContinueOnCapturedContext : 0)
+Hedging/Controller/HedgingExecutionContext.cs,352,130,Conditional (true) mutation,False,Ignored,16,0,(true?ConfigureAwaitOptions.ContinueOnCapturedContext :0)
+Hedging/Controller/HedgingExecutionContext.cs,353,130,Conditional (false) mutation,False,Ignored,16,0,(false?ConfigureAwaitOptions.ContinueOnCapturedContext :0)
+Hedging/Controller/HedgingExecutionContext.cs,354,132,LogicalNotExpression to un-LogicalNotExpression mutation,False,Killed,16,11,whenAnyHedgedTask.IsCompleted
+Hedging/Controller/HedgingExecutionContext.cs,355,133,Block removal mutation,False,Ignored,12,0,{}
+Hedging/Controller/HedgingExecutionContext.cs,356,151,Statement mutation,False,Ignored,4,0,;
+Hedging/Controller/HedgingExecutionContext.cs,357,151,Equality mutation,False,Ignored,4,0,completed == null
+Hedging/Controller/HedgingExecutionContext.cs,358,151,String mutation,False,Ignored,4,0,""""""
+Hedging/Controller/HedgingExecutionContext.cs,359,156,Block removal mutation,False,Ignored,11,0,{}
+Hedging/Controller/HedgingExecutionContext.cs,360,158,Equality mutation,False,CompileError,0,0,_executingTasks.Count != 0
+Hedging/Controller/HedgingExecutionContext.cs,361,158,Linq method mutation (Count() to Sum()),False,CompileError,0,0,_executingTasks.Sum
+Hedging/Controller/HedgingExecutionContext.cs,362,159,Block removal mutation,False,Ignored,7,0,{}
+Hedging/Controller/HedgingExecutionContext.cs,363,160,Linq method mutation (First() to FirstOrDefault()),False,Killed,7,1,_tasks.FirstOrDefault
+Hedging/Controller/HedgingExecutionContext.cs,364,161,Statement mutation,False,Ignored,6,0,;
+Hedging/Controller/HedgingExecutionContext.cs,365,163,Boolean mutation,False,Killed,6,1,true
+Hedging/Controller/HedgingExecutionContext.cs,366,166,Boolean mutation,False,Killed,4,2,true
+Hedging/Controller/HedgingExecutionContext.cs,367,170,Block removal mutation,False,Ignored,20,0,{}
+Hedging/Controller/HedgingExecutionContext.cs,368,172,Linq method mutation (Count() to Sum()),False,CompileError,0,0,_executingTasks.Sum
+Hedging/Controller/HedgingExecutionContext.cs,369,182,Block removal mutation,False,Ignored,54,0,{}
+Hedging/Controller/HedgingExecutionContext.cs,370,184,Equality mutation,False,Killed,54,34,i == -1
+Hedging/Controller/HedgingExecutionContext.cs,371,184,UnaryMinusExpression to UnaryPlusExpression mutation,False,Killed,54,5,+1
+Hedging/Controller/HedgingExecutionContext.cs,372,185,Block removal mutation,False,Ignored,48,0,{}
+Hedging/Controller/HedgingExecutionContext.cs,373,187,Statement mutation,False,Ignored,48,0,;
+Hedging/Controller/HedgingExecutionContext.cs,374,195,Block removal mutation,False,Ignored,43,0,{}
+Hedging/Controller/HedgingExecutionContext.cs,375,196,Equality mutation,False,CompileError,0,0,_tasks.Find(static t => t.IsAccepted) is not TaskExecution<T> acceptedExecution
+Hedging/Controller/HedgingExecutionContext.cs,376,197,Block removal mutation,False,Ignored,39,0,{}
+Hedging/Controller/HedgingExecutionContext.cs,377,198,Statement mutation,False,Ignored,39,0,;
+Hedging/Controller/HedgingExecutionContext.cs,378,203,Block removal mutation,False,Ignored,43,0,{}
+Hedging/Controller/HedgingExecutionContext.cs,379,204,Statement mutation,False,Ignored,43,0,;
+Hedging/Controller/HedgingExecutionContext.cs,380,206,Statement mutation,False,Ignored,43,0,;
+Hedging/Controller/HedgingExecutionContext.cs,381,209,Statement mutation,False,Ignored,43,0,;
+Hedging/Controller/HedgingHandler.cs,382,8,Equality mutation,False,Killed,81,3,ActionGenerator != HedgingStrategyOptions<T>.DefaultActionGenerator
+Hedging/Controller/TaskExecution.cs,383,35,Block removal mutation,False,Ignored,71,0,{}
+Hedging/Controller/TaskExecution.cs,384,58,String mutation,False,Ignored,3,0,""""""
+Hedging/Controller/TaskExecution.cs,385,69,Block removal mutation,False,Ignored,54,0,{}
+Hedging/Controller/TaskExecution.cs,386,70,Equality mutation,False,Killed,54,4,ExecutionTaskSafe?.IsCompleted != true
+Hedging/Controller/TaskExecution.cs,387,70,Boolean mutation,False,Killed,54,34,false
+Hedging/Controller/TaskExecution.cs,388,71,Block removal mutation,False,Ignored,53,0,{}
+Hedging/Controller/TaskExecution.cs,389,72,Boolean mutation,False,Killed,53,3,false
+Hedging/Controller/TaskExecution.cs,390,75,Block removal mutation,False,Ignored,1,0,{}
+Hedging/Controller/TaskExecution.cs,391,76,Statement mutation,False,Ignored,1,0,;
+Hedging/Controller/TaskExecution.cs,392,76,String mutation,False,Ignored,1,0,""""""
+Hedging/Controller/TaskExecution.cs,393,81,Block removal mutation,False,Ignored,15,0,{}
+Hedging/Controller/TaskExecution.cs,394,82,LogicalNotExpression to un-LogicalNotExpression mutation,False,Killed,15,2,IsAccepted
+Hedging/Controller/TaskExecution.cs,395,83,Block removal mutation,False,Ignored,14,0,{}
+Hedging/Controller/TaskExecution.cs,396,84,Statement mutation,False,Ignored,14,0,;
+Hedging/Controller/TaskExecution.cs,397,94,Block removal mutation,False,Ignored,70,0,{}
+Hedging/Controller/TaskExecution.cs,398,100,Statement mutation,False,Ignored,70,0,;
+Hedging/Controller/TaskExecution.cs,399,108,Equality mutation,False,Killed,70,1,type != HedgedTaskType.Secondary
+Hedging/Controller/TaskExecution.cs,400,109,Block removal mutation,False,Ignored,46,0,{}
+Hedging/Controller/TaskExecution.cs,401,111,LogicalNotExpression to un-LogicalNotExpression mutation,False,Killed,46,3,_handler.IsDefaultActionGenerator
+Hedging/Controller/TaskExecution.cs,402,112,Block removal mutation,False,Ignored,44,0,{}
+Hedging/Controller/TaskExecution.cs,403,114,Block removal mutation,False,Ignored,44,0,{}
+Hedging/Controller/TaskExecution.cs,404,116,Equality mutation,False,Killed,42,8,action != null
+Hedging/Controller/TaskExecution.cs,405,117,Block removal mutation,False,Ignored,5,0,{}
+Hedging/Controller/TaskExecution.cs,406,118,Statement mutation,False,Ignored,5,0,;
+Hedging/Controller/TaskExecution.cs,407,118,Boolean mutation,False,Ignored,5,0,true
+Hedging/Controller/TaskExecution.cs,408,119,Boolean mutation,False,Killed,5,1,true
+Hedging/Controller/TaskExecution.cs,409,123,Block removal mutation,False,Ignored,2,0,{}
+Hedging/Controller/TaskExecution.cs,410,126,Boolean mutation,False,Killed,2,2,false
+Hedging/Controller/TaskExecution.cs,411,130,Arithmetic mutation,False,Killed,41,1,attemptNumber + 1
+Hedging/Controller/TaskExecution.cs,412,131,Statement mutation,False,Ignored,41,0,;
+Hedging/Controller/TaskExecution.cs,413,133,Equality mutation,False,CompileError,0,0,_handler.OnHedging is not { } onHedging
+Hedging/Controller/TaskExecution.cs,414,134,Block removal mutation,False,Ignored,4,0,{}
+Hedging/Controller/TaskExecution.cs,415,135,Statement mutation,False,CompileError,0,0,;
+Hedging/Controller/TaskExecution.cs,416,141,Block removal mutation,False,Ignored,62,0,{}
+Hedging/Controller/TaskExecution.cs,417,145,Boolean mutation,False,Killed,67,8,false
+Hedging/Controller/TaskExecution.cs,418,155,Block removal mutation,False,Ignored,48,0,{}
+Hedging/Controller/TaskExecution.cs,419,156,Statement mutation,False,Ignored,48,0,;
+Hedging/Controller/TaskExecution.cs,420,159,Statement mutation,False,Ignored,48,0,;
+Hedging/Controller/TaskExecution.cs,421,163,LogicalNotExpression to un-LogicalNotExpression mutation,False,Killed,48,2,IsAccepted
+Hedging/Controller/TaskExecution.cs,422,164,Block removal mutation,False,Ignored,37,0,{}
+Hedging/Controller/TaskExecution.cs,423,165,Statement mutation,False,Ignored,37,0,;
+Hedging/Controller/TaskExecution.cs,424,165,Boolean mutation,False,Ignored,37,0,true
+Hedging/Controller/TaskExecution.cs,425,169,Statement mutation,False,Ignored,37,0,;
+Hedging/Controller/TaskExecution.cs,426,172,Block removal mutation,False,Ignored,40,0,{}
+Hedging/Controller/TaskExecution.cs,427,175,Statement mutation,False,Ignored,40,0,;
+Hedging/Controller/TaskExecution.cs,428,178,Boolean mutation,False,Killed,48,2,true
+Hedging/Controller/TaskExecution.cs,429,180,Boolean mutation,False,Killed,48,2,true
+Hedging/Controller/TaskExecution.cs,430,184,Statement mutation,False,Ignored,48,0,;
+Hedging/Controller/TaskExecution.cs,431,196,Block removal mutation,False,Ignored,40,0,{}
+Hedging/Controller/TaskExecution.cs,432,200,Block removal mutation,False,CompileError,0,0,{}
+Hedging/Controller/TaskExecution.cs,433,202,Null coalescing mutation (remove left),False,Killed,40,3,"(isSynchronous ? ExecuteSecondaryActionSync(primaryCallback, state) : primaryCallback(Context, state))"
+Hedging/Controller/TaskExecution.cs,434,202,Conditional (true) mutation,False,Ignored,0,0,"(true?ExecuteSecondaryActionSync(primaryCallback, state) :primaryCallback(Context, state))"
+Hedging/Controller/TaskExecution.cs,435,202,Conditional (false) mutation,False,Ignored,0,0,"(false?ExecuteSecondaryActionSync(primaryCallback, state) :primaryCallback(Context, state))"
+Hedging/Controller/TaskExecution.cs,436,206,Block removal mutation,False,CompileError,0,0,{}
+Hedging/Controller/TaskExecution.cs,437,211,Statement mutation,False,Ignored,38,0,;
+Hedging/Controller/TaskExecution.cs,438,219,Block removal mutation,False,Ignored,62,0,{}
+Hedging/Controller/TaskExecution.cs,439,223,Block removal mutation,False,CompileError,0,0,{}
+Hedging/Controller/TaskExecution.cs,440,227,Block removal mutation,False,CompileError,0,0,{}
+Hedging/Controller/TaskExecution.cs,441,232,Statement mutation,False,Ignored,62,0,;
+Hedging/Controller/TaskExecution.cs,442,236,Block removal mutation,False,Ignored,69,0,{}
+Hedging/Controller/TaskExecution.cs,443,240,Statement mutation,False,Ignored,69,0,;
+Hedging/HedgingResiliencePipelineBuilderExtensions.cs,444,29,Block removal mutation,False,Ignored,6,0,{}
+Hedging/HedgingResiliencePipelineBuilderExtensions.cs,445,30,Statement mutation,False,Ignored,6,0,;
+Hedging/HedgingResiliencePipelineBuilderExtensions.cs,446,31,Statement mutation,False,Ignored,6,0,;
+Hedging/HedgingResiliencePipelineBuilderExtensions.cs,447,37,Block removal mutation,False,Ignored,5,0,{}
+Hedging/HedgingResilienceStrategy.cs,448,18,Block removal mutation,False,Ignored,43,0,{}
+Hedging/HedgingResilienceStrategy.cs,449,20,Arithmetic mutation,False,Killed,43,6,maxHedgedAttempts - 1
+Hedging/HedgingResilienceStrategy.cs,450,38,Block removal mutation,False,CompileError,0,0,{}
+Hedging/HedgingResilienceStrategy.cs,451,43,Block removal mutation,False,CompileError,0,0,{}
+Hedging/HedgingResilienceStrategy.cs,452,50,Boolean mutation,False,Killed,35,10,false
+Hedging/HedgingResilienceStrategy.cs,453,50,Negate expression,False,Killed,35,9,!(true)
+Hedging/HedgingResilienceStrategy.cs,454,52,Negate expression,False,Killed,35,8,!(cancellationToken.IsCancellationRequested)
+Hedging/HedgingResilienceStrategy.cs,455,53,Block removal mutation,False,Ignored,1,0,{}
+Hedging/HedgingResilienceStrategy.cs,456,59,Equality mutation,False,CompileError,0,0,loadedExecution.Outcome is not Outcome<T> outcome
+Hedging/HedgingResilienceStrategy.cs,457,60,Block removal mutation,False,Ignored,5,0,{}
+Hedging/HedgingResilienceStrategy.cs,458,66,Equality mutation,False,Killed,34,22,execution is not null
+Hedging/HedgingResilienceStrategy.cs,459,67,Block removal mutation,False,Ignored,12,0,{}
+Hedging/HedgingResilienceStrategy.cs,460,68,Statement mutation,False,Ignored,12,0,;
+Hedging/HedgingResilienceStrategy.cs,461,73,LogicalNotExpression to un-LogicalNotExpression mutation,False,Killed,34,3,execution.IsHandled
+Hedging/HedgingResilienceStrategy.cs,462,74,Block removal mutation,False,Ignored,28,0,{}
+Hedging/HedgingResilienceStrategy.cs,463,75,Statement mutation,False,Ignored,28,0,;
+Hedging/HedgingResilienceStrategy.cs,464,81,Block removal mutation,False,Ignored,35,0,{}
+Hedging/HedgingResilienceStrategy.cs,465,82,Statement mutation,False,Ignored,35,0,;
+Hedging/HedgingResilienceStrategy.cs,466,87,Block removal mutation,False,Ignored,40,0,{}
+Hedging/HedgingResilienceStrategy.cs,467,88,Equality mutation,False,Killed,40,6,DelayGenerator != null
+Hedging/HedgingResilienceStrategy.cs,468,89,Block removal mutation,False,Ignored,34,0,{}
+Hedging/HedgingStrategyOptions.TResult.cs,469,58,Block removal mutation,True,Ignored,0,0,{}
+Hedging/HedgingStrategyOptions.TResult.cs,470,60,Block removal mutation,True,Ignored,0,0,{}
+Hedging/HedgingStrategyOptions.TResult.cs,471,61,Negate expression,True,Killed,0,2,!(args.PrimaryContext.IsSynchronous)
+Hedging/HedgingStrategyOptions.TResult.cs,472,62,Block removal mutation,True,Ignored,0,0,{}
+LegacySupport.cs,473,28,Block removal mutation,False,Ignored,2,0,{}
+LegacySupport.cs,474,29,Statement mutation,False,Ignored,2,0,;
+LegacySupport.cs,475,30,Statement mutation,False,Ignored,2,0,;
+Outcome.TResult.cs,480,46,Equality mutation,True,Killed,0,4,ExceptionDispatchInfo is not null
+Outcome.TResult.cs,481,67,Block removal mutation,True,Ignored,0,0,{}
+Outcome.TResult.cs,482,68,Logical mutation,True,Killed,0,2,HasResult || !IsVoidResult
+Outcome.TResult.cs,483,68,Negate expression,True,Killed,0,5,!(HasResult && !IsVoidResult)
+Outcome.TResult.cs,484,68,LogicalNotExpression to un-LogicalNotExpression mutation,True,Killed,0,5,IsVoidResult
+Outcome.TResult.cs,485,69,Block removal mutation,True,Ignored,0,0,{}
+Outcome.TResult.cs,486,71,Boolean mutation,True,Killed,0,5,false
+Outcome.TResult.cs,487,75,Boolean mutation,True,Killed,0,2,true
+Outcome.TResult.cs,488,84,Conditional (true) mutation,False,Killed,5,3,(true?Exception!.Message :Result?.ToString() ?? string.Empty)
+Outcome.TResult.cs,489,84,Conditional (false) mutation,False,Killed,5,1,(false?Exception!.Message :Result?.ToString() ?? string.Empty)
+Outcome.TResult.cs,490,84,Equality mutation,False,Killed,5,4,ExceptionDispatchInfo is null
+Outcome.TResult.cs,491,86,Null coalescing mutation (remove left),False,Killed,4,2,string.Empty
+Outcome.TResult.cs,492,86,String mutation,False,Killed,1,1,"""Stryker was here!"""
+Outcome.TResult.cs,493,89,Block removal mutation,True,Ignored,0,0,{}
+Outcome.TResult.cs,494,90,Statement mutation,True,Ignored,0,0,;
+Outcome.cs,476,32,Block removal mutation,True,Ignored,0,0,{}
+Outcome.cs,477,33,Statement mutation,True,Ignored,0,0,;
+Outcome.cs,478,46,Block removal mutation,False,Ignored,5,0,{}
+Outcome.cs,479,47,Statement mutation,False,Ignored,5,0,;
+PredicateBuilder.Operators.cs,495,19,Block removal mutation,False,Ignored,2,0,{}
+PredicateBuilder.Operators.cs,496,20,Statement mutation,False,Ignored,2,0,;
+PredicateBuilder.Operators.cs,497,30,Block removal mutation,False,Ignored,5,0,{}
+PredicateBuilder.Operators.cs,498,31,Statement mutation,False,Ignored,5,0,;
+PredicateBuilder.Operators.cs,499,41,Block removal mutation,False,Ignored,2,0,{}
+PredicateBuilder.Operators.cs,500,42,Statement mutation,False,Ignored,2,0,;
+PredicateBuilder.Operators.cs,501,52,Block removal mutation,False,Ignored,2,0,{}
+PredicateBuilder.Operators.cs,502,53,Statement mutation,False,Ignored,2,0,;
+PredicateBuilder.TResult.cs,503,17,Boolean mutation,True,Killed,0,1,false
+PredicateBuilder.TResult.cs,504,28,Block removal mutation,True,Ignored,0,0,{}
+PredicateBuilder.TResult.cs,505,29,Statement mutation,True,Ignored,0,0,;
+PredicateBuilder.TResult.cs,506,31,Logical mutation,False,CompileError,0,0,outcome.Exception is TException exception || predicate(exception)
+PredicateBuilder.TResult.cs,507,31,Equality mutation,False,CompileError,0,0,outcome.Exception is not TException exception
+PredicateBuilder.TResult.cs,508,44,Boolean mutation,True,Killed,0,1,false
+PredicateBuilder.TResult.cs,509,59,Block removal mutation,True,Ignored,0,0,{}
+PredicateBuilder.TResult.cs,510,60,Statement mutation,True,Ignored,0,0,;
+PredicateBuilder.TResult.cs,511,65,Block removal mutation,True,Ignored,0,0,{}
+PredicateBuilder.TResult.cs,512,66,Equality mutation,False,CompileError,0,0,exception is not AggregateException aggregate
+PredicateBuilder.TResult.cs,513,67,Block removal mutation,True,Ignored,0,0,{}
+PredicateBuilder.TResult.cs,514,69,Block removal mutation,True,Ignored,0,0,{}
+PredicateBuilder.TResult.cs,515,70,Negate expression,True,Killed,0,1,"!(HandleNested(predicate, innerException))"
+PredicateBuilder.TResult.cs,516,71,Block removal mutation,True,Ignored,0,0,{}
+PredicateBuilder.TResult.cs,517,72,Boolean mutation,True,Killed,0,1,false
+PredicateBuilder.TResult.cs,518,80,Block removal mutation,True,Ignored,0,0,{}
+PredicateBuilder.TResult.cs,519,81,Equality mutation,True,Killed,0,1,current is not null
+PredicateBuilder.TResult.cs,520,82,Block removal mutation,True,Ignored,0,0,{}
+PredicateBuilder.TResult.cs,521,83,Boolean mutation,True,Killed,0,1,true
+PredicateBuilder.TResult.cs,522,85,Equality mutation,False,CompileError,0,0,current is not TException exceptionOfT
+PredicateBuilder.TResult.cs,523,86,Block removal mutation,True,Ignored,0,0,{}
+PredicateBuilder.TResult.cs,524,101,Logical mutation,False,CompileError,0,0,outcome.TryGetResult(out var result) || predicate(result!)
+PredicateBuilder.TResult.cs,525,110,Block removal mutation,True,Ignored,0,0,{}
+PredicateBuilder.TResult.cs,526,111,CoalesceAssignmentExpression to SimpleAssignmentExpression mutation,True,Killed,0,1,comparer = EqualityComparer<TResult>.Default
+PredicateBuilder.TResult.cs,527,126,Linq method mutation (Count() to Sum()),False,CompileError,0,0,_predicates.Sum
+PredicateBuilder.TResult.cs,528,128,String mutation,False,Ignored,1,0,""""""
+PredicateBuilder.TResult.cs,529,135,Block removal mutation,False,Ignored,7,0,{}
+PredicateBuilder.TResult.cs,530,143,Block removal mutation,True,Ignored,0,0,{}
+PredicateBuilder.TResult.cs,531,145,Block removal mutation,True,Ignored,0,0,{}
+PredicateBuilder.TResult.cs,532,146,Negate expression,True,Killed,0,1,!(predicate(outcome))
+PredicateBuilder.TResult.cs,533,147,Block removal mutation,True,Ignored,0,0,{}
+PredicateBuilder.TResult.cs,534,148,Boolean mutation,True,Killed,0,1,false
+PredicateBuilder.TResult.cs,535,152,Boolean mutation,True,Killed,0,1,true
+PredicateBuilder.TResult.cs,536,156,Block removal mutation,True,Ignored,0,0,{}
+PredicateBuilder.TResult.cs,537,157,Statement mutation,True,Ignored,0,0,;
+PredicateResult.cs,538,12,Boolean mutation,False,Killed,19,1,false
+PredicateResult.cs,539,18,Boolean mutation,False,Killed,8,1,true
+Registry/ConfigureBuilderContext.cs,540,11,Block removal mutation,False,Ignored,21,0,{}
+Registry/ConfigureBuilderContext.cs,541,44,Block removal mutation,False,Ignored,5,0,{}
+Registry/ConfigureBuilderContext.cs,542,45,Logical mutation,False,Killed,5,1,!cancellationToken.CanBeCanceled && cancellationToken.IsCancellationRequested
+Registry/ConfigureBuilderContext.cs,543,45,Negate expression,False,Killed,5,1,!(!cancellationToken.CanBeCanceled || cancellationToken.IsCancellationRequested)
+Registry/ConfigureBuilderContext.cs,544,45,LogicalNotExpression to un-LogicalNotExpression mutation,False,Killed,5,4,cancellationToken.CanBeCanceled
+Registry/ConfigureBuilderContext.cs,545,46,Block removal mutation,False,Ignored,5,0,{}
+Registry/ConfigureBuilderContext.cs,546,47,Statement mutation,False,Ignored,5,0,;
+Registry/ConfigureBuilderContext.cs,547,50,Statement mutation,False,Ignored,5,0,;
+Registry/ConfigureBuilderContext.cs,548,58,Block removal mutation,False,Ignored,1,0,{}
+Registry/ConfigureBuilderContext.cs,549,59,Statement mutation,False,Ignored,1,0,;
+Registry/ConfigureBuilderContext.cs,550,61,Statement mutation,False,Ignored,1,0,;
+Registry/RegistryPipelineComponentBuilder.cs,551,25,Block removal mutation,False,Ignored,20,0,{}
+Registry/RegistryPipelineComponentBuilder.cs,552,28,Equality mutation,False,CompileError,0,0,reloadTokens.Count != 0
+Registry/RegistryPipelineComponentBuilder.cs,553,28,Linq method mutation (Count() to Sum()),False,CompileError,0,0,reloadTokens.Sum
+Registry/RegistryPipelineComponentBuilder.cs,554,29,Block removal mutation,False,Ignored,16,0,{}
+Registry/RegistryPipelineComponentBuilder.cs,555,36,Block removal mutation,False,Ignored,4,0,{}
+Registry/RegistryPipelineComponentBuilder.cs,556,45,Block removal mutation,False,Ignored,20,0,{}
+Registry/RegistryPipelineComponentBuilder.cs,557,50,Statement mutation,False,Ignored,20,0,;
+Registry/ResiliencePipelineProvider.cs,558,19,Block removal mutation,False,Ignored,12,0,{}
+Registry/ResiliencePipelineProvider.cs,559,20,Negate expression,False,Killed,12,10,"!(TryGetPipeline(key, out var pipeline))"
+Registry/ResiliencePipelineProvider.cs,560,21,Block removal mutation,False,Ignored,9,0,{}
+Registry/ResiliencePipelineProvider.cs,561,25,Statement mutation,False,Ignored,1,0,;
+Registry/ResiliencePipelineProvider.cs,562,25,String mutation,False,Ignored,1,0,"$"""""
+Registry/ResiliencePipelineProvider.cs,563,26,String mutation,False,Ignored,1,0,"$"""""
+Registry/ResiliencePipelineProvider.cs,564,37,Block removal mutation,False,Ignored,10,0,{}
+Registry/ResiliencePipelineProvider.cs,565,38,Negate expression,False,Killed,10,7,"!(TryGetPipeline<TResult>(key, out var pipeline))"
+Registry/ResiliencePipelineProvider.cs,566,39,Block removal mutation,False,Ignored,7,0,{}
+Registry/ResiliencePipelineProvider.cs,567,43,Statement mutation,False,Ignored,1,0,;
+Registry/ResiliencePipelineProvider.cs,568,43,String mutation,False,Ignored,1,0,"$"""""
+Registry/ResiliencePipelineProvider.cs,569,44,String mutation,False,Ignored,1,0,"$"""""
+Registry/ResiliencePipelineRegistry.TResult.cs,627,23,Block removal mutation,False,Ignored,11,0,{}
+Registry/ResiliencePipelineRegistry.TResult.cs,628,32,Block removal mutation,False,Ignored,7,0,{}
+Registry/ResiliencePipelineRegistry.TResult.cs,629,33,Negate expression,False,Killed,7,6,"!(_pipelines.TryGetValue(key, out strategy))"
+Registry/ResiliencePipelineRegistry.TResult.cs,630,34,Block removal mutation,False,Ignored,3,0,{}
+Registry/ResiliencePipelineRegistry.TResult.cs,631,35,Boolean mutation,False,Killed,3,3,false
+Registry/ResiliencePipelineRegistry.TResult.cs,632,38,Negate expression,False,Killed,7,7,"!(_builders.TryGetValue(key, out var configure))"
+Registry/ResiliencePipelineRegistry.TResult.cs,633,39,Block removal mutation,False,Ignored,6,0,{}
+Registry/ResiliencePipelineRegistry.TResult.cs,634,41,Boolean mutation,False,Killed,6,6,false
+Registry/ResiliencePipelineRegistry.TResult.cs,635,45,Boolean mutation,False,Killed,1,1,true
+Registry/ResiliencePipelineRegistry.TResult.cs,636,49,Block removal mutation,False,Ignored,10,0,{}
+Registry/ResiliencePipelineRegistry.TResult.cs,637,50,Negate expression,False,Killed,10,8,"!(_pipelines.TryGetValue(key, out var pipeline))"
+Registry/ResiliencePipelineRegistry.TResult.cs,638,51,Block removal mutation,False,Ignored,1,0,{}
+Registry/ResiliencePipelineRegistry.TResult.cs,639,70,Block removal mutation,False,Ignored,11,0,{}
+Registry/ResiliencePipelineRegistry.TResult.cs,640,72,Block removal mutation,False,Ignored,10,0,{}
+Registry/ResiliencePipelineRegistry.TResult.cs,641,73,Statement mutation,False,Ignored,10,0,;
+Registry/ResiliencePipelineRegistry.TResult.cs,642,73,Boolean mutation,False,Ignored,10,0,true
+Registry/ResiliencePipelineRegistry.cs,570,47,Block removal mutation,False,Ignored,26,0,{}
+Registry/ResiliencePipelineRegistry.cs,571,48,Statement mutation,False,Ignored,26,0,;
+Registry/ResiliencePipelineRegistry.cs,572,49,Statement mutation,False,Ignored,26,0,;
+Registry/ResiliencePipelineRegistry.cs,573,50,Statement mutation,False,Ignored,25,0,;
+Registry/ResiliencePipelineRegistry.cs,574,51,Statement mutation,False,Ignored,25,0,;
+Registry/ResiliencePipelineRegistry.cs,575,52,Statement mutation,False,Ignored,25,0,;
+Registry/ResiliencePipelineRegistry.cs,576,65,Block removal mutation,False,Ignored,9,0,{}
+Registry/ResiliencePipelineRegistry.cs,577,66,Statement mutation,False,Ignored,9,0,;
+Registry/ResiliencePipelineRegistry.cs,578,73,Block removal mutation,False,Ignored,11,0,{}
+Registry/ResiliencePipelineRegistry.cs,579,74,Statement mutation,False,Ignored,11,0,;
+Registry/ResiliencePipelineRegistry.cs,580,76,Negate expression,False,Killed,9,1,"!(_pipelines.TryGetValue(key, out pipeline))"
+Registry/ResiliencePipelineRegistry.cs,581,77,Block removal mutation,False,Ignored,2,0,{}
+Registry/ResiliencePipelineRegistry.cs,582,78,Boolean mutation,False,Killed,2,2,false
+Registry/ResiliencePipelineRegistry.cs,583,81,Negate expression,False,Killed,11,1,"!(_builders.TryGetValue(key, out var configure))"
+Registry/ResiliencePipelineRegistry.cs,584,82,Block removal mutation,False,Ignored,8,0,{}
+Registry/ResiliencePipelineRegistry.cs,585,84,Boolean mutation,False,Killed,8,1,false
+Registry/ResiliencePipelineRegistry.cs,586,88,Boolean mutation,False,Killed,1,1,true
+Registry/ResiliencePipelineRegistry.cs,587,99,Block removal mutation,False,Ignored,8,0,{}
+Registry/ResiliencePipelineRegistry.cs,588,100,Statement mutation,False,Ignored,8,0,;
+Registry/ResiliencePipelineRegistry.cs,589,102,Statement mutation,False,Ignored,8,0,;
+Registry/ResiliencePipelineRegistry.cs,590,115,Block removal mutation,False,Ignored,15,0,{}
+Registry/ResiliencePipelineRegistry.cs,591,116,Statement mutation,False,Ignored,15,0,;
+Registry/ResiliencePipelineRegistry.cs,592,118,Statement mutation,False,Ignored,15,0,;
+Registry/ResiliencePipelineRegistry.cs,593,120,Negate expression,False,Killed,15,1,"!(_pipelines.TryGetValue(key, out var pipeline))"
+Registry/ResiliencePipelineRegistry.cs,594,121,Block removal mutation,False,Ignored,1,0,{}
+Registry/ResiliencePipelineRegistry.cs,595,146,Block removal mutation,False,Ignored,6,0,{}
+Registry/ResiliencePipelineRegistry.cs,596,147,Statement mutation,False,Ignored,6,0,;
+Registry/ResiliencePipelineRegistry.cs,597,149,Statement mutation,False,Ignored,6,0,;
+Registry/ResiliencePipelineRegistry.cs,598,163,Block removal mutation,False,Ignored,6,0,{}
+Registry/ResiliencePipelineRegistry.cs,599,164,Statement mutation,False,Ignored,6,0,;
+Registry/ResiliencePipelineRegistry.cs,600,166,Statement mutation,False,Ignored,6,0,;
+Registry/ResiliencePipelineRegistry.cs,601,183,Block removal mutation,False,Ignored,10,0,{}
+Registry/ResiliencePipelineRegistry.cs,602,184,Statement mutation,False,Ignored,10,0,;
+Registry/ResiliencePipelineRegistry.cs,603,186,Statement mutation,False,Ignored,10,0,;
+Registry/ResiliencePipelineRegistry.cs,604,204,Block removal mutation,False,Ignored,8,0,{}
+Registry/ResiliencePipelineRegistry.cs,605,205,Statement mutation,False,Ignored,8,0,;
+Registry/ResiliencePipelineRegistry.cs,606,207,Statement mutation,False,Ignored,8,0,;
+Registry/ResiliencePipelineRegistry.cs,607,230,Block removal mutation,False,Ignored,24,0,{}
+Registry/ResiliencePipelineRegistry.cs,608,231,Negate expression,False,Killed,24,4,!(_disposed)
+Registry/ResiliencePipelineRegistry.cs,609,232,Block removal mutation,False,Ignored,4,0,{}
+Registry/ResiliencePipelineRegistry.cs,610,233,Statement mutation,False,Ignored,4,0,;
+Registry/ResiliencePipelineRegistry.cs,611,236,Boolean mutation,False,Killed,24,2,false
+Registry/ResiliencePipelineRegistry.cs,612,239,Block removal mutation,False,Ignored,13,0,{}
+Registry/ResiliencePipelineRegistry.cs,613,240,Statement mutation,False,Ignored,13,0,;
+Registry/ResiliencePipelineRegistry.cs,614,240,Boolean mutation,False,Ignored,13,0,true
+Registry/ResiliencePipelineRegistry.cs,615,244,Block removal mutation,False,Ignored,11,0,{}
+Registry/ResiliencePipelineRegistry.cs,616,245,Statement mutation,False,Ignored,11,0,;
+Registry/ResiliencePipelineRegistry.cs,617,245,Boolean mutation,False,Ignored,11,0,true
+Registry/ResiliencePipelineRegistry.cs,618,250,Block removal mutation,False,Ignored,11,0,{}
+Registry/ResiliencePipelineRegistry.cs,619,251,Negate expression,False,Killed,11,11,"!(_genericRegistry.TryGetValue(typeof(TResult), out var genericRegistry))"
+Registry/ResiliencePipelineRegistry.cs,620,252,Block removal mutation,False,Ignored,9,0,{}
+Registry/ResiliencePipelineRegistry.cs,621,265,Block removal mutation,False,Ignored,24,0,{}
+Registry/ResiliencePipelineRegistry.cs,622,266,Negate expression,False,Killed,24,1,!(_disposed)
+Registry/ResiliencePipelineRegistry.cs,623,267,Block removal mutation,False,Ignored,2,0,{}
+Registry/ResiliencePipelineRegistry.cs,624,268,Statement mutation,False,Ignored,2,0,;
+Registry/ResiliencePipelineRegistry.cs,625,268,String mutation,False,Ignored,2,0,""""""
+Registry/ResiliencePipelineRegistry.cs,626,268,String mutation,False,Ignored,2,0,""""""
+Registry/ResiliencePipelineRegistryOptions.cs,643,63,Null coalescing mutation (remove left),False,Killed,19,1,string.Empty
+Registry/ResiliencePipelineRegistryOptions.cs,644,63,String mutation,False,Killed,1,1,"""Stryker was here!"""
+ResilienceContext.cs,645,49,Equality mutation,True,Killed,0,2,ResultType != typeof(VoidResult)
+ResilienceContext.cs,646,59,Equality mutation,True,Killed,0,5,ResultType == typeof(UnknownResult)
+ResilienceContext.cs,647,67,Block removal mutation,False,Ignored,72,0,{}
+ResilienceContext.cs,648,74,Statement mutation,False,Ignored,72,0,;
+ResilienceContext.cs,649,80,String mutation,False,Ignored,0,0,""""""
+ResilienceContext.cs,650,84,Block removal mutation,True,Ignored,0,0,{}
+ResilienceContext.cs,651,92,Block removal mutation,True,Ignored,0,0,{}
+ResilienceContext.cs,652,94,Boolean mutation,True,Killed,0,1,true
+ResilienceContext.cs,653,96,Boolean mutation,True,Timeout,0,0,true
+ResilienceContext.cs,654,98,Statement mutation,True,Ignored,0,0,;
+ResilienceContext.cs,655,99,Boolean mutation,True,Timeout,0,0,false
+ResilienceContextPool.Shared.cs,656,12,Block removal mutation,True,Ignored,0,0,{}
+ResilienceContextPool.Shared.cs,657,17,Null coalescing mutation (remove left),True,Killed,0,2,ContinueOnCapturedContextDefault
+ResiliencePipeline.Async.cs,658,21,Block removal mutation,True,Ignored,0,0,{}
+ResiliencePipeline.Async.cs,659,22,Statement mutation,True,Ignored,0,0,;
+ResiliencePipeline.Async.cs,660,23,Statement mutation,True,Ignored,0,0,;
+ResiliencePipeline.Async.cs,661,25,Statement mutation,True,Ignored,0,0,;
+ResiliencePipeline.Async.cs,662,29,Block removal mutation,True,Ignored,0,0,{}
+ResiliencePipeline.Async.cs,663,31,Block removal mutation,True,Ignored,0,0,{}
+ResiliencePipeline.Async.cs,664,32,Statement mutation,True,Ignored,0,0,;
+ResiliencePipeline.Async.cs,665,36,Block removal mutation,False,Ignored,1,0,{}
+ResiliencePipeline.Async.cs,666,43,Statement mutation,True,Ignored,0,0,;
+ResiliencePipeline.Async.cs,667,56,Block removal mutation,True,Ignored,0,0,{}
+ResiliencePipeline.Async.cs,668,57,Statement mutation,True,Ignored,0,0,;
+ResiliencePipeline.Async.cs,669,58,Statement mutation,True,Ignored,0,0,;
+ResiliencePipeline.Async.cs,670,60,Statement mutation,True,Ignored,0,0,;
+ResiliencePipeline.Async.cs,671,64,Block removal mutation,True,Ignored,0,0,{}
+ResiliencePipeline.Async.cs,672,66,Block removal mutation,True,Ignored,0,0,{}
+ResiliencePipeline.Async.cs,673,67,Statement mutation,True,Ignored,0,0,;
+ResiliencePipeline.Async.cs,674,71,Block removal mutation,False,Ignored,2,0,{}
+ResiliencePipeline.Async.cs,675,78,Statement mutation,True,Ignored,0,0,;
+ResiliencePipeline.Async.cs,676,94,Block removal mutation,True,Ignored,0,0,{}
+ResiliencePipeline.Async.cs,677,95,Statement mutation,True,Ignored,0,0,;
+ResiliencePipeline.Async.cs,678,100,Block removal mutation,True,Ignored,0,0,{}
+ResiliencePipeline.Async.cs,679,103,Block removal mutation,True,Ignored,0,0,{}
+ResiliencePipeline.Async.cs,680,105,Block removal mutation,True,Ignored,0,0,{}
+ResiliencePipeline.Async.cs,681,106,Statement mutation,True,Ignored,0,0,;
+ResiliencePipeline.Async.cs,682,110,Block removal mutation,False,Ignored,1,0,{}
+ResiliencePipeline.Async.cs,683,117,Statement mutation,True,Ignored,0,0,;
+ResiliencePipeline.Async.cs,684,120,Block removal mutation,True,Ignored,0,0,{}
+ResiliencePipeline.Async.cs,685,121,Statement mutation,True,Ignored,0,0,;
+ResiliencePipeline.Async.cs,686,135,Block removal mutation,True,Ignored,0,0,{}
+ResiliencePipeline.Async.cs,687,136,Statement mutation,True,Ignored,0,0,;
+ResiliencePipeline.Async.cs,688,141,Block removal mutation,True,Ignored,0,0,{}
+ResiliencePipeline.Async.cs,689,144,Block removal mutation,True,Ignored,0,0,{}
+ResiliencePipeline.Async.cs,690,146,Block removal mutation,True,Ignored,0,0,{}
+ResiliencePipeline.Async.cs,691,147,Statement mutation,True,Ignored,0,0,;
+ResiliencePipeline.Async.cs,692,151,Block removal mutation,False,Ignored,15,0,{}
+ResiliencePipeline.Async.cs,693,159,Statement mutation,True,Ignored,0,0,;
+ResiliencePipeline.Async.cs,694,162,Block removal mutation,True,Ignored,0,0,{}
+ResiliencePipeline.Async.cs,695,163,Statement mutation,True,Ignored,0,0,;
+ResiliencePipeline.AsyncT.cs,696,29,Block removal mutation,False,Ignored,14,0,{}
+ResiliencePipeline.AsyncT.cs,697,30,Statement mutation,False,Ignored,14,0,;
+ResiliencePipeline.AsyncT.cs,698,31,Statement mutation,False,Ignored,14,0,;
+ResiliencePipeline.AsyncT.cs,699,33,Statement mutation,False,Ignored,14,0,;
+ResiliencePipeline.AsyncT.cs,700,52,Block removal mutation,True,Ignored,0,0,{}
+ResiliencePipeline.AsyncT.cs,701,53,Statement mutation,True,Ignored,0,0,;
+ResiliencePipeline.AsyncT.cs,702,54,Statement mutation,True,Ignored,0,0,;
+ResiliencePipeline.AsyncT.cs,703,56,Statement mutation,True,Ignored,0,0,;
+ResiliencePipeline.AsyncT.cs,704,60,Block removal mutation,True,Ignored,0,0,{}
+ResiliencePipeline.AsyncT.cs,705,62,Block removal mutation,True,Ignored,0,0,{}
+ResiliencePipeline.AsyncT.cs,706,66,Block removal mutation,False,Ignored,3,0,{}
+ResiliencePipeline.AsyncT.cs,707,87,Block removal mutation,True,Ignored,0,0,{}
+ResiliencePipeline.AsyncT.cs,708,88,Statement mutation,True,Ignored,0,0,;
+ResiliencePipeline.AsyncT.cs,709,89,Statement mutation,True,Ignored,0,0,;
+ResiliencePipeline.AsyncT.cs,710,91,Statement mutation,True,Ignored,0,0,;
+ResiliencePipeline.AsyncT.cs,711,95,Block removal mutation,True,Ignored,0,0,{}
+ResiliencePipeline.AsyncT.cs,712,97,Block removal mutation,True,Ignored,0,0,{}
+ResiliencePipeline.AsyncT.cs,713,101,Block removal mutation,False,Ignored,1,0,{}
+ResiliencePipeline.AsyncT.cs,714,125,Block removal mutation,True,Ignored,0,0,{}
+ResiliencePipeline.AsyncT.cs,715,126,Statement mutation,True,Ignored,0,0,;
+ResiliencePipeline.AsyncT.cs,716,131,Block removal mutation,True,Ignored,0,0,{}
+ResiliencePipeline.AsyncT.cs,717,134,Block removal mutation,True,Ignored,0,0,{}
+ResiliencePipeline.AsyncT.cs,718,136,Block removal mutation,True,Ignored,0,0,{}
+ResiliencePipeline.AsyncT.cs,719,140,Block removal mutation,False,Ignored,1,0,{}
+ResiliencePipeline.AsyncT.cs,720,150,Block removal mutation,True,Ignored,0,0,{}
+ResiliencePipeline.AsyncT.cs,721,151,Statement mutation,True,Ignored,0,0,;
+ResiliencePipeline.AsyncT.cs,722,166,Block removal mutation,True,Ignored,0,0,{}
+ResiliencePipeline.AsyncT.cs,723,167,Statement mutation,True,Ignored,0,0,;
+ResiliencePipeline.AsyncT.cs,724,172,Block removal mutation,True,Ignored,0,0,{}
+ResiliencePipeline.AsyncT.cs,725,175,Block removal mutation,True,Ignored,0,0,{}
+ResiliencePipeline.AsyncT.cs,726,177,Block removal mutation,True,Ignored,0,0,{}
+ResiliencePipeline.AsyncT.cs,727,181,Block removal mutation,False,Ignored,11,0,{}
+ResiliencePipeline.AsyncT.cs,728,191,Block removal mutation,True,Ignored,0,0,{}
+ResiliencePipeline.AsyncT.cs,729,192,Statement mutation,True,Ignored,0,0,;
+ResiliencePipeline.AsyncT.cs,730,197,Block removal mutation,True,Ignored,0,0,{}
+ResiliencePipeline.AsyncT.cs,731,200,Statement mutation,True,Ignored,0,0,;
+ResiliencePipeline.AsyncT.cs,732,206,Block removal mutation,True,Ignored,0,0,{}
+ResiliencePipeline.AsyncT.cs,733,207,Statement mutation,True,Ignored,0,0,;
+ResiliencePipeline.AsyncT.cs,734,209,Statement mutation,True,Ignored,0,0,;
+ResiliencePipeline.AsyncT.cs,735,209,Boolean mutation,True,Killed,0,1,true
+ResiliencePipeline.Sync.cs,738,19,Block removal mutation,True,Ignored,0,0,{}
+ResiliencePipeline.Sync.cs,739,20,Statement mutation,True,Ignored,0,0,;
+ResiliencePipeline.Sync.cs,740,35,Block removal mutation,True,Ignored,0,0,{}
+ResiliencePipeline.Sync.cs,741,36,Statement mutation,True,Ignored,0,0,;
+ResiliencePipeline.Sync.cs,742,54,Block removal mutation,True,Ignored,0,0,{}
+ResiliencePipeline.Sync.cs,743,55,Statement mutation,True,Ignored,0,0,;
+ResiliencePipeline.Sync.cs,744,60,Block removal mutation,True,Ignored,0,0,{}
+ResiliencePipeline.Sync.cs,745,61,Statement mutation,True,Ignored,0,0,;
+ResiliencePipeline.Sync.cs,746,63,Block removal mutation,True,Ignored,0,0,{}
+ResiliencePipeline.Sync.cs,747,64,Statement mutation,True,Ignored,0,0,;
+ResiliencePipeline.Sync.cs,748,71,Block removal mutation,True,Ignored,0,0,{}
+ResiliencePipeline.Sync.cs,749,72,Statement mutation,True,Ignored,0,0,;
+ResiliencePipeline.Sync.cs,750,85,Block removal mutation,True,Ignored,0,0,{}
+ResiliencePipeline.Sync.cs,751,86,Statement mutation,True,Ignored,0,0,;
+ResiliencePipeline.Sync.cs,752,91,Block removal mutation,True,Ignored,0,0,{}
+ResiliencePipeline.Sync.cs,753,92,Statement mutation,True,Ignored,0,0,;
+ResiliencePipeline.Sync.cs,754,94,Block removal mutation,True,Ignored,0,0,{}
+ResiliencePipeline.Sync.cs,755,95,Statement mutation,True,Ignored,0,0,;
+ResiliencePipeline.Sync.cs,756,102,Block removal mutation,True,Ignored,0,0,{}
+ResiliencePipeline.Sync.cs,757,103,Statement mutation,True,Ignored,0,0,;
+ResiliencePipeline.Sync.cs,758,117,Block removal mutation,True,Ignored,0,0,{}
+ResiliencePipeline.Sync.cs,759,118,Statement mutation,True,Ignored,0,0,;
+ResiliencePipeline.Sync.cs,760,123,Block removal mutation,True,Ignored,0,0,{}
+ResiliencePipeline.Sync.cs,761,124,Statement mutation,True,Ignored,0,0,;
+ResiliencePipeline.Sync.cs,762,126,Block removal mutation,True,Ignored,0,0,{}
+ResiliencePipeline.Sync.cs,763,127,Statement mutation,True,Ignored,0,0,;
+ResiliencePipeline.Sync.cs,764,134,Block removal mutation,True,Ignored,0,0,{}
+ResiliencePipeline.Sync.cs,765,135,Statement mutation,True,Ignored,0,0,;
+ResiliencePipeline.Sync.cs,766,145,Block removal mutation,True,Ignored,0,0,{}
+ResiliencePipeline.Sync.cs,767,146,Statement mutation,True,Ignored,0,0,;
+ResiliencePipeline.Sync.cs,768,151,Block removal mutation,True,Ignored,0,0,{}
+ResiliencePipeline.Sync.cs,769,152,Statement mutation,True,Ignored,0,0,;
+ResiliencePipeline.Sync.cs,770,154,Block removal mutation,True,Ignored,0,0,{}
+ResiliencePipeline.Sync.cs,771,155,Statement mutation,True,Ignored,0,0,;
+ResiliencePipeline.Sync.cs,772,162,Block removal mutation,True,Ignored,0,0,{}
+ResiliencePipeline.Sync.cs,773,163,Statement mutation,True,Ignored,0,0,;
+ResiliencePipeline.SyncT.cs,774,22,Block removal mutation,True,Ignored,0,0,{}
+ResiliencePipeline.SyncT.cs,775,23,Statement mutation,True,Ignored,0,0,;
+ResiliencePipeline.SyncT.cs,776,24,Statement mutation,True,Ignored,0,0,;
+ResiliencePipeline.SyncT.cs,777,26,Statement mutation,True,Ignored,0,0,;
+ResiliencePipeline.SyncT.cs,778,53,Block removal mutation,True,Ignored,0,0,{}
+ResiliencePipeline.SyncT.cs,779,54,Statement mutation,True,Ignored,0,0,;
+ResiliencePipeline.SyncT.cs,780,59,Block removal mutation,True,Ignored,0,0,{}
+ResiliencePipeline.SyncT.cs,781,66,Block removal mutation,True,Ignored,0,0,{}
+ResiliencePipeline.SyncT.cs,782,67,Statement mutation,True,Ignored,0,0,;
+ResiliencePipeline.SyncT.cs,783,79,Block removal mutation,True,Ignored,0,0,{}
+ResiliencePipeline.SyncT.cs,784,80,Statement mutation,True,Ignored,0,0,;
+ResiliencePipeline.SyncT.cs,785,85,Block removal mutation,True,Ignored,0,0,{}
+ResiliencePipeline.SyncT.cs,786,92,Block removal mutation,True,Ignored,0,0,{}
+ResiliencePipeline.SyncT.cs,787,93,Statement mutation,True,Ignored,0,0,;
+ResiliencePipeline.SyncT.cs,788,107,Block removal mutation,True,Ignored,0,0,{}
+ResiliencePipeline.SyncT.cs,789,108,Statement mutation,True,Ignored,0,0,;
+ResiliencePipeline.SyncT.cs,790,113,Block removal mutation,True,Ignored,0,0,{}
+ResiliencePipeline.SyncT.cs,791,120,Block removal mutation,True,Ignored,0,0,{}
+ResiliencePipeline.SyncT.cs,792,121,Statement mutation,True,Ignored,0,0,;
+ResiliencePipeline.SyncT.cs,793,139,Block removal mutation,True,Ignored,0,0,{}
+ResiliencePipeline.SyncT.cs,794,140,Statement mutation,True,Ignored,0,0,;
+ResiliencePipeline.SyncT.cs,795,145,Block removal mutation,True,Ignored,0,0,{}
+ResiliencePipeline.SyncT.cs,796,152,Block removal mutation,True,Ignored,0,0,{}
+ResiliencePipeline.SyncT.cs,797,153,Statement mutation,True,Ignored,0,0,;
+ResiliencePipeline.SyncT.cs,798,158,Block removal mutation,True,Ignored,0,0,{}
+ResiliencePipeline.SyncT.cs,799,161,Statement mutation,True,Ignored,0,0,;
+ResiliencePipeline.SyncT.cs,800,167,Block removal mutation,True,Ignored,0,0,{}
+ResiliencePipeline.SyncT.cs,801,168,Statement mutation,True,Ignored,0,0,;
+ResiliencePipeline.SyncT.cs,802,170,Statement mutation,True,Ignored,0,0,;
+ResiliencePipeline.SyncT.cs,803,170,Boolean mutation,True,Killed,0,1,false
+ResiliencePipeline.cs,736,20,Block removal mutation,True,Ignored,0,0,{}
+ResiliencePipeline.cs,737,23,Null coalescing mutation (remove left),True,Killed,0,1,ResilienceContextPool.Shared
+ResiliencePipelineBuilderBase.cs,804,29,Block removal mutation,False,Ignored,12,0,{}
+ResiliencePipelineBuilderBase.cs,805,90,Null coalescing mutation (remove left),True,Killed,0,1,TimeProvider.System
+ResiliencePipelineBuilderBase.cs,806,104,Block removal mutation,True,Ignored,0,0,{}
+ResiliencePipelineBuilderBase.cs,807,105,Statement mutation,True,Ignored,0,0,;
+ResiliencePipelineBuilderBase.cs,808,106,Statement mutation,True,Ignored,0,0,;
+ResiliencePipelineBuilderBase.cs,809,108,Statement mutation,True,Ignored,0,0,;
+ResiliencePipelineBuilderBase.cs,810,108,String mutation,True,Killed,0,1,"$"""""
+ResiliencePipelineBuilderBase.cs,811,110,Negate expression,True,Killed,0,3,!(_used)
+ResiliencePipelineBuilderBase.cs,812,111,Block removal mutation,False,Ignored,1,0,{}
+ResiliencePipelineBuilderBase.cs,813,112,Statement mutation,False,Ignored,1,0,;
+ResiliencePipelineBuilderBase.cs,814,112,String mutation,False,Ignored,1,0,""""""
+ResiliencePipelineBuilderBase.cs,815,115,Statement mutation,True,Ignored,0,0,;
+ResiliencePipelineBuilderBase.cs,816,119,Block removal mutation,True,Ignored,0,0,{}
+ResiliencePipelineBuilderBase.cs,817,120,Statement mutation,True,Ignored,0,0,;
+ResiliencePipelineBuilderBase.cs,818,120,String mutation,True,Killed,0,1,"$"""""
+ResiliencePipelineBuilderBase.cs,819,122,Boolean mutation,True,Killed,0,1,false
+ResiliencePipelineBuilderBase.cs,820,126,Equality mutation,False,CompileError,0,0,components.Count != 0
+ResiliencePipelineBuilderBase.cs,821,126,Linq method mutation (Count() to Sum()),False,CompileError,0,0,components.Sum
+ResiliencePipelineBuilderBase.cs,822,127,Block removal mutation,False,Ignored,4,0,{}
+ResiliencePipelineBuilderBase.cs,823,138,Block removal mutation,True,Ignored,0,0,{}
+ResiliencePipelineBuilderExtensions.cs,824,27,Block removal mutation,False,Ignored,7,0,{}
+ResiliencePipelineBuilderExtensions.cs,825,28,Statement mutation,False,Ignored,7,0,;
+ResiliencePipelineBuilderExtensions.cs,826,29,Statement mutation,False,Ignored,7,0,;
+ResiliencePipelineBuilderExtensions.cs,827,31,Statement mutation,False,Ignored,7,0,;
+ResiliencePipelineBuilderExtensions.cs,828,49,Block removal mutation,False,Ignored,1,0,{}
+ResiliencePipelineBuilderExtensions.cs,829,50,Statement mutation,False,Ignored,1,0,;
+ResiliencePipelineBuilderExtensions.cs,830,51,Statement mutation,False,Ignored,1,0,;
+ResiliencePipelineBuilderExtensions.cs,831,53,Statement mutation,False,Ignored,1,0,;
+ResiliencePipelineBuilderExtensions.cs,832,74,Block removal mutation,True,Ignored,0,0,{}
+ResiliencePipelineBuilderExtensions.cs,833,75,Statement mutation,True,Ignored,0,0,;
+ResiliencePipelineBuilderExtensions.cs,834,76,Statement mutation,True,Ignored,0,0,;
+ResiliencePipelineBuilderExtensions.cs,835,77,Statement mutation,True,Ignored,0,0,;
+ResiliencePipelineBuilderExtensions.cs,836,79,Statement mutation,True,Ignored,0,0,;
+ResiliencePipelineBuilderExtensions.cs,837,98,Block removal mutation,False,Ignored,23,0,{}
+ResiliencePipelineBuilderExtensions.cs,838,99,Statement mutation,False,Ignored,23,0,;
+ResiliencePipelineBuilderExtensions.cs,839,100,Statement mutation,False,Ignored,23,0,;
+ResiliencePipelineBuilderExtensions.cs,840,101,Statement mutation,False,Ignored,22,0,;
+ResiliencePipelineBuilderExtensions.cs,841,103,Statement mutation,False,Ignored,22,0,;
+ResiliencePipelineBuilderExtensions.cs,842,123,Block removal mutation,False,Ignored,116,0,{}
+ResiliencePipelineBuilderExtensions.cs,843,124,Statement mutation,False,Ignored,116,0,;
+ResiliencePipelineBuilderExtensions.cs,844,125,Statement mutation,False,Ignored,116,0,;
+ResiliencePipelineBuilderExtensions.cs,845,126,Statement mutation,False,Ignored,116,0,;
+ResiliencePipelineBuilderExtensions.cs,846,128,Statement mutation,False,Ignored,116,0,;
+ResiliencePipelineT.cs,847,21,Block removal mutation,True,Ignored,0,0,{}
+ResilienceProperties.cs,848,22,Block removal mutation,False,Ignored,25,0,{}
+ResilienceProperties.cs,849,23,Negate expression,False,Killed,25,15,"!(Options.TryGetValue(key.Key, out object? val))"
+ResilienceProperties.cs,850,24,Block removal mutation,False,Ignored,23,0,{}
+ResilienceProperties.cs,851,25,Equality mutation,False,CompileError,0,0,val is not TValue typedValue
+ResilienceProperties.cs,852,26,Block removal mutation,False,Ignored,20,0,{}
+ResilienceProperties.cs,853,28,Boolean mutation,False,Killed,20,13,false
+ResilienceProperties.cs,854,30,Equality mutation,False,Killed,3,3,val is not null
+ResilienceProperties.cs,855,31,Block removal mutation,False,Ignored,2,0,{}
+ResilienceProperties.cs,856,39,Boolean mutation,False,Killed,2,2,false
+ResilienceProperties.cs,857,44,Boolean mutation,False,Killed,5,3,true
+ResilienceProperties.cs,858,55,Block removal mutation,False,Ignored,12,0,{}
+ResilienceProperties.cs,859,56,Negate expression,False,Killed,12,12,"!(TryGetValue(key, out var value))"
+ResilienceProperties.cs,860,57,Block removal mutation,False,Ignored,11,0,{}
+ResilienceProperties.cs,861,73,Block removal mutation,False,Ignored,74,0,{}
+ResilienceProperties.cs,862,75,Equality mutation,False,CompileError,0,0,"other.Options is not Dictionary<string, object?> otherOptions"
+ResilienceProperties.cs,863,76,Block removal mutation,False,Ignored,73,0,{}
+ResilienceProperties.cs,864,78,Block removal mutation,False,Ignored,45,0,{}
+ResilienceProperties.cs,865,83,Block removal mutation,False,Ignored,1,0,{}
+ResilienceProperties.cs,866,85,Block removal mutation,False,Ignored,1,0,{}
+ResiliencePropertyKey.cs,867,17,Statement mutation,False,Ignored,67,0,;
+ResilienceValidationContext.cs,868,16,Block removal mutation,True,Ignored,0,0,{}
+Retry/RetryHelper.cs,869,12,Arithmetic mutation,True,Killed,0,5,(double)TimeSpan.MaxValue.Ticks + 1_000
+Retry/RetryHelper.cs,870,14,Equality mutation,False,Killed,7,1,delay < TimeSpan.Zero
+Retry/RetryHelper.cs,871,14,Equality mutation,False,Killed,7,1,delay > TimeSpan.Zero
+Retry/RetryHelper.cs,872,24,Block removal mutation,False,Ignored,68,0,{}
+Retry/RetryHelper.cs,873,26,Block removal mutation,False,Ignored,68,0,{}
+Retry/RetryHelper.cs,874,30,Logical mutation,False,CompileError,0,0,maxDelay is TimeSpan maxDelayValue || delay > maxDelayValue
+Retry/RetryHelper.cs,875,30,Negate expression,False,Killed,68,40,!(maxDelay is TimeSpan maxDelayValue && delay > maxDelayValue)
+Retry/RetryHelper.cs,876,30,Equality mutation,False,Ignored,0,0,maxDelay is not TimeSpan maxDelayValue
+Retry/RetryHelper.cs,877,30,Equality mutation,False,Ignored,0,0,delay < maxDelayValue
+Retry/RetryHelper.cs,878,30,Equality mutation,False,Ignored,0,0,delay >= maxDelayValue
+Retry/RetryHelper.cs,879,31,Block removal mutation,False,Ignored,14,0,{}
+Retry/RetryHelper.cs,880,38,Block removal mutation,False,Ignored,2,0,{}
+Retry/RetryHelper.cs,881,39,Equality mutation,False,CompileError,0,0,maxDelay is not { } value
+Retry/RetryHelper.cs,882,40,Block removal mutation,False,CompileError,0,0,{}
+Retry/RetryHelper.cs,883,50,Block removal mutation,False,Ignored,5,0,{}
+Retry/RetryHelper.cs,884,51,Arithmetic mutation,False,Killed,5,3,(delay.TotalMilliseconds * JitterFactor) * 2
+Retry/RetryHelper.cs,885,51,Arithmetic mutation,False,Killed,5,3,delay.TotalMilliseconds / JitterFactor
+Retry/RetryHelper.cs,886,52,Arithmetic mutation,False,Killed,5,3,(delay.TotalMilliseconds * JitterFactor * randomizer()) + offset
+Retry/RetryHelper.cs,887,52,Arithmetic mutation,False,Killed,5,3,delay.TotalMilliseconds * JitterFactor / randomizer()
+Retry/RetryHelper.cs,888,52,Arithmetic mutation,False,Killed,5,3,delay.TotalMilliseconds / JitterFactor
+Retry/RetryHelper.cs,889,53,Arithmetic mutation,False,Killed,5,2,delay.TotalMilliseconds - randomDelay
+Retry/RetryHelper.cs,890,76,Block removal mutation,False,Ignored,31,0,{}
+Retry/RetryHelper.cs,891,90,Arithmetic mutation,False,Killed,31,27,attempt - randomizer()
+Retry/RetryHelper.cs,892,91,Arithmetic mutation,False,Killed,31,9,"Math.Pow(ExponentialFactor, t) / Math.Tanh(Math.Sqrt(PFactor * t))"
+Retry/RetryHelper.cs,893,91,Arithmetic mutation,False,Killed,31,9,PFactor / t
+Retry/RetryHelper.cs,894,95,Negate expression,False,Killed,31,12,!(double.IsInfinity(next))
+Retry/RetryHelper.cs,895,96,Block removal mutation,False,Ignored,7,0,{}
+Retry/RetryHelper.cs,896,101,Arithmetic mutation,False,Killed,27,8,next + prev
+Retry/RetryHelper.cs,897,104,Linq method mutation (Min() to Max()),False,Killed,27,10,Math.Max
+Retry/RetryHelper.cs,898,104,Arithmetic mutation,False,Killed,27,22,formulaIntrinsicValue * RpScalingFactor / targetTicksFirstDelay
+Retry/RetryHelper.cs,899,104,Arithmetic mutation,False,Killed,27,9,formulaIntrinsicValue / RpScalingFactor
+Retry/RetryHelper.cs,900,107,Statement mutation,False,Ignored,27,0,;
+Retry/RetryHelper.cs,901,107,Equality mutation,False,Ignored,27,0,ticks < 0
+Retry/RetryHelper.cs,902,107,Equality mutation,False,Ignored,27,0,ticks > 0
+Retry/RetryHelper.cs,903,107,String mutation,False,Ignored,27,0,""""""
+Retry/RetryHelper.cs,904,114,Block removal mutation,False,Ignored,68,0,{}
+Retry/RetryHelper.cs,905,115,Equality mutation,False,Killed,68,4,baseDelay != TimeSpan.Zero
+Retry/RetryHelper.cs,906,116,Block removal mutation,False,Ignored,8,0,{}
+Retry/RetryHelper.cs,907,120,Negate expression,False,Killed,65,17,!(jitter)
+Retry/RetryHelper.cs,908,121,Block removal mutation,False,Ignored,35,0,{}
+Retry/RetryHelper.cs,909,125,Arithmetic mutation,False,Killed,2,2,(attempt + 1) / baseDelay.TotalMilliseconds
+Retry/RetryHelper.cs,910,125,Arithmetic mutation,False,Killed,2,1,attempt - 1
+Retry/RetryHelper.cs,911,127,String mutation,False,Ignored,1,0,""""""
+Retry/RetryHelper.cs,912,138,Arithmetic mutation,False,CompileError,0,0,(attempt + 1) / baseDelay
+Retry/RetryHelper.cs,913,138,Arithmetic mutation,False,Killed,6,1,attempt - 1
+Retry/RetryHelper.cs,914,139,Arithmetic mutation,False,CompileError,0,0,"Math.Pow(ExponentialFactor, attempt) / baseDelay"
+Retry/RetryHelper.cs,915,141,String mutation,False,Ignored,1,0,""""""
+Retry/RetryResiliencePipelineBuilderExtensions.cs,916,26,Block removal mutation,False,Ignored,12,0,{}
+Retry/RetryResiliencePipelineBuilderExtensions.cs,917,27,Statement mutation,False,Ignored,12,0,;
+Retry/RetryResiliencePipelineBuilderExtensions.cs,918,28,Statement mutation,False,Ignored,12,0,;
+Retry/RetryResiliencePipelineBuilderExtensions.cs,919,51,Block removal mutation,False,Ignored,4,0,{}
+Retry/RetryResiliencePipelineBuilderExtensions.cs,920,52,Statement mutation,False,Ignored,4,0,;
+Retry/RetryResiliencePipelineBuilderExtensions.cs,921,53,Statement mutation,False,Ignored,4,0,;
+Retry/RetryResilienceStrategy.cs,922,15,Block removal mutation,False,Ignored,37,0,{}
+Retry/RetryResilienceStrategy.cs,923,47,Block removal mutation,False,Ignored,32,0,{}
+Retry/RetryResilienceStrategy.cs,924,52,Boolean mutation,False,Killed,32,7,false
+Retry/RetryResilienceStrategy.cs,925,52,Negate expression,False,Killed,32,7,!(true)
+Retry/RetryResilienceStrategy.cs,926,57,Block removal mutation,False,CompileError,0,0,{}
+Retry/RetryResilienceStrategy.cs,927,62,Block removal mutation,False,CompileError,0,0,{}
+Retry/RetryResilienceStrategy.cs,928,72,Negate expression,False,Killed,32,1,!(isLastAttempt)
+Retry/RetryResilienceStrategy.cs,929,73,Block removal mutation,False,Ignored,20,0,{}
+Retry/RetryResilienceStrategy.cs,930,74,Statement mutation,False,Ignored,20,0,;
+Retry/RetryResilienceStrategy.cs,931,77,Block removal mutation,False,Ignored,32,0,{}
+Retry/RetryResilienceStrategy.cs,932,78,Statement mutation,False,Ignored,32,0,;
+Retry/RetryResilienceStrategy.cs,933,81,Logical mutation,False,Killed,32,1,isLastAttempt && !handle
+Retry/RetryResilienceStrategy.cs,934,81,Negate expression,False,Killed,32,2,!(isLastAttempt || !handle)
+Retry/RetryResilienceStrategy.cs,935,81,LogicalNotExpression to un-LogicalNotExpression mutation,False,Killed,32,10,handle
+Retry/RetryResilienceStrategy.cs,936,82,Block removal mutation,False,Ignored,29,0,{}
+Retry/RetryResilienceStrategy.cs,937,87,Equality mutation,False,Killed,24,3,DelayGenerator is null
+Retry/RetryResilienceStrategy.cs,938,88,Block removal mutation,False,Ignored,7,0,{}
+Retry/RetryResilienceStrategy.cs,939,91,Logical mutation,False,CompileError,0,0,await DelayGenerator(delayArgs).ConfigureAwait(false) is TimeSpan newDelay || RetryHelper.IsValidDelay(newDelay)
+Retry/RetryResilienceStrategy.cs,940,91,Negate expression,False,CompileError,0,0,!(await DelayGenerator(delayArgs).ConfigureAwait(false) is TimeSpan newDelay && RetryHelper.IsValidDelay(newDelay))
+Retry/RetryResilienceStrategy.cs,941,91,Equality mutation,False,CompileError,0,0,await DelayGenerator(delayArgs).ConfigureAwait(false) is not TimeSpan newDelay
+Retry/RetryResilienceStrategy.cs,942,91,Boolean mutation,False,Ignored,7,0,true
+Retry/RetryResilienceStrategy.cs,943,92,Block removal mutation,False,Ignored,6,0,{}
+Retry/RetryResilienceStrategy.cs,944,98,Statement mutation,False,Ignored,24,0,;
+Retry/RetryResilienceStrategy.cs,945,98,Equality mutation,False,Ignored,24,0,delay < TimeSpan.Zero
+Retry/RetryResilienceStrategy.cs,946,98,Equality mutation,False,Ignored,24,0,delay > TimeSpan.Zero
+Retry/RetryResilienceStrategy.cs,947,98,String mutation,False,Ignored,24,0,""""""
+Retry/RetryResilienceStrategy.cs,948,102,Statement mutation,False,Ignored,24,0,;
+Retry/RetryResilienceStrategy.cs,949,104,Equality mutation,False,Killed,24,1,OnRetry is null
+Retry/RetryResilienceStrategy.cs,950,105,Block removal mutation,False,Ignored,15,0,{}
+Retry/RetryResilienceStrategy.cs,951,106,Statement mutation,False,Ignored,15,0,;
+Retry/RetryResilienceStrategy.cs,952,109,Negate expression,False,Killed,32,1,!(outcome.TryGetResult(out var resultValue))
+Retry/RetryResilienceStrategy.cs,953,110,Block removal mutation,False,Ignored,20,0,{}
+Retry/RetryResilienceStrategy.cs,954,111,Statement mutation,False,Ignored,20,0,;
+Retry/RetryResilienceStrategy.cs,955,115,Block removal mutation,False,Ignored,24,0,{}
+Retry/RetryResilienceStrategy.cs,956,116,Statement mutation,False,Ignored,24,0,;
+Retry/RetryResilienceStrategy.cs,957,119,Equality mutation,False,Ignored,0,0,delay < TimeSpan.Zero
+Retry/RetryResilienceStrategy.cs,958,119,Equality mutation,False,Ignored,0,0,delay >= TimeSpan.Zero
+Retry/RetryResilienceStrategy.cs,959,119,Negate expression,False,Ignored,0,0,!(delay > TimeSpan.Zero)
+Retry/RetryResilienceStrategy.cs,960,120,Block removal mutation,False,Ignored,0,0,{}
+Retry/RetryResilienceStrategy.cs,961,121,Statement mutation,False,Ignored,0,0,;
+Retry/RetryResilienceStrategy.cs,962,126,Block removal mutation,False,Ignored,3,0,{}
+Retry/RetryResilienceStrategy.cs,963,130,Negate expression,False,Killed,21,1,!(incrementAttempts)
+Retry/RetryResilienceStrategy.cs,964,131,Block removal mutation,False,Ignored,21,0,{}
+Retry/RetryResilienceStrategy.cs,965,132,Statement mutation,False,Ignored,21,0,;
+Retry/RetryResilienceStrategy.cs,966,132,PostIncrementExpression to PostDecrementExpression mutation,False,Killed,21,1,attempt--
+Retry/RetryResilienceStrategy.cs,967,138,Block removal mutation,False,Ignored,33,0,{}
+Retry/RetryResilienceStrategy.cs,968,139,Equality mutation,False,Killed,33,1,attempt != int.MaxValue
+Retry/RetryResilienceStrategy.cs,969,140,Block removal mutation,False,Ignored,1,0,{}
+Retry/RetryResilienceStrategy.cs,970,141,Boolean mutation,False,Killed,1,1,true
+Retry/RetryResilienceStrategy.cs,971,142,Boolean mutation,False,Killed,1,1,true
+Retry/RetryResilienceStrategy.cs,972,145,Boolean mutation,False,Killed,32,1,false
+Retry/RetryResilienceStrategy.cs,973,146,Equality mutation,False,Killed,32,2,attempt < RetryCount
+Retry/RetryResilienceStrategy.cs,974,146,Equality mutation,False,Killed,32,5,attempt > RetryCount
+Simmy/Behavior/ChaosBehaviorPipelineBuilderExtensions.cs,975,24,Block removal mutation,False,Ignored,3,0,{}
+Simmy/Behavior/ChaosBehaviorPipelineBuilderExtensions.cs,976,25,Statement mutation,False,Ignored,3,0,;
+Simmy/Behavior/ChaosBehaviorPipelineBuilderExtensions.cs,977,27,Object initializer mutation,False,Killed,3,2,new ChaosBehaviorStrategyOptions {}
+Simmy/Behavior/ChaosBehaviorPipelineBuilderExtensions.cs,978,49,Block removal mutation,False,Ignored,5,0,{}
+Simmy/Behavior/ChaosBehaviorPipelineBuilderExtensions.cs,979,50,Statement mutation,False,Ignored,5,0,;
+Simmy/Behavior/ChaosBehaviorPipelineBuilderExtensions.cs,980,51,Statement mutation,False,Ignored,5,0,;
+Simmy/Behavior/ChaosBehaviorStrategy.cs,981,13,Block removal mutation,False,Ignored,10,0,{}
+Simmy/Behavior/ChaosBehaviorStrategy.cs,982,27,Block removal mutation,False,Ignored,7,0,{}
+Simmy/Behavior/ChaosBehaviorStrategy.cs,983,29,Block removal mutation,False,Ignored,7,0,{}
+Simmy/Behavior/ChaosBehaviorStrategy.cs,984,30,Negate expression,False,Ignored,7,0,!(await ShouldInjectAsync(context).ConfigureAwait(context.ContinueOnCapturedContext))
+Simmy/Behavior/ChaosBehaviorStrategy.cs,985,31,Block removal mutation,False,Ignored,4,0,{}
+Simmy/Behavior/ChaosBehaviorStrategy.cs,986,32,Statement mutation,False,Ignored,4,0,;
+Simmy/Behavior/ChaosBehaviorStrategy.cs,987,35,Statement mutation,False,Ignored,4,0,;
+Simmy/Behavior/ChaosBehaviorStrategy.cs,988,37,Equality mutation,False,Killed,4,4,OnBehaviorInjected is null
+Simmy/Behavior/ChaosBehaviorStrategy.cs,989,38,Block removal mutation,False,Ignored,1,0,{}
+Simmy/Behavior/ChaosBehaviorStrategy.cs,990,39,Statement mutation,False,Ignored,1,0,;
+Simmy/Behavior/ChaosBehaviorStrategy.cs,991,43,Statement mutation,False,Ignored,6,0,;
+Simmy/Behavior/ChaosBehaviorStrategy.cs,992,47,Block removal mutation,False,Ignored,2,0,{}
+Simmy/ChaosStrategy.TResult.cs,1002,21,Block removal mutation,True,Ignored,0,0,{}
+Simmy/ChaosStrategy.TResult.cs,1003,22,Statement mutation,True,Ignored,0,0,;
+Simmy/ChaosStrategy.TResult.cs,1004,23,Statement mutation,True,Ignored,0,0,;
+Simmy/ChaosStrategy.TResult.cs,1005,26,Conditional (true) mutation,True,Killed,0,4,(true?options.InjectionRateGenerator :(_) => new(options.InjectionRate))
+Simmy/ChaosStrategy.TResult.cs,1006,26,Conditional (false) mutation,True,Killed,0,3,(false?options.InjectionRateGenerator :(_) => new(options.InjectionRate))
+Simmy/ChaosStrategy.TResult.cs,1007,26,Equality mutation,True,Killed,0,2,options.InjectionRateGenerator is null
+Simmy/ChaosStrategy.TResult.cs,1008,27,Conditional (true) mutation,True,Killed,0,2,(true?options.EnabledGenerator :(_) => new(options.Enabled))
+Simmy/ChaosStrategy.TResult.cs,1009,27,Conditional (false) mutation,True,Killed,0,2,(false?options.EnabledGenerator :(_) => new(options.Enabled))
+Simmy/ChaosStrategy.TResult.cs,1010,27,Equality mutation,True,Killed,0,2,options.EnabledGenerator is null
+Simmy/ChaosStrategy.TResult.cs,1011,49,Boolean mutation,False,Ignored,16,0,true
+Simmy/ChaosStrategy.cs,993,17,Block removal mutation,True,Ignored,0,0,{}
+Simmy/ChaosStrategy.cs,994,18,Statement mutation,True,Ignored,0,0,;
+Simmy/ChaosStrategy.cs,995,19,Statement mutation,True,Ignored,0,0,;
+Simmy/ChaosStrategy.cs,996,22,Conditional (true) mutation,True,Killed,0,4,(true?options.InjectionRateGenerator :(_) => new(options.InjectionRate))
+Simmy/ChaosStrategy.cs,997,22,Conditional (false) mutation,True,Killed,0,3,(false?options.InjectionRateGenerator :(_) => new(options.InjectionRate))
+Simmy/ChaosStrategy.cs,998,22,Equality mutation,True,Killed,0,1,options.InjectionRateGenerator is null
+Simmy/ChaosStrategy.cs,999,23,Conditional (true) mutation,True,Killed,0,1,(true?options.EnabledGenerator :(_) => new(options.Enabled))
+Simmy/ChaosStrategy.cs,1000,23,Conditional (false) mutation,True,Killed,0,2,(false?options.EnabledGenerator :(_) => new(options.Enabled))
+Simmy/ChaosStrategy.cs,1001,23,Equality mutation,True,Killed,0,2,options.EnabledGenerator is null
+Simmy/Fault/ChaosFaultPipelineBuilderExtensions.cs,1012,21,Block removal mutation,False,Ignored,4,0,{}
+Simmy/Fault/ChaosFaultPipelineBuilderExtensions.cs,1013,22,Statement mutation,False,Ignored,4,0,;
+Simmy/Fault/ChaosFaultPipelineBuilderExtensions.cs,1014,24,Object initializer mutation,False,Killed,4,2,new ChaosFaultStrategyOptions {}
+Simmy/Fault/ChaosFaultPipelineBuilderExtensions.cs,1015,44,Block removal mutation,False,Ignored,7,0,{}
+Simmy/Fault/ChaosFaultPipelineBuilderExtensions.cs,1016,45,Statement mutation,False,Ignored,7,0,;
+Simmy/Fault/ChaosFaultPipelineBuilderExtensions.cs,1017,46,Statement mutation,False,Ignored,7,0,;
+Simmy/Fault/ChaosFaultStrategy.cs,1018,11,Block removal mutation,True,Ignored,0,0,{}
+Simmy/Fault/ChaosFaultStrategy.cs,1019,26,Block removal mutation,False,Ignored,7,0,{}
+Simmy/Fault/ChaosFaultStrategy.cs,1020,28,Block removal mutation,False,Ignored,7,0,{}
+Simmy/Fault/ChaosFaultStrategy.cs,1021,29,Negate expression,False,Ignored,7,0,!(await ShouldInjectAsync(context).ConfigureAwait(context.ContinueOnCapturedContext))
+Simmy/Fault/ChaosFaultStrategy.cs,1022,30,Block removal mutation,False,Ignored,3,0,{}
+Simmy/Fault/ChaosFaultStrategy.cs,1023,32,Equality mutation,False,Killed,3,3,fault is null
+Simmy/Fault/ChaosFaultStrategy.cs,1024,33,Block removal mutation,False,Ignored,2,0,{}
+Simmy/Fault/ChaosFaultStrategy.cs,1025,35,Statement mutation,False,Ignored,2,0,;
+Simmy/Fault/ChaosFaultStrategy.cs,1026,37,Equality mutation,False,Killed,2,2,OnFaultInjected is null
+Simmy/Fault/ChaosFaultStrategy.cs,1027,38,Block removal mutation,False,Ignored,2,0,{}
+Simmy/Fault/ChaosFaultStrategy.cs,1028,39,Statement mutation,False,Ignored,2,0,;
+Simmy/Fault/ChaosFaultStrategy.cs,1029,46,Statement mutation,False,Ignored,4,0,;
+Simmy/Fault/ChaosFaultStrategy.cs,1030,50,Block removal mutation,False,Ignored,1,0,{}
+Simmy/Fault/FaultGenerator.cs,1031,33,Block removal mutation,False,Ignored,1,0,{}
+Simmy/Fault/FaultGenerator.cs,1032,34,Statement mutation,False,Ignored,1,0,;
+Simmy/Fault/FaultGenerator.cs,1033,36,Statement mutation,False,Ignored,1,0,;
+Simmy/Fault/FaultGenerator.cs,1034,48,Block removal mutation,False,Ignored,1,0,{}
+Simmy/Fault/FaultGenerator.cs,1035,49,Statement mutation,False,Ignored,1,0,;
+Simmy/Fault/FaultGenerator.cs,1036,51,Statement mutation,False,Ignored,1,0,;
+Simmy/Fault/FaultGenerator.cs,1037,64,Block removal mutation,False,Ignored,1,0,{}
+Simmy/Fault/FaultGenerator.cs,1038,65,Statement mutation,False,Ignored,1,0,;
+Simmy/Fault/FaultGenerator.cs,1039,76,Block removal mutation,False,Ignored,3,0,{}
+Simmy/Fault/FaultGenerator.cs,1040,77,Statement mutation,False,Ignored,3,0,;
+Simmy/Latency/ChaosLatencyPipelineBuilderExtensions.cs,1041,24,Block removal mutation,False,Ignored,2,0,{}
+Simmy/Latency/ChaosLatencyPipelineBuilderExtensions.cs,1042,25,Statement mutation,False,Ignored,2,0,;
+Simmy/Latency/ChaosLatencyPipelineBuilderExtensions.cs,1043,27,Object initializer mutation,False,Killed,2,1,new ChaosLatencyStrategyOptions {}
+Simmy/Latency/ChaosLatencyPipelineBuilderExtensions.cs,1044,49,Block removal mutation,False,Ignored,3,0,{}
+Simmy/Latency/ChaosLatencyPipelineBuilderExtensions.cs,1045,50,Statement mutation,False,Ignored,3,0,;
+Simmy/Latency/ChaosLatencyPipelineBuilderExtensions.cs,1046,51,Statement mutation,False,Ignored,3,0,;
+Simmy/Latency/ChaosLatencyStrategy.cs,1047,15,Block removal mutation,False,Ignored,9,0,{}
+Simmy/Latency/ChaosLatencyStrategy.cs,1048,17,Conditional (true) mutation,False,Killed,9,4,(true?options.LatencyGenerator :(_) => new(options.Latency))
+Simmy/Latency/ChaosLatencyStrategy.cs,1049,17,Conditional (false) mutation,False,Timeout,9,0,(false?options.LatencyGenerator :(_) => new(options.Latency))
+Simmy/Latency/ChaosLatencyStrategy.cs,1050,17,Equality mutation,False,Killed,9,4,options.LatencyGenerator is null
+Simmy/Latency/ChaosLatencyStrategy.cs,1051,34,Block removal mutation,False,Ignored,6,0,{}
+Simmy/Latency/ChaosLatencyStrategy.cs,1052,36,Block removal mutation,False,Ignored,6,0,{}
+Simmy/Latency/ChaosLatencyStrategy.cs,1053,37,Negate expression,False,Ignored,6,0,!(await ShouldInjectAsync(context).ConfigureAwait(context.ContinueOnCapturedContext))
+Simmy/Latency/ChaosLatencyStrategy.cs,1054,38,Block removal mutation,False,Ignored,4,0,{}
+Simmy/Latency/ChaosLatencyStrategy.cs,1055,40,Equality mutation,False,Killed,4,2,latency < TimeSpan.Zero
+Simmy/Latency/ChaosLatencyStrategy.cs,1056,40,Equality mutation,False,Killed,4,1,latency >= TimeSpan.Zero
+Simmy/Latency/ChaosLatencyStrategy.cs,1057,40,Negate expression,False,Killed,4,3,!(latency > TimeSpan.Zero)
+Simmy/Latency/ChaosLatencyStrategy.cs,1058,41,Block removal mutation,False,Ignored,2,0,{}
+Simmy/Latency/ChaosLatencyStrategy.cs,1059,43,Statement mutation,False,Ignored,2,0,;
+Simmy/Latency/ChaosLatencyStrategy.cs,1060,45,Statement mutation,False,Ignored,2,0,;
+Simmy/Latency/ChaosLatencyStrategy.cs,1061,47,Equality mutation,False,Killed,1,1,OnLatencyInjected is null
+Simmy/Latency/ChaosLatencyStrategy.cs,1062,48,Block removal mutation,False,Ignored,1,0,{}
+Simmy/Latency/ChaosLatencyStrategy.cs,1063,49,Statement mutation,False,Ignored,1,0,;
+Simmy/Latency/ChaosLatencyStrategy.cs,1064,54,Statement mutation,False,Ignored,5,0,;
+Simmy/Latency/ChaosLatencyStrategy.cs,1065,58,Block removal mutation,False,Ignored,1,0,{}
+Simmy/Outcomes/ChaosOutcomePipelineBuilderExtensions.cs,1066,23,Block removal mutation,False,Ignored,2,0,{}
+Simmy/Outcomes/ChaosOutcomePipelineBuilderExtensions.cs,1067,24,Statement mutation,False,Ignored,2,0,;
+Simmy/Outcomes/ChaosOutcomePipelineBuilderExtensions.cs,1068,26,Object initializer mutation,False,Killed,2,1,new ChaosOutcomeStrategyOptions<TResult> {}
+Simmy/Outcomes/ChaosOutcomePipelineBuilderExtensions.cs,1069,30,Block removal mutation,False,Ignored,1,0,{}
+Simmy/Outcomes/ChaosOutcomePipelineBuilderExtensions.cs,1070,51,Block removal mutation,False,Ignored,3,0,{}
+Simmy/Outcomes/ChaosOutcomePipelineBuilderExtensions.cs,1071,52,Statement mutation,False,Ignored,3,0,;
+Simmy/Outcomes/ChaosOutcomePipelineBuilderExtensions.cs,1072,53,Statement mutation,False,Ignored,3,0,;
+Simmy/Outcomes/ChaosOutcomePipelineBuilderExtensions.cs,1073,55,Statement mutation,False,Ignored,3,0,;
+Simmy/Outcomes/ChaosOutcomeStrategy.cs,1074,13,Block removal mutation,True,Ignored,0,0,{}
+Simmy/Outcomes/ChaosOutcomeStrategy.cs,1075,20,Block removal mutation,False,Ignored,7,0,{}
+Simmy/Outcomes/ChaosOutcomeStrategy.cs,1076,22,Block removal mutation,False,Ignored,7,0,{}
+Simmy/Outcomes/ChaosOutcomeStrategy.cs,1077,23,Logical mutation,False,CompileError,0,0,await ShouldInjectAsync(context).ConfigureAwait(context.ContinueOnCapturedContext) ||                 await _outcomeGenerator(new(context)).ConfigureAwait(conte
+Simmy/Outcomes/ChaosOutcomeStrategy.cs,1078,23,Negate expression,False,CompileError,0,0,!(await ShouldInjectAsync(context).ConfigureAwait(context.ContinueOnCapturedContext) &&                 await _outcomeGenerator(new(context)).ConfigureAwait(con
+Simmy/Outcomes/ChaosOutcomeStrategy.cs,1079,24,Equality mutation,False,CompileError,0,0,await _outcomeGenerator(new(context)).ConfigureAwait(context.ContinueOnCapturedContext) is not Outcome<T> outcome
+Simmy/Outcomes/ChaosOutcomeStrategy.cs,1080,25,Block removal mutation,False,Ignored,3,0,{}
+Simmy/Outcomes/ChaosOutcomeStrategy.cs,1081,27,Statement mutation,False,Ignored,3,0,;
+Simmy/Outcomes/ChaosOutcomeStrategy.cs,1082,29,Equality mutation,False,Killed,3,3,_onOutcomeInjected is null
+Simmy/Outcomes/ChaosOutcomeStrategy.cs,1083,30,Block removal mutation,False,Ignored,2,0,{}
+Simmy/Outcomes/ChaosOutcomeStrategy.cs,1084,31,Statement mutation,False,Ignored,2,0,;
+Simmy/Outcomes/ChaosOutcomeStrategy.cs,1085,37,Statement mutation,False,Ignored,3,0,;
+Simmy/Outcomes/ChaosOutcomeStrategy.cs,1086,41,Block removal mutation,False,Ignored,1,0,{}
+Simmy/Outcomes/OutcomeGenerator.cs,1087,33,Block removal mutation,False,Ignored,1,0,{}
+Simmy/Outcomes/OutcomeGenerator.cs,1088,34,Statement mutation,False,Ignored,1,0,;
+Simmy/Outcomes/OutcomeGenerator.cs,1089,36,Statement mutation,False,Ignored,1,0,;
+Simmy/Outcomes/OutcomeGenerator.cs,1090,48,Block removal mutation,False,Ignored,1,0,{}
+Simmy/Outcomes/OutcomeGenerator.cs,1091,49,Statement mutation,False,Ignored,1,0,;
+Simmy/Outcomes/OutcomeGenerator.cs,1092,51,Statement mutation,False,Ignored,1,0,;
+Simmy/Outcomes/OutcomeGenerator.cs,1093,64,Block removal mutation,False,Ignored,1,0,{}
+Simmy/Outcomes/OutcomeGenerator.cs,1094,65,Statement mutation,False,Ignored,1,0,;
+Simmy/Outcomes/OutcomeGenerator.cs,1095,77,Block removal mutation,False,Ignored,1,0,{}
+Simmy/Outcomes/OutcomeGenerator.cs,1096,78,Statement mutation,False,Ignored,1,0,;
+Simmy/Outcomes/OutcomeGenerator.cs,1097,80,Statement mutation,False,Ignored,1,0,;
+Simmy/Outcomes/OutcomeGenerator.cs,1098,92,Block removal mutation,False,Ignored,1,0,{}
+Simmy/Outcomes/OutcomeGenerator.cs,1099,93,Statement mutation,False,Ignored,1,0,;
+Simmy/Outcomes/OutcomeGenerator.cs,1100,95,Statement mutation,False,Ignored,1,0,;
+Simmy/Outcomes/OutcomeGenerator.cs,1101,106,Block removal mutation,False,Ignored,5,0,{}
+Simmy/Outcomes/OutcomeGenerator.cs,1102,107,Statement mutation,False,Ignored,5,0,;
+Simmy/Utils/ChaosStrategyHelper.cs,1103,10,Block removal mutation,False,Ignored,45,0,{}
+Simmy/Utils/ChaosStrategyHelper.cs,1104,11,Statement mutation,False,Ignored,45,0,;
+Simmy/Utils/ChaosStrategyHelper.cs,1105,14,Statement mutation,False,Ignored,45,0,;
+Simmy/Utils/ChaosStrategyHelper.cs,1106,16,LogicalNotExpression to un-LogicalNotExpression mutation,False,Killed,43,14,await enabledGenerator(new(context)).ConfigureAwait(context.ContinueOnCapturedContext)
+Simmy/Utils/ChaosStrategyHelper.cs,1107,17,Block removal mutation,False,Ignored,8,0,{}
+Simmy/Utils/ChaosStrategyHelper.cs,1108,18,Boolean mutation,False,Killed,8,2,true
+Simmy/Utils/ChaosStrategyHelper.cs,1109,22,Statement mutation,False,Ignored,35,0,;
+Simmy/Utils/ChaosStrategyHelper.cs,1110,27,Statement mutation,False,Ignored,30,0,;
+Simmy/Utils/ChaosStrategyHelper.cs,1111,30,Equality mutation,False,Killed,28,19,randomizer() > injectionThreshold
+Simmy/Utils/ChaosStrategyHelper.cs,1112,30,Equality mutation,False,Killed,28,1,randomizer() <= injectionThreshold
+Simmy/Utils/ChaosStrategyHelper.cs,1113,34,Block removal mutation,False,Ignored,28,0,{}
+Simmy/Utils/ChaosStrategyHelper.cs,1114,36,Equality mutation,False,Ignored,0,0,injectionThreshold > ChaosStrategyConstants.MinInjectionThreshold
+Simmy/Utils/ChaosStrategyHelper.cs,1115,36,Equality mutation,False,Ignored,0,0,injectionThreshold <= ChaosStrategyConstants.MinInjectionThreshold
+Simmy/Utils/ChaosStrategyHelper.cs,1116,36,Negate expression,False,Killed,28,3,!(injectionThreshold < ChaosStrategyConstants.MinInjectionThreshold)
+Simmy/Utils/ChaosStrategyHelper.cs,1117,37,Block removal mutation,False,Ignored,2,0,{}
+Simmy/Utils/ChaosStrategyHelper.cs,1118,42,Equality mutation,False,Ignored,0,0,injectionThreshold < ChaosStrategyConstants.MaxInjectionThreshold
+Simmy/Utils/ChaosStrategyHelper.cs,1119,42,Equality mutation,False,Ignored,0,0,injectionThreshold >= ChaosStrategyConstants.MaxInjectionThreshold
+Simmy/Utils/ChaosStrategyHelper.cs,1120,42,Negate expression,False,Killed,26,4,!(injectionThreshold > ChaosStrategyConstants.MaxInjectionThreshold)
+Simmy/Utils/ChaosStrategyHelper.cs,1121,43,Block removal mutation,False,Ignored,2,0,{}
+Simmy/Utils/GeneratorHelper.cs,1122,12,Block removal mutation,False,Ignored,10,0,{}
+Simmy/Utils/GeneratorHelper.cs,1123,13,Statement mutation,False,Ignored,10,0,;
+Simmy/Utils/GeneratorHelper.cs,1124,15,AddAssignmentExpression to SubtractAssignmentExpression mutation,False,Killed,10,5,_totalWeight -= weight
+Simmy/Utils/GeneratorHelper.cs,1125,16,Statement mutation,False,Ignored,10,0,;
+Simmy/Utils/GeneratorHelper.cs,1126,17,Statement mutation,False,Ignored,10,0,;
+Simmy/Utils/GeneratorHelper.cs,1127,21,Block removal mutation,False,Ignored,11,0,{}
+Simmy/Utils/GeneratorHelper.cs,1128,22,Equality mutation,False,CompileError,0,0,_factories.Count != 0
+Simmy/Utils/GeneratorHelper.cs,1129,22,Linq method mutation (Count() to Sum()),False,CompileError,0,0,_factories.Sum
+Simmy/Utils/GeneratorHelper.cs,1130,23,Block removal mutation,False,Ignored,1,0,{}
+Simmy/Utils/GeneratorHelper.cs,1131,33,Block removal mutation,False,Ignored,10,0,{}
+Simmy/Utils/GeneratorHelper.cs,1132,37,Equality mutation,False,Killed,10,8,i > factories.Length
+Simmy/Utils/GeneratorHelper.cs,1133,37,Equality mutation,False,Killed,10,1,i <= factories.Length
+Simmy/Utils/GeneratorHelper.cs,1134,37,PostIncrementExpression to PostDecrementExpression mutation,False,Killed,10,2,i--
+Simmy/Utils/GeneratorHelper.cs,1135,38,Block removal mutation,False,Ignored,10,0,{}
+Simmy/Utils/GeneratorHelper.cs,1136,39,AddAssignmentExpression to SubtractAssignmentExpression mutation,False,Killed,10,5,weight -= weights[i]
+Simmy/Utils/GeneratorHelper.cs,1137,40,Equality mutation,False,Killed,10,5,generatedWeight > weight
+Simmy/Utils/GeneratorHelper.cs,1138,40,Equality mutation,False,Killed,10,1,generatedWeight <= weight
+Simmy/Utils/GeneratorHelper.cs,1139,40,Negate expression,False,Killed,10,5,!(generatedWeight < weight)
+Simmy/Utils/GeneratorHelper.cs,1140,41,Block removal mutation,False,Ignored,9,0,{}
+StrategyBuilderContext.cs,1141,11,Block removal mutation,True,Ignored,0,0,{}
+Telemetry/ResilienceStrategyTelemetry.cs,1142,14,Block removal mutation,True,Ignored,0,0,{}
+Telemetry/ResilienceStrategyTelemetry.cs,1143,17,Equality mutation,True,Killed,0,1,listener is null
+Telemetry/ResilienceStrategyTelemetry.cs,1144,32,Block removal mutation,False,Ignored,25,0,{}
+Telemetry/ResilienceStrategyTelemetry.cs,1145,33,Statement mutation,False,Ignored,25,0,;
+Telemetry/ResilienceStrategyTelemetry.cs,1146,47,Block removal mutation,False,Ignored,90,0,{}
+Telemetry/ResilienceStrategyTelemetry.cs,1147,48,Statement mutation,False,Ignored,90,0,;
+Telemetry/ResilienceStrategyTelemetry.cs,1148,50,Logical mutation,False,Killed,89,1,Listener is null && resilienceEvent.Severity == ResilienceEventSeverity.None
+Telemetry/ResilienceStrategyTelemetry.cs,1149,50,Negate expression,False,Killed,89,3,!(Listener is null || resilienceEvent.Severity == ResilienceEventSeverity.None)
+Telemetry/ResilienceStrategyTelemetry.cs,1150,50,Equality mutation,False,Killed,89,2,Listener is not null
+Telemetry/ResilienceStrategyTelemetry.cs,1151,50,Equality mutation,False,Killed,75,3,resilienceEvent.Severity != ResilienceEventSeverity.None
+Telemetry/ResilienceStrategyTelemetry.cs,1152,51,Block removal mutation,False,Ignored,15,0,{}
+Telemetry/ResilienceStrategyTelemetry.cs,1153,52,Statement mutation,False,Ignored,15,0,;
+Telemetry/ResilienceStrategyTelemetry.cs,1154,55,Statement mutation,False,Ignored,74,0,;
+Telemetry/ResilienceStrategyTelemetry.cs,1155,68,Block removal mutation,False,Ignored,99,0,{}
+Telemetry/ResilienceStrategyTelemetry.cs,1156,69,Logical mutation,False,Killed,99,2,Listener is null && resilienceEvent.Severity == ResilienceEventSeverity.None
+Telemetry/ResilienceStrategyTelemetry.cs,1157,69,Negate expression,False,Killed,99,4,!(Listener is null || resilienceEvent.Severity == ResilienceEventSeverity.None)
+Telemetry/ResilienceStrategyTelemetry.cs,1158,69,Equality mutation,False,Killed,99,2,Listener is not null
+Telemetry/ResilienceStrategyTelemetry.cs,1159,69,Equality mutation,False,Killed,97,2,resilienceEvent.Severity != ResilienceEventSeverity.None
+Telemetry/ResilienceStrategyTelemetry.cs,1160,70,Block removal mutation,False,Ignored,3,0,{}
+Telemetry/ResilienceStrategyTelemetry.cs,1161,71,Statement mutation,False,Ignored,3,0,;
+Telemetry/ResilienceStrategyTelemetry.cs,1162,74,Statement mutation,False,Ignored,96,0,;
+Telemetry/ResilienceStrategyTelemetry.cs,1163,79,Block removal mutation,False,Ignored,56,0,{}
+Telemetry/ResilienceStrategyTelemetry.cs,1164,80,Logical mutation,False,Killed,56,3,Listener is null && resilienceEvent.Severity == ResilienceEventSeverity.None
+Telemetry/ResilienceStrategyTelemetry.cs,1165,80,Negate expression,False,Killed,56,4,!(Listener is null || resilienceEvent.Severity == ResilienceEventSeverity.None)
+Telemetry/ResilienceStrategyTelemetry.cs,1166,80,Equality mutation,False,Killed,56,4,Listener is not null
+Telemetry/ResilienceStrategyTelemetry.cs,1167,80,Equality mutation,False,Killed,45,5,resilienceEvent.Severity != ResilienceEventSeverity.None
+Telemetry/ResilienceStrategyTelemetry.cs,1168,81,Block removal mutation,False,Ignored,11,0,{}
+Telemetry/ResilienceStrategyTelemetry.cs,1169,82,Statement mutation,False,Ignored,11,0,;
+Telemetry/ResilienceStrategyTelemetry.cs,1170,85,Statement mutation,False,Ignored,45,0,;
+Telemetry/ResilienceTelemetrySource.cs,1171,21,Block removal mutation,True,Ignored,0,0,{}
+Telemetry/TelemetryUtil.cs,1172,20,Block removal mutation,False,Ignored,103,0,{}
+Telemetry/TelemetryUtil.cs,1173,21,Statement mutation,False,Ignored,103,0,;
+Telemetry/TelemetryUtil.cs,1174,23,Conditional (true) mutation,False,Killed,103,1,(true?ResilienceEventSeverity.Warning :ResilienceEventSeverity.Information)
+Telemetry/TelemetryUtil.cs,1175,23,Conditional (false) mutation,False,Killed,103,1,(false?ResilienceEventSeverity.Warning :ResilienceEventSeverity.Information)
+Telemetry/TelemetryUtil.cs,1176,36,Block removal mutation,False,Ignored,22,0,{}
+Telemetry/TelemetryUtil.cs,1177,37,Statement mutation,False,Ignored,22,0,;
+Telemetry/TelemetryUtil.cs,1178,39,Conditional (true) mutation,False,Killed,22,1,(true?ResilienceEventSeverity.Error :ResilienceEventSeverity.Information)
+Telemetry/TelemetryUtil.cs,1179,39,Conditional (false) mutation,False,Killed,22,1,(false?ResilienceEventSeverity.Error :ResilienceEventSeverity.Information)
+Telemetry/TelemetryUtil.cs,1180,51,Block removal mutation,False,Ignored,105,0,{}
+Telemetry/TelemetryUtil.cs,1181,52,Negate expression,False,Killed,105,3,!(telemetry.Enabled)
+Telemetry/TelemetryUtil.cs,1182,53,Block removal mutation,False,Ignored,90,0,{}
+Telemetry/TelemetryUtil.cs,1183,54,Statement mutation,False,Ignored,90,0,;
+Timeout/TimeoutRejectedException.cs,1184,19,String mutation,False,Killed,2,1,""""""
+Timeout/TimeoutRejectedException.cs,1185,47,String mutation,False,Killed,1,1,""""""
+Timeout/TimeoutResiliencePipelineBuilderExtensions.cs,1186,23,Object initializer mutation,False,Timeout,19,0,new TimeoutStrategyOptions {}
+Timeout/TimeoutResiliencePipelineBuilderExtensions.cs,1187,44,Block removal mutation,False,Ignored,21,0,{}
+Timeout/TimeoutResiliencePipelineBuilderExtensions.cs,1188,45,Statement mutation,False,Ignored,21,0,;
+Timeout/TimeoutResiliencePipelineBuilderExtensions.cs,1189,46,Statement mutation,False,Ignored,21,0,;
+Timeout/TimeoutResiliencePipelineBuilderExtensions.cs,1190,48,Statement mutation,False,Ignored,21,0,;
+Timeout/TimeoutResilienceStrategy.cs,1191,12,Block removal mutation,True,Ignored,0,0,{}
+Timeout/TimeoutResilienceStrategy.cs,1192,30,Block removal mutation,True,Ignored,0,0,{}
+Timeout/TimeoutResilienceStrategy.cs,1193,32,Equality mutation,True,Killed,0,3,TimeoutGenerator is null
+Timeout/TimeoutResilienceStrategy.cs,1194,33,Block removal mutation,True,Ignored,0,0,{}
+Timeout/TimeoutResilienceStrategy.cs,1195,37,LogicalNotExpression to un-LogicalNotExpression mutation,True,Timeout,0,0,TimeoutUtil.ShouldApplyTimeout(timeout)
+Timeout/TimeoutResilienceStrategy.cs,1196,38,Block removal mutation,True,Ignored,0,0,{}
+Timeout/TimeoutResilienceStrategy.cs,1197,51,Block removal mutation,False,CompileError,0,0,{}
+Timeout/TimeoutResilienceStrategy.cs,1198,56,Block removal mutation,False,CompileError,0,0,{}
+Timeout/TimeoutResilienceStrategy.cs,1199,67,Statement mutation,False,Ignored,17,0,;
+Timeout/TimeoutResilienceStrategy.cs,1200,71,Statement mutation,False,Ignored,17,0,;
+Timeout/TimeoutResilienceStrategy.cs,1201,74,Logical mutation,False,CompileError,0,0,isCancellationRequested && outcome.Exception is OperationCanceledException e || !previousToken.IsCancellationRequested
+Timeout/TimeoutResilienceStrategy.cs,1202,74,Negate expression,False,CompileError,0,0,!(isCancellationRequested && outcome.Exception is OperationCanceledException e && !previousToken.IsCancellationRequested)
+Timeout/TimeoutResilienceStrategy.cs,1203,74,Logical mutation,False,CompileError,0,0,isCancellationRequested || outcome.Exception is OperationCanceledException e
+Timeout/TimeoutResilienceStrategy.cs,1204,74,Equality mutation,False,CompileError,0,0,outcome.Exception is not OperationCanceledException e
+Timeout/TimeoutResilienceStrategy.cs,1205,74,LogicalNotExpression to un-LogicalNotExpression mutation,False,Killed,14,13,previousToken.IsCancellationRequested
+Timeout/TimeoutResilienceStrategy.cs,1206,75,Block removal mutation,False,Ignored,7,0,{}
+Timeout/TimeoutResilienceStrategy.cs,1207,77,Statement mutation,False,Ignored,7,0,;
+Timeout/TimeoutResilienceStrategy.cs,1208,79,Equality mutation,False,Killed,7,6,OnTimeout is null
+Timeout/TimeoutResilienceStrategy.cs,1209,80,Block removal mutation,False,Ignored,2,0,{}
+Timeout/TimeoutResilienceStrategy.cs,1210,81,Statement mutation,False,Ignored,2,0,;
+Timeout/TimeoutResilienceStrategy.cs,1211,85,String mutation,False,Ignored,7,0,"$"""""
+Timeout/TimeoutResilienceStrategy.cs,1212,89,Statement mutation,False,Ignored,7,0,;
+Timeout/TimeoutResilienceStrategy.cs,1213,97,Block removal mutation,False,Ignored,17,0,{}
+Timeout/TimeoutUtil.cs,1214,7,Equality mutation,True,Killed,0,3,timeout < TimeSpan.Zero
+Timeout/TimeoutUtil.cs,1215,7,Equality mutation,True,Killed,0,2,timeout >= TimeSpan.Zero
+Utils/CancellationTokenSourcePool.Pooled.cs,1229,14,Block removal mutation,True,Ignored,0,0,{}
+Utils/CancellationTokenSourcePool.Pooled.cs,1230,21,Boolean mutation,False,Killed,7,1,false
+Utils/CancellationTokenSourcePool.Pooled.cs,1231,24,Block removal mutation,True,Ignored,0,0,{}
+Utils/CancellationTokenSourcePool.Pooled.cs,1232,27,Negate expression,True,Timeout,0,0,!(IsCancellable(delay))
+Utils/CancellationTokenSourcePool.Pooled.cs,1233,28,Block removal mutation,True,Ignored,0,0,{}
+Utils/CancellationTokenSourcePool.Pooled.cs,1234,29,Statement mutation,True,Ignored,0,0,;
+Utils/CancellationTokenSourcePool.Pooled.cs,1235,36,Block removal mutation,True,Ignored,0,0,{}
+Utils/CancellationTokenSourcePool.Pooled.cs,1236,37,Negate expression,True,Killed,0,2,!(source.TryReset())
+Utils/CancellationTokenSourcePool.Pooled.cs,1237,38,Block removal mutation,False,Ignored,7,0,{}
+Utils/CancellationTokenSourcePool.Pooled.cs,1238,39,Statement mutation,False,Ignored,7,0,;
+Utils/CancellationTokenSourcePool.Pooled.cs,1239,42,Block removal mutation,True,Ignored,0,0,{}
+Utils/CancellationTokenSourcePool.Pooled.cs,1240,43,Statement mutation,True,Ignored,0,0,;
+Utils/CancellationTokenSourcePool.cs,1216,8,Block removal mutation,True,Ignored,0,0,{}
+Utils/CancellationTokenSourcePool.cs,1217,10,Equality mutation,True,Killed,0,1,timeProvider != TimeProvider.System
+Utils/CancellationTokenSourcePool.cs,1218,11,Block removal mutation,False,Ignored,41,0,{}
+Utils/CancellationTokenSourcePool.cs,1219,29,Block removal mutation,True,Ignored,0,0,{}
+Utils/CancellationTokenSourcePool.cs,1220,30,Logical mutation,True,Killed,0,4,delay <= TimeSpan.Zero || delay != System.Threading.Timeout.InfiniteTimeSpan
+Utils/CancellationTokenSourcePool.cs,1221,30,Negate expression,True,Killed,0,3,!(delay <= TimeSpan.Zero && delay != System.Threading.Timeout.InfiniteTimeSpan)
+Utils/CancellationTokenSourcePool.cs,1222,30,Equality mutation,True,Killed,0,2,delay > TimeSpan.Zero
+Utils/CancellationTokenSourcePool.cs,1223,30,Equality mutation,True,Killed,0,1,delay < TimeSpan.Zero
+Utils/CancellationTokenSourcePool.cs,1224,30,Equality mutation,True,Killed,0,5,delay == System.Threading.Timeout.InfiniteTimeSpan
+Utils/CancellationTokenSourcePool.cs,1225,31,Block removal mutation,False,Ignored,1,0,{}
+Utils/CancellationTokenSourcePool.cs,1226,32,Statement mutation,False,Ignored,1,0,;
+Utils/CancellationTokenSourcePool.cs,1227,32,String mutation,False,Ignored,1,0,""""""
+Utils/CancellationTokenSourcePool.cs,1228,42,Equality mutation,True,Timeout,0,0,delay == System.Threading.Timeout.InfiniteTimeSpan
+Utils/DefaultPredicates.cs,1241,6,Equality mutation,True,Killed,0,1,args.Outcome.Exception is not { } and not OperationCanceledException
+Utils/DefaultPredicates.cs,1242,6,Logical mutation,True,Killed,0,1,{ } or not OperationCanceledException
+Utils/DisposeHelper.cs,1243,8,Block removal mutation,False,Ignored,69,0,{}
+Utils/DisposeHelper.cs,1244,10,Block removal mutation,False,Ignored,69,0,{}
+Utils/DisposeHelper.cs,1245,12,Negate expression,False,Killed,69,2,!(isSynchronous)
+Utils/DisposeHelper.cs,1246,13,Block removal mutation,False,Ignored,18,0,{}
+Utils/DisposeHelper.cs,1247,14,Equality mutation,False,CompileError,0,0,value is not IDisposable disposable
+Utils/DisposeHelper.cs,1248,15,Block removal mutation,False,Ignored,4,0,{}
+Utils/DisposeHelper.cs,1249,16,Statement mutation,False,Ignored,4,0,;
+Utils/DisposeHelper.cs,1250,18,Equality mutation,False,CompileError,0,0,value is not IAsyncDisposable asyncDisposable
+Utils/DisposeHelper.cs,1251,19,Block removal mutation,False,Ignored,2,0,{}
+Utils/DisposeHelper.cs,1252,20,Statement mutation,False,Ignored,2,0,;
+Utils/DisposeHelper.cs,1253,20,Boolean mutation,False,Ignored,1,0,true
+Utils/DisposeHelper.cs,1254,24,Block removal mutation,False,Ignored,51,0,{}
+Utils/DisposeHelper.cs,1255,25,Equality mutation,False,CompileError,0,0,value is not IAsyncDisposable asyncDisposable
+Utils/DisposeHelper.cs,1256,26,Block removal mutation,False,Ignored,4,0,{}
+Utils/DisposeHelper.cs,1257,27,Statement mutation,False,Ignored,4,0,;
+Utils/DisposeHelper.cs,1258,27,Boolean mutation,False,Ignored,3,0,true
+Utils/DisposeHelper.cs,1259,29,Equality mutation,False,CompileError,0,0,value is not IDisposable disposable
+Utils/DisposeHelper.cs,1260,30,Block removal mutation,False,Ignored,7,0,{}
+Utils/DisposeHelper.cs,1261,31,Statement mutation,False,Ignored,7,0,;
+Utils/ExceptionUtilities.cs,1262,16,Block removal mutation,False,Ignored,24,0,{}
+Utils/ExceptionUtilities.cs,1263,17,LogicalNotExpression to un-LogicalNotExpression mutation,False,Killed,24,1,string.IsNullOrWhiteSpace(exception.StackTrace)
+Utils/ExceptionUtilities.cs,1264,17,String mutation,False,Killed,24,1,(exception.StackTrace!=null)
+Utils/ExceptionUtilities.cs,1265,17,String mutation,False,Killed,24,1,"(exception.StackTrace!="""")"
+Utils/ExceptionUtilities.cs,1266,17,String mutation,False,Killed,24,21,"(exception.StackTrace.Trim()!="""")"
+Utils/ExceptionUtilities.cs,1267,18,Block removal mutation,False,Ignored,1,0,{}
+Utils/ExceptionUtilities.cs,1268,23,Statement mutation,False,Ignored,23,0,;
+Utils/Guard.cs,1269,11,Block removal mutation,True,Ignored,0,0,{}
+Utils/Guard.cs,1270,13,Statement mutation,True,Ignored,0,0,;
+Utils/ObjectPool.cs,1271,8,Arithmetic mutation,True,Ignored,0,0,(Environment.ProcessorCount * 2) + 1
+Utils/ObjectPool.cs,1272,8,Arithmetic mutation,True,Ignored,0,0,Environment.ProcessorCount / 2
+Utils/ObjectPool.cs,1273,19,Block removal mutation,True,Ignored,0,0,{}
+Utils/ObjectPool.cs,1274,25,Block removal mutation,True,Ignored,0,0,{}
+Utils/ObjectPool.cs,1275,27,Logical mutation,True,Killed,0,8,"item == null && Interlocked.CompareExchange(ref _fastItem, null, item) != item"
+Utils/ObjectPool.cs,1276,27,Negate expression,True,Killed,0,7,"!(item == null || Interlocked.CompareExchange(ref _fastItem, null, item) != item)"
+Utils/ObjectPool.cs,1277,27,Equality mutation,True,Killed,0,3,item != null
+Utils/ObjectPool.cs,1278,27,Equality mutation,True,Killed,0,1,"Interlocked.CompareExchange(ref _fastItem, null, item) == item"
+Utils/ObjectPool.cs,1279,28,Block removal mutation,True,Ignored,0,0,{}
+Utils/ObjectPool.cs,1280,29,Negate expression,True,Killed,0,8,!(_items.TryDequeue(out item))
+Utils/ObjectPool.cs,1281,30,Block removal mutation,False,Ignored,9,0,{}
+Utils/ObjectPool.cs,1282,31,Statement mutation,False,Ignored,9,0,;
+Utils/ObjectPool.cs,1283,43,Block removal mutation,True,Ignored,0,0,{}
+Utils/ObjectPool.cs,1284,44,LogicalNotExpression to un-LogicalNotExpression mutation,True,Timeout,0,0,_returnFunc(obj)
+Utils/ObjectPool.cs,1285,45,Block removal mutation,False,Ignored,1,0,{}
+Utils/ObjectPool.cs,1286,47,Statement mutation,False,Ignored,1,0,;
+Utils/ObjectPool.cs,1287,51,Logical mutation,True,Killed,0,2,"_fastItem != null && Interlocked.CompareExchange(ref _fastItem, obj, null) != null"
+Utils/ObjectPool.cs,1288,51,Negate expression,True,Killed,0,3,"!(_fastItem != null || Interlocked.CompareExchange(ref _fastItem, obj, null) != null)"
+Utils/ObjectPool.cs,1289,51,Equality mutation,False,Ignored,0,0,_fastItem == null
+Utils/ObjectPool.cs,1290,51,Equality mutation,False,Ignored,0,0,"Interlocked.CompareExchange(ref _fastItem, obj, null) == null"
+Utils/ObjectPool.cs,1291,52,Block removal mutation,False,Ignored,35,0,{}
+Utils/ObjectPool.cs,1292,54,Equality mutation,False,Ignored,0,0,Interlocked.Increment(ref _numItems) > MaxCapacity
+Utils/ObjectPool.cs,1293,54,Equality mutation,False,Ignored,0,0,Interlocked.Increment(ref _numItems) < MaxCapacity
+Utils/ObjectPool.cs,1294,54,Negate expression,False,Killed,35,1,!(Interlocked.Increment(ref _numItems) <= MaxCapacity)
+Utils/ObjectPool.cs,1295,55,Block removal mutation,False,Ignored,35,0,{}
+Utils/ObjectPool.cs,1296,56,Statement mutation,False,Ignored,35,0,;
+Utils/ObjectPool.cs,1297,57,Statement mutation,False,Ignored,35,0,;
+Utils/ObjectPool.cs,1298,61,Statement mutation,False,Ignored,2,0,;
+Utils/OutcomeUtilities.cs,1299,24,Block removal mutation,False,Ignored,48,0,{}
+Utils/OutcomeUtilities.cs,1300,25,Logical mutation,False,CompileError,0,0,callerToken.IsCancellationRequested && outcome.Exception is OperationCanceledException oce || oce.CancellationToken != callerToken
+Utils/OutcomeUtilities.cs,1301,25,Negate expression,False,CompileError,0,0,!(callerToken.IsCancellationRequested && outcome.Exception is OperationCanceledException oce && oce.CancellationToken != callerToken)
+Utils/OutcomeUtilities.cs,1302,25,Logical mutation,False,CompileError,0,0,callerToken.IsCancellationRequested || outcome.Exception is OperationCanceledException oce
+Utils/OutcomeUtilities.cs,1303,25,Equality mutation,False,CompileError,0,0,outcome.Exception is not OperationCanceledException oce
+Utils/OutcomeUtilities.cs,1304,25,Equality mutation,False,Killed,12,9,oce.CancellationToken == callerToken
+Utils/OutcomeUtilities.cs,1305,26,Block removal mutation,False,Ignored,11,0,{}
+Utils/Pipeline/BridgeComponent.TResult.cs,1306,17,Block removal mutation,False,Ignored,105,0,{}
+Utils/Pipeline/BridgeComponent.TResult.cs,1307,19,Equality mutation,False,CompileError,0,0,"callback is not Func<ResilienceContext, TState, ValueTask<Outcome<T>>> casted"
+Utils/Pipeline/BridgeComponent.TResult.cs,1308,20,Block removal mutation,False,Ignored,74,0,{}
+Utils/Pipeline/BridgeComponent.TResult.cs,1309,24,Statement mutation,False,Ignored,74,0,;
+Utils/Pipeline/BridgeComponent.TResult.cs,1310,24,String mutation,False,Ignored,74,0,""""""
+Utils/Pipeline/BridgeComponent.TResult.cs,1311,28,Block removal mutation,False,Ignored,32,0,{}
+Utils/Pipeline/BridgeComponent.TResult.cs,1312,31,Block removal mutation,False,Ignored,30,0,{}
+Utils/Pipeline/BridgeComponent.TResult.cs,1313,38,Negate expression,False,Timeout,32,0,!(valueTask.IsCompletedSuccessfully)
+Utils/Pipeline/BridgeComponent.TResult.cs,1314,39,Block removal mutation,False,Ignored,26,0,{}
+Utils/Pipeline/BridgeComponent.TResult.cs,1315,47,Block removal mutation,False,Ignored,6,0,{}
+Utils/Pipeline/BridgeComponentBase.cs,1316,8,Block removal mutation,False,Ignored,22,0,{}
+Utils/Pipeline/BridgeComponentBase.cs,1317,9,Equality mutation,False,CompileError,0,0,_strategy is not IAsyncDisposable asyncDisposable
+Utils/Pipeline/BridgeComponentBase.cs,1318,10,Block removal mutation,False,Ignored,2,0,{}
+Utils/Pipeline/BridgeComponentBase.cs,1319,13,Equality mutation,False,CompileError,0,0,_strategy is not IDisposable disposable
+Utils/Pipeline/BridgeComponentBase.cs,1320,14,Block removal mutation,False,Ignored,5,0,{}
+Utils/Pipeline/BridgeComponentBase.cs,1321,15,Statement mutation,False,Ignored,5,0,;
+Utils/Pipeline/BridgeComponentBase.cs,1322,22,Block removal mutation,False,Ignored,30,0,{}
+Utils/Pipeline/BridgeComponentBase.cs,1323,23,Equality mutation,False,Killed,30,6,outcome.ExceptionDispatchInfo is null
+Utils/Pipeline/BridgeComponentBase.cs,1324,24,Block removal mutation,False,Ignored,9,0,{}
+Utils/Pipeline/ComponentDisposeHelper.cs,1325,10,Block removal mutation,True,Ignored,0,0,{}
+Utils/Pipeline/ComponentDisposeHelper.cs,1326,16,Block removal mutation,False,Ignored,9,0,{}
+Utils/Pipeline/ComponentDisposeHelper.cs,1327,17,Negate expression,False,Killed,9,2,!(EnsureDisposable())
+Utils/Pipeline/ComponentDisposeHelper.cs,1328,18,Block removal mutation,False,Ignored,5,0,{}
+Utils/Pipeline/ComponentDisposeHelper.cs,1329,26,Block removal mutation,True,Ignored,0,0,{}
+Utils/Pipeline/ComponentDisposeHelper.cs,1330,27,Negate expression,True,Killed,0,2,!(_disposed)
+Utils/Pipeline/ComponentDisposeHelper.cs,1331,28,Block removal mutation,False,Ignored,3,0,{}
+Utils/Pipeline/ComponentDisposeHelper.cs,1332,29,Statement mutation,False,Ignored,3,0,;
+Utils/Pipeline/ComponentDisposeHelper.cs,1333,33,String mutation,False,Ignored,3,0,""""""
+Utils/Pipeline/ComponentDisposeHelper.cs,1334,33,String mutation,False,Ignored,3,0,""""""
+Utils/Pipeline/ComponentDisposeHelper.cs,1335,36,Block removal mutation,False,Ignored,25,0,{}
+Utils/Pipeline/ComponentDisposeHelper.cs,1336,37,Boolean mutation,False,Killed,25,1,false
+Utils/Pipeline/ComponentDisposeHelper.cs,1337,42,Block removal mutation,False,Ignored,9,0,{}
+Utils/Pipeline/ComponentDisposeHelper.cs,1338,43,Equality mutation,False,Killed,9,8,_disposeBehavior != DisposeBehavior.Ignore
+Utils/Pipeline/ComponentDisposeHelper.cs,1339,44,Block removal mutation,False,Ignored,2,0,{}
+Utils/Pipeline/ComponentDisposeHelper.cs,1340,45,Boolean mutation,False,Killed,2,1,true
+Utils/Pipeline/ComponentDisposeHelper.cs,1341,48,Equality mutation,False,Killed,7,2,_disposeBehavior != DisposeBehavior.Reject
+Utils/Pipeline/ComponentDisposeHelper.cs,1342,49,Block removal mutation,False,Ignored,2,0,{}
+Utils/Pipeline/ComponentDisposeHelper.cs,1343,50,Statement mutation,False,Ignored,2,0,;
+Utils/Pipeline/ComponentDisposeHelper.cs,1344,50,String mutation,False,Ignored,2,0,""""""
+Utils/Pipeline/ComponentDisposeHelper.cs,1345,53,LogicalNotExpression to un-LogicalNotExpression mutation,False,Killed,5,1,_disposed
+Utils/Pipeline/ComponentWithDisposeCallbacks.cs,1346,8,Block removal mutation,True,Ignored,0,0,{}
+Utils/Pipeline/ComponentWithDisposeCallbacks.cs,1347,16,Block removal mutation,False,Ignored,2,0,{}
+Utils/Pipeline/ComponentWithDisposeCallbacks.cs,1348,17,Statement mutation,False,Ignored,2,0,;
+Utils/Pipeline/ComponentWithDisposeCallbacks.cs,1349,28,Block removal mutation,False,Ignored,2,0,{}
+Utils/Pipeline/ComponentWithDisposeCallbacks.cs,1350,30,Block removal mutation,False,Ignored,2,0,{}
+Utils/Pipeline/ComponentWithDisposeCallbacks.cs,1351,31,Statement mutation,False,Ignored,2,0,;
+Utils/Pipeline/ComponentWithDisposeCallbacks.cs,1352,34,Statement mutation,False,Ignored,2,0,;
+Utils/Pipeline/CompositeComponent.cs,1353,20,Block removal mutation,True,Ignored,0,0,{}
+Utils/Pipeline/CompositeComponent.cs,1354,34,Block removal mutation,True,Ignored,0,0,{}
+Utils/Pipeline/CompositeComponent.cs,1355,35,Equality mutation,False,CompileError,0,0,components.Count != 1
+Utils/Pipeline/CompositeComponent.cs,1356,35,Linq method mutation (Count() to Sum()),False,CompileError,0,0,components.Sum
+Utils/Pipeline/CompositeComponent.cs,1357,36,Block removal mutation,True,Ignored,0,0,{}
+Utils/Pipeline/CompositeComponent.cs,1358,41,Linq method mutation (Take() to Skip()),False,Killed,18,5,components             .Skip
+Utils/Pipeline/CompositeComponent.cs,1359,42,Arithmetic mutation,False,CompileError,0,0,components.Count + 1
+Utils/Pipeline/CompositeComponent.cs,1360,42,Linq method mutation (Count() to Sum()),False,CompileError,0,0,components.Sum
+Utils/Pipeline/CompositeComponent.cs,1361,53,Equality mutation,False,Killed,18,3,i > delegatingComponents.Length - 1
+Utils/Pipeline/CompositeComponent.cs,1362,53,Equality mutation,False,Killed,18,5,i <= delegatingComponents.Length - 1
+Utils/Pipeline/CompositeComponent.cs,1363,53,Arithmetic mutation,False,Killed,18,5,delegatingComponents.Length + 1
+Utils/Pipeline/CompositeComponent.cs,1364,53,PostIncrementExpression to PostDecrementExpression mutation,False,Killed,18,5,i--
+Utils/Pipeline/CompositeComponent.cs,1365,54,Block removal mutation,False,Ignored,5,0,{}
+Utils/Pipeline/CompositeComponent.cs,1366,55,Arithmetic mutation,False,Killed,5,5,i - 1
+Utils/Pipeline/CompositeComponent.cs,1367,64,Block removal mutation,False,Ignored,24,0,{}
+Utils/Pipeline/CompositeComponent.cs,1368,66,Block removal mutation,False,Ignored,24,0,{}
+Utils/Pipeline/CompositeComponent.cs,1369,67,Statement mutation,False,Ignored,24,0,;
+Utils/Pipeline/CompositeComponent.cs,1370,67,Boolean mutation,False,Ignored,24,0,true
+Utils/Pipeline/CompositeComponent.cs,1371,75,Block removal mutation,True,Ignored,0,0,{}
+Utils/Pipeline/CompositeComponent.cs,1372,76,LogicalNotExpression to un-LogicalNotExpression mutation,True,Killed,0,1,_telemetry.Enabled
+Utils/Pipeline/CompositeComponent.cs,1373,77,Block removal mutation,True,Ignored,0,0,{}
+Utils/Pipeline/CompositeComponent.cs,1374,88,Block removal mutation,True,Ignored,0,0,{}
+Utils/Pipeline/CompositeComponent.cs,1375,89,Negate expression,True,Killed,0,20,!(context.CancellationToken.IsCancellationRequested)
+Utils/Pipeline/CompositeComponent.cs,1376,90,Block removal mutation,False,Ignored,2,0,{}
+Utils/Pipeline/CompositeComponent.cs,1377,94,Block removal mutation,True,Ignored,0,0,{}
+Utils/Pipeline/CompositeComponent.cs,1378,103,Block removal mutation,False,Ignored,4,0,{}
+Utils/Pipeline/CompositeComponent.cs,1379,106,Statement mutation,False,Ignored,4,0,;
+Utils/Pipeline/CompositeComponent.cs,1380,110,Statement mutation,False,Ignored,3,0,;
+Utils/Pipeline/DelegatingComponent.cs,1381,25,Conditional (true) mutation,False,Ignored,10,0,"(true?ExecuteComponent(callback, context, state) :ExecuteComponentAot(callback, context, state))"
+Utils/Pipeline/DelegatingComponent.cs,1382,25,Conditional (false) mutation,False,Ignored,10,0,"(false?ExecuteComponent(callback, context, state) :ExecuteComponentAot(callback, context, state))"
+Utils/Pipeline/DelegatingComponent.cs,1383,36,Block removal mutation,False,Ignored,10,0,{}
+Utils/Pipeline/DelegatingComponent.cs,1384,37,Negate expression,False,Killed,10,2,!(context.CancellationToken.IsCancellationRequested)
+Utils/Pipeline/DelegatingComponent.cs,1385,38,Block removal mutation,False,Ignored,1,0,{}
+Utils/Pipeline/DelegatingComponent.cs,1386,66,Block removal mutation,False,Ignored,1,0,{}
+Utils/Pipeline/ExecutionTrackingComponent.cs,1387,13,Block removal mutation,False,Ignored,24,0,{}
+Utils/Pipeline/ExecutionTrackingComponent.cs,1388,20,Equality mutation,False,Killed,24,4,Volatile.Read(ref _pendingExecutions) < 0
+Utils/Pipeline/ExecutionTrackingComponent.cs,1389,20,Equality mutation,False,Timeout,24,0,Volatile.Read(ref _pendingExecutions) >= 0
+Utils/Pipeline/ExecutionTrackingComponent.cs,1390,26,Block removal mutation,False,Ignored,8,0,{}
+Utils/Pipeline/ExecutionTrackingComponent.cs,1391,27,Statement mutation,False,Ignored,8,0,;
+Utils/Pipeline/ExecutionTrackingComponent.cs,1392,30,Block removal mutation,False,Ignored,8,0,{}
+Utils/Pipeline/ExecutionTrackingComponent.cs,1393,34,Block removal mutation,False,Ignored,8,0,{}
+Utils/Pipeline/ExecutionTrackingComponent.cs,1394,35,Statement mutation,False,Ignored,8,0,;
+Utils/Pipeline/ExecutionTrackingComponent.cs,1395,40,Block removal mutation,False,Ignored,24,0,{}
+Utils/Pipeline/ExecutionTrackingComponent.cs,1396,45,Negate expression,False,Killed,24,1,!(HasPendingExecutions)
+Utils/Pipeline/ExecutionTrackingComponent.cs,1397,46,Block removal mutation,False,Ignored,3,0,{}
+Utils/Pipeline/ExecutionTrackingComponent.cs,1398,48,Statement mutation,False,Ignored,3,0,;
+Utils/Pipeline/ExecutionTrackingComponent.cs,1399,48,Boolean mutation,False,Ignored,3,0,true
+Utils/Pipeline/ExecutionTrackingComponent.cs,1400,54,Equality mutation,False,Ignored,0,0,_timeProvider.GetElapsedTime(start) < Timeout
+Utils/Pipeline/ExecutionTrackingComponent.cs,1401,54,Equality mutation,False,Ignored,0,0,_timeProvider.GetElapsedTime(start) >= Timeout
+Utils/Pipeline/ExecutionTrackingComponent.cs,1402,54,Negate expression,False,Timeout,3,0,!(_timeProvider.GetElapsedTime(start) > Timeout)
+Utils/Pipeline/ExecutionTrackingComponent.cs,1403,55,Block removal mutation,False,Ignored,1,0,{}
+Utils/Pipeline/ExecutionTrackingComponent.cs,1404,56,Statement mutation,False,Ignored,1,0,;
+Utils/Pipeline/ExecutionTrackingComponent.cs,1405,60,Statement mutation,False,Ignored,24,0,;
+Utils/Pipeline/ExecutionTrackingComponent.cs,1406,60,Boolean mutation,False,Ignored,24,0,true
+Utils/Pipeline/PipelineComponent.cs,1407,25,Block removal mutation,True,Ignored,0,0,{}
+Utils/Pipeline/PipelineComponent.cs,1408,27,Block removal mutation,True,Ignored,0,0,{}
+Utils/Pipeline/PipelineComponent.cs,1409,33,Block removal mutation,False,Ignored,7,0,{}
+Utils/Pipeline/PipelineComponentFactory.cs,1410,16,Conditional (true) mutation,True,Killed,0,1,"(true?component :new ComponentWithDisposeCallbacks(component, callbacks))"
+Utils/Pipeline/PipelineComponentFactory.cs,1411,16,Conditional (false) mutation,True,Killed,0,1,"(false?component :new ComponentWithDisposeCallbacks(component, callbacks))"
+Utils/Pipeline/PipelineComponentFactory.cs,1412,16,Equality mutation,False,CompileError,0,0,callbacks.Count != 0
+Utils/Pipeline/PipelineComponentFactory.cs,1413,16,Linq method mutation (Count() to Sum()),False,CompileError,0,0,callbacks.Sum
+Utils/Pipeline/ReloadableComponent.cs,1414,20,Block removal mutation,False,Ignored,10,0,{}
+Utils/Pipeline/ReloadableComponent.cs,1415,26,Statement mutation,False,Ignored,10,0,;
+Utils/Pipeline/ReloadableComponent.cs,1416,37,Block removal mutation,False,Ignored,10,0,{}
+Utils/Pipeline/ReloadableComponent.cs,1417,38,Statement mutation,False,Ignored,10,0,;
+Utils/Pipeline/ReloadableComponent.cs,1418,43,Block removal mutation,False,Ignored,10,0,{}
+Utils/Pipeline/ReloadableComponent.cs,1419,44,Equality mutation,False,CompileError,0,0,reloadTokens.Count != 0
+Utils/Pipeline/ReloadableComponent.cs,1420,44,Linq method mutation (Count() to Sum()),False,CompileError,0,0,reloadTokens.Sum
+Utils/Pipeline/ReloadableComponent.cs,1421,45,Block removal mutation,False,Ignored,5,0,{}
+Utils/Pipeline/ReloadableComponent.cs,1422,46,Statement mutation,False,Ignored,5,0,;
+Utils/Pipeline/ReloadableComponent.cs,1423,58,Block removal mutation,False,CompileError,0,0,{}
+Utils/Pipeline/ReloadableComponent.cs,1424,59,Statement mutation,False,CompileError,0,0,;
+Utils/Pipeline/ReloadableComponent.cs,1425,62,Boolean mutation,False,CompileError,0,0,false
+Utils/Pipeline/ReloadableComponent.cs,1426,63,Statement mutation,False,CompileError,0,0,;
+Utils/Pipeline/ReloadableComponent.cs,1427,64,Statement mutation,False,CompileError,0,0,;
+Utils/Pipeline/ReloadableComponent.cs,1428,69,Block removal mutation,False,CompileError,0,0,{}
+Utils/Pipeline/ReloadableComponent.cs,1429,73,Block removal mutation,False,CompileError,0,0,{}
+Utils/Pipeline/ReloadableComponent.cs,1430,74,Boolean mutation,False,CompileError,0,0,false
+Utils/Pipeline/ReloadableComponent.cs,1431,75,Statement mutation,False,CompileError,0,0,;
+Utils/Pipeline/ReloadableComponent.cs,1432,76,Statement mutation,False,CompileError,0,0,;
+Utils/Pipeline/ReloadableComponent.cs,1433,79,Statement mutation,False,CompileError,0,0,;
+Utils/Pipeline/ReloadableComponent.cs,1434,84,Block removal mutation,False,Ignored,7,0,{}
+Utils/Pipeline/ReloadableComponent.cs,1435,86,Block removal mutation,False,Ignored,7,0,{}
+Utils/Pipeline/ReloadableComponent.cs,1436,87,Statement mutation,False,Ignored,7,0,;
+Utils/Pipeline/ReloadableComponent.cs,1437,87,Boolean mutation,False,Ignored,6,0,true
+Utils/Pipeline/ReloadableComponent.cs,1438,90,Block removal mutation,False,Ignored,1,0,{}
+Utils/Pipeline/ReloadableComponent.cs,1439,91,Boolean mutation,False,Killed,1,1,true
+Utils/Pipeline/ReloadableComponent.cs,1440,92,Statement mutation,False,Ignored,1,0,;
+Utils/TaskHelper.cs,1441,9,Block removal mutation,True,Ignored,0,0,{}
+Utils/TaskHelper.cs,1442,10,Statement mutation,True,Ignored,0,0,;
+Utils/TaskHelper.cs,1443,12,String mutation,True,Ignored,0,0,""""""
+Utils/TaskHelper.cs,1444,15,Negate expression,False,Ignored,0,0,!(task.IsCompleted)
+Utils/TaskHelper.cs,1445,16,Block removal mutation,True,Ignored,0,0,{}
+Utils/TimeProviderExtensions.cs,1446,20,Block removal mutation,False,Ignored,27,0,{}
+Utils/TimeProviderExtensions.cs,1447,21,Statement mutation,False,Ignored,27,0,;
+Utils/TimeProviderExtensions.cs,1448,22,Statement mutation,False,Ignored,27,0,;
+Utils/TimeProviderExtensions.cs,1449,24,Statement mutation,False,Ignored,27,0,;
+Utils/TimeProviderExtensions.cs,1450,26,Equality mutation,False,Killed,24,1,delay != TimeSpan.MaxValue
+Utils/TimeProviderExtensions.cs,1451,27,Block removal mutation,False,Ignored,1,0,{}
+Utils/TimeProviderExtensions.cs,1452,31,Negate expression,False,Killed,24,1,!(context.IsSynchronous)
+Utils/TimeProviderExtensions.cs,1453,32,Block removal mutation,False,Ignored,13,0,{}
+Utils/TimeProviderExtensions.cs,1454,39,Statement mutation,False,Ignored,13,0,;
+Utils/TypeNameFormatter.cs,1455,8,Block removal mutation,True,Ignored,0,0,{}
+Utils/TypeNameFormatter.cs,1456,9,LogicalNotExpression to un-LogicalNotExpression mutation,True,Killed,0,1,type.IsGenericType
+Utils/TypeNameFormatter.cs,1457,10,Block removal mutation,True,Ignored,0,0,{}
+Utils/TypeNameFormatter.cs,1458,15,Equality mutation,False,Killed,18,1,args.Length == 1
+Utils/TypeNameFormatter.cs,1459,16,Block removal mutation,False,Ignored,1,0,{}
+Utils/TypeNameFormatter.cs,1460,21,Arithmetic mutation,False,Killed,18,3,type.Name.Length + GenericSuffixLength
+Utils/TypeNameFormatter.cs,1461,26,String mutation,False,Killed,18,1,"$"""""
+Utils/ValidationHelper.cs,1462,15,Conditional (true) mutation,False,CompileError,0,0,(true?new[] { memberName } :null)
+Utils/ValidationHelper.cs,1463,15,Conditional (false) mutation,False,CompileError,0,0,(false?new[] { memberName } :null)
+Utils/ValidationHelper.cs,1464,15,Equality mutation,False,CompileError,0,0,validationContext?.MemberName is not { } memberName
+Utils/ValidationHelper.cs,1465,21,Null coalescing mutation (remove left),False,Ignored,1,0,string.Empty
+Utils/ValidationHelper.cs,1466,21,String mutation,False,Ignored,1,0,"""Stryker was here!"""
+Utils/ValidationHelper.cs,1467,29,Block removal mutation,True,Ignored,0,0,{}
+Utils/ValidationHelper.cs,1468,30,Statement mutation,True,Ignored,0,0,;
+Utils/ValidationHelper.cs,1469,36,Block removal mutation,False,CompileError,0,0,{}
+Utils/ValidationHelper.cs,1470,37,Boolean mutation,True,Ignored,0,0,false
+Utils/ValidationHelper.cs,1471,40,LogicalNotExpression to un-LogicalNotExpression mutation,True,Ignored,0,0,valid
+Utils/ValidationHelper.cs,1472,41,Block removal mutation,False,Ignored,33,0,{}
+Utils/ValidationHelper.cs,1473,43,Statement mutation,False,Ignored,33,0,;
+Utils/ValidationHelper.cs,1474,45,Statement mutation,False,Ignored,33,0,;
+Utils/ValidationHelper.cs,1475,45,String mutation,False,Ignored,33,0,""""""
+Utils/ValidationHelper.cs,1476,47,Block removal mutation,False,Ignored,33,0,{}
+Utils/ValidationHelper.cs,1477,48,Statement mutation,False,Ignored,33,0,;
+Utils/ValidationHelper.cs,1478,51,Statement mutation,False,Ignored,33,0,;
+VoidResult.cs,1479,14,String mutation,False,Killed,1,1,""""""

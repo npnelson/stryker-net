@@ -1,0 +1,29 @@
+{
+  "stryker-config": {
+    "reporters": [
+      "json",
+      "markdown"
+    ],
+    "ignore-methods": [
+      "*Exception.ctor",
+      "AddError",
+      "ConfigureAwait",
+      "Dispose",
+      "LogError",
+      "Debug.Assert",
+      "LogInformation"
+    ],
+    "ignore-mutations": [
+      "block",
+      "statement"
+    ],
+    "concurrency": 1,
+    "configuration": "Debug",
+    "language-version": "Latest",
+    "target-framework": "net10.0",
+    "thresholds": {
+      "high": 100,
+      "low": 100
+    }
+  }
+}
