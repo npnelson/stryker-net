@@ -1,0 +1,21 @@
+benign [10:19:52 INF] 6     total mutants will be tested
+benign [10:19:54 INF] MTP performance summary: 1 runners over 71823.1401 ms; 706 leases (0 contended, max queue depth 0, total queue wait 0 ms, max queue wait 0 ms); leased runner busy 62552.8851 ms, idle 9270.255 ms, capacity 71823.1401 ms, utilization 87.0929410951
+benign [10:19:54 INF] MTP phase performance: Discovery; 1 leases over 1805.1572 ms (0 contended, max queue depth 0, total queue wait 0 ms, max queue wait 0 ms); leased runner busy 1805.1473 ms, idle 0.0099 ms, capacity 1805.1572 ms, utilization 99.99945157130914%
+benign [10:19:54 INF] MTP phase performance: InitialTest; 1 leases over 6736.4309 ms (0 contended, max queue depth 0, total queue wait 0 ms, max queue wait 0 ms); leased runner busy 6736.4267 ms, idle 0.0042 ms, capacity 6736.4309 ms, utilization 99.99993765244442%
+benign [10:19:54 INF] MTP phase performance: PerTestCoverage; 698 leases over 52471.638 ms (0 contended, max queue depth 0, total queue wait 0 ms, max queue wait 0 ms); leased runner busy 52428.1824 ms, idle 43.4556 ms, capacity 52471.638 ms, utilization 99.917182688
+benign [10:19:54 INF] MTP phase performance: Mutation; 6 leases over 1585.9643 ms (0 contended, max queue depth 0, total queue wait 0 ms, max queue wait 0 ms); leased runner busy 1583.1287 ms, idle 2.8356 ms, capacity 1585.9643 ms, utilization 99.82120656814281%
+benign [10:19:55 INF] The final mutation score is 100.00 %
+cohort8 [10:23:02 INF] 6     total mutants will be tested
+cohort8 [10:23:05 INF] MTP performance summary: 1 runners over 40152.8435 ms; 96 leases (0 contended, max queue depth 0, total queue wait 0 ms, max queue wait 0 ms); leased runner busy 31700.4352 ms, idle 8452.4083 ms, capacity 40152.8435 ms, utilization 78.9494153757
+cohort8 [10:23:05 INF] MTP phase performance: Discovery; 1 leases over 1045.4666 ms (0 contended, max queue depth 0, total queue wait 0 ms, max queue wait 0 ms); leased runner busy 1045.4545 ms, idle 0.0121 ms, capacity 1045.4666 ms, utilization 99.99884262204071%
+cohort8 [10:23:05 INF] MTP phase performance: InitialTest; 1 leases over 8764.6415 ms (0 contended, max queue depth 0, total queue wait 0 ms, max queue wait 0 ms); leased runner busy 8764.6388 ms, idle 0.0027 ms, capacity 8764.6415 ms, utilization 99.99996919440458%
+cohort8 [10:23:05 INF] MTP phase performance: PerTestCoverage; 88 leases over 18670.3051 ms (0 contended, max queue depth 0, total queue wait 0 ms, max queue wait 0 ms); leased runner busy 18662.5333 ms, idle 7.7718 ms, capacity 18670.3051 ms, utilization 99.958373470
+cohort8 [10:23:05 INF] MTP phase performance: Mutation; 6 leases over 3230.4421 ms (0 contended, max queue depth 0, total queue wait 0 ms, max queue wait 0 ms); leased runner busy 3227.8086 ms, idle 2.6335 ms, capacity 3230.4421 ms, utilization 99.91847865033705%
+cohort8 [10:23:06 INF] The final mutation score is 100.00 %
+cohort32 [10:23:57 INF] 6     total mutants will be tested
+cohort32 [10:24:03 INF] MTP performance summary: 1 runners over 31706.1803 ms; 30 leases (0 contended, max queue depth 0, total queue wait 0 ms, max queue wait 0 ms); leased runner busy 22650.245 ms, idle 9055.9353 ms, capacity 31706.1803 ms, utilization 71.43794927577
+cohort32 [10:24:03 INF] MTP phase performance: Discovery; 1 leases over 991.9028 ms (0 contended, max queue depth 0, total queue wait 0 ms, max queue wait 0 ms); leased runner busy 991.8936 ms, idle 0.0092 ms, capacity 991.9028 ms, utilization 99.99907248976412%
+cohort32 [10:24:03 INF] MTP phase performance: InitialTest; 1 leases over 4786.8275 ms (0 contended, max queue depth 0, total queue wait 0 ms, max queue wait 0 ms); leased runner busy 4786.8233 ms, idle 0.0042 ms, capacity 4786.8275 ms, utilization 99.99991225921553%
+cohort32 [10:24:03 INF] MTP phase performance: PerTestCoverage; 22 leases over 11578.9889 ms (0 contended, max queue depth 0, total queue wait 0 ms, max queue wait 0 ms); leased runner busy 11576.5562 ms, idle 2.4327 ms, capacity 11578.9889 ms, utilization 99.978990393
+cohort32 [10:24:03 INF] MTP phase performance: Mutation; 6 leases over 5297.8848 ms (0 contended, max queue depth 0, total queue wait 0 ms, max queue wait 0 ms); leased runner busy 5294.9719 ms, idle 2.9129 ms, capacity 5297.8848 ms, utilization 99.94501767950862%
+cohort32 [10:24:04 INF] The final mutation score is 100.00 %
