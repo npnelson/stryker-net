@@ -26,12 +26,30 @@ IsTerminating: True
 xunit v3 discovery calls `Assembly.GetExportedTypes()`, which forces every reference to load, so
 the failure takes down the whole host rather than failing a test.
 
-Measured directly, by capturing the emitted assembly mid-run:
+### It is not an MTP defect — MTP only makes it fatal
 
-| | emitted mutated `Polly.Core.dll` |
-| --- | --- |
-| unfixed dotnet-stryker 4.16.0 | `Version=1.0.0.0  PublicKeyToken=c8a3ffc3f8f825cc` |
-| this branch | `Version=8.0.0.0  PublicKeyToken=c8a3ffc3f8f825cc` |
+The wrong version is emitted by `CsharpCompilingProcess`, which is runner-independent, so it
+happens under VsTest too. Capturing the emitted assembly mid-run on Polly `101d6af7` (xunit 2.9.3,
+VsTest, the configuration Polly ships today) against the same `ResilienceProperties.cs` slice:
+
+| runner / framework | emitted mutated `Polly.Core.dll` | result |
+| --- | --- | --- |
+| VsTest, xunit v2, unfixed 4.16.0 | **`1.0.0.0`** / `c8a3ffc3f8f825cc` | 6 Killed — runs fine |
+| MTP, xunit v3, unfixed 4.16.0 | **`1.0.0.0`** / `c8a3ffc3f8f825cc` | 9 RuntimeError — host dies |
+| MTP, xunit v3, this branch | **`8.0.0.0`** / `c8a3ffc3f8f825cc` | 9 Killed — runs fine |
+
+Polly's green mutation CI has been running against an assembly whose identity does not match the
+one it built, for as long as it has been running. The VSTest test host resolves assemblies through
+its own resolver, which binds by simple name from the test directory and tolerates the mismatch.
+The default `AssemblyLoadContext` does not: an assembly whose version is *lower* than the reference
+fails to bind, and the exception it raises is the famously misleading
+`FileNotFoundException: ... The system cannot find the file specified` — which is about identity,
+not about a missing file.
+
+So this is a latent defect in Stryker's compiler that every strong-named project already carries,
+masked by VsTest's permissive resolver and exposed the moment a project moves to MTP. As the
+ecosystem moves that way — `global.json` `"test": { "runner": "Microsoft.Testing.Platform" }` — it
+stops being masked.
 
 ## The fix
 
@@ -122,6 +140,8 @@ Two accommodations, neither affecting the result:
 
 - Polly's `global.json` pins SDK `10.0.302`; this box has `10.0.110`, so it was repointed to
   `10.0.100` / `latestPatch`. No other Polly file was modified.
+- The VsTest comparison arm ran on a separate clone of Polly at `101d6af7` (xunit 2.9.3), the
+  commit the determinism baselines in `../polly-determinism/RESULTS.md` were measured on.
 - The net8.0/net9.0 `Microsoft.NETCore.App.Host.linux-x64` packs would not restore from inside
   Polly, whose `NuGet.config` uses `<clear />` plus package source mapping, so `OutputType=Exe`
   failed those TFMs with MSB3030. Building a throwaway net8.0 and net9.0 console app outside the
