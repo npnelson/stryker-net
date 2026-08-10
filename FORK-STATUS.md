@@ -17,7 +17,7 @@ rather than fork work. This is the audit.
 
 ## What this branch now carries
 
-Five commits on top of `b9e2559`:
+Seven commits on top of `b9e2559`, plus this document:
 
 | Commit | What | Upstream status |
 |---|---|---|
@@ -27,6 +27,7 @@ Five commits on top of `b9e2559`:
 | `fix(core): honor target framework during initial build` | `--target-framework` ignored by initial build | Not upstream, **general bug** |
 | `fix(mtp): isolate mutant-id control files per runner instance` | Control-file collision between concurrent runs | Not upstream |
 | `fix(core): don't abort the run when executed tests are not enumerated` | Divide-by-zero aborts the run on one failing test | Not upstream, **general bug**, newly written here |
+| `feat(cli): expose additional timeout option` | `--additional-timeout` had no CLI flag despite being config-settable | Not upstream, **general gap** |
 
 ### The isolation fix: which commit, and why
 
@@ -64,6 +65,10 @@ commit message accordingly.
 | `31345701229` | 5-commit stack | **failure** — see below |
 | `31345702214` | 5-commit stack, integration matrix | success, **33/33 jobs**, incl. all 15 MTP/TUnit categories |
 | `6a6df7fa` | full stack after the fix | success, 3/3 OS |
+| `31348242594` | final tree `2581f5ba`, all seven fixes | success, 3/3 OS |
+| `31348280424` | final tree `2581f5ba`, integration matrix | success, **33/33 jobs** |
+
+Only this document changed after `2581f5ba`, so the verified code tree is the one shipped.
 
 The one failure is worth recording, because neither source branch could have caught
 it. The isolation fix's test double reconstructed the control-file path by hand from a
@@ -150,17 +155,12 @@ Ranked by value, highest first.
    grouping would convert a wasted optimisation into wrong mutation results. Fix the
    single-id control channel first.
 
-3. **`5ea2a74c` — `--additional-timeout` has no CLI flag.** `AdditionalTimeoutInput` is
-   wired into config file reading/writing and has its own unit tests, but
-   `CommandLineConfigReader` never registers it. One line plus a test. Verified absent
-   upstream.
-
-4. **`b18f5174` — timeout stage.** Replaces `bool TimedOut` with a
+3. **`b18f5174` — timeout stage.** Replaces `bool TimedOut` with a
    `TestRunTimeoutStage?` enum distinguishing "the RPC never returned" from "the run
    exceeded its budget". Also swaps a `DateTime.UtcNow` delta for a `Stopwatch`. Trim the
    `LogDebug`→`LogWarning` promotions before offering it anywhere.
 
-5. **Contracts #5 and #6 from `test/mtp-channel-defects`** — the only two pinned defects
+4. **Contracts #5 and #6 from `test/mtp-channel-defects`** — the only two pinned defects
    that are both live at upstream and pinned on no other branch:
    - `CoverageEnvironmentVariables_ShouldCarryFullPaths` — `STRYKER_COVERAGE_FILE` carries
      a bare filename that each injected copy recombines with its own `GetTempPath()`
@@ -170,7 +170,7 @@ Ranked by value, highest first.
    The other six contracts on that branch pin defects in PR #3752 code that does not exist
    upstream; they will not compile against master. Park them with the feature.
 
-6. **`docs/mtp-channel-rfc`** — an *orphan* branch (no merge base), not an abandoned one.
+5. **`docs/mtp-channel-rfc`** — an *orphan* branch (no merge base), not an abandoned one.
    The "337 behind" figure is an artifact of counting across unrelated histories. Seven
    files, all new paths under `docs/`, zero collision with upstream. Nothing but Renovate
    bumps has landed upstream since it was written, so its substance is current. **If you
