@@ -149,7 +149,14 @@ public class InitialisationProcess : IInitialisationProcess
                 throw new InputException("Initial testrun has failing tests.", result.Result.ResultMessage);
             }
 
-            if (throwIfFails && (double)failingTestsCount / result.Result.ExecutedTests.Count >= .5)
+            // A runner that reports "every test ran" without enumerating them - the MTP runner, and
+            // any TestRunResult built from the message-only constructor - leaves ExecutedTests as the
+            // EveryTest sentinel, whose Count is 0. Dividing by that yields Infinity, which clears
+            // every threshold, so a single failing test used to abort the run as "more than 50%
+            // failing". Skip the ratio when the denominator is unknown rather than inventing one.
+            var executedTestsCount = result.Result.ExecutedTests.Count;
+            if (throwIfFails && executedTestsCount > 0 &&
+                (double)failingTestsCount / executedTestsCount >= .5)
             {
                 throw new InputException("Initial testrun has more than 50% failing tests.",
                         result.Result.ResultMessage);

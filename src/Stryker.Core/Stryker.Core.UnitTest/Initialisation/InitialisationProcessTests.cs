@@ -141,6 +141,54 @@ public class InitialisationProcessTests : TestBase
     }
 
     [TestMethod]
+    public async Task InitialisationProcess_ShouldNotThrowWhenExecutedTestsAreNotEnumerated()
+    {
+        // A runner that reports "every test ran" without enumerating them leaves ExecutedTests as
+        // the EveryTest sentinel, whose Count is 0. The failing-ratio check used to divide by that,
+        // and Infinity clears the 50% threshold, so one failing test aborted the whole run.
+        var fileSystemMock = new MockFileSystem();
+        var testRunnerMock = new Mock<ITestRunner>(MockBehavior.Strict);
+        var inputFileResolverMock = new Mock<IInputFileResolver>(MockBehavior.Strict);
+        var initialBuildProcessMock = new Mock<IInitialBuildProcess>(MockBehavior.Strict);
+        var initialTestProcessMock = new Mock<IInitialTestProcess>(MockBehavior.Strict);
+
+        inputFileResolverMock.Setup(x => x.ResolveSourceProjectInfos(It.IsAny<StrykerOptions>())).Returns(
+            new[] { new SourceProjectInfo { AnalyzerResult = TestHelper.SetupProjectAnalyzerResult(references: Array.Empty<string>()).Object, TestProjectsInfo = new TestProjectsInfo(new MockFileSystem()) } });
+        inputFileResolverMock.SetupGet(x => x.FileSystem).Returns(fileSystemMock);
+        initialBuildProcessMock.Setup(x => x.InitialBuild(It.IsAny<bool>(),
+            It.IsAny<string>(), It.IsAny<string>(), It.IsAny<string>(), It.IsAny<string>(),
+            null, It.IsAny<string>()));
+
+        var failedTest = "testid";
+        var testSet = new TestSet();
+        foreach (var id in new[] { failedTest, "othertest", "thirdtest", "fourthtest" })
+        {
+            testSet.RegisterTest(new TestDescription(id, "test", "test.cpp"));
+        }
+        testRunnerMock.Setup(x => x.DiscoverTestsAsync(It.IsAny<string>())).Returns(Task.FromResult(true));
+        testRunnerMock.Setup(x => x.GetTests(It.IsAny<IProjectAndTests>())).Returns(testSet);
+
+        // One failing test out of four, but ExecutedTests is not enumerable.
+        initialTestProcessMock.Setup(x => x.InitialTestAsync(It.IsAny<StrykerOptions>(), It.IsAny<IProjectAndTests>(), It.IsAny<ITestRunner>())).ReturnsAsync(
+            new InitialTestRun(
+                new TestRunResult(Array.Empty<VsTestDescription>(), TestIdentifierList.EveryTest(),
+                    new TestIdentifierList(failedTest), TestIdentifierList.NoTest(), string.Empty,
+                    Enumerable.Empty<string>(), TimeSpan.Zero), new TimeoutValueCalculator(0)));
+
+        var loggerMock = new Mock<ILogger<InitialisationProcess>>();
+        var target = new InitialisationProcess(inputFileResolverMock.Object, initialBuildProcessMock.Object, initialTestProcessMock.Object, loggerMock.Object);
+        var options = new StrykerOptions
+        {
+            ProjectName = "TheProjectName",
+            ProjectVersion = "TheProjectVersion"
+        };
+        var projects = target.GetMutableProjectsInfo(options);
+        target.BuildProjects(options, projects);
+
+        await Should.NotThrowAsync(async () => await target.GetMutationTestInputsAsync(options, projects, testRunnerMock.Object));
+    }
+
+    [TestMethod]
     public async Task InitialisationProcess_ShouldThrowIfHalfTestsAreFailing()
     {
         var fileSystemMock = new MockFileSystem();
