@@ -26,6 +26,7 @@ Five commits on top of `b9e2559`:
 | `test(mtp): cover a second mutated assembly in the MTP solution fixture` | Integration fixture for the above | — |
 | `fix(core): honor target framework during initial build` | `--target-framework` ignored by initial build | Not upstream, **general bug** |
 | `fix(mtp): isolate mutant-id control files per runner instance` | Control-file collision between concurrent runs | Not upstream |
+| `fix(core): don't abort the run when executed tests are not enumerated` | Divide-by-zero aborts the run on one failing test | Not upstream, **general bug**, newly written here |
 
 ### The isolation fix: which commit, and why
 
@@ -108,23 +109,46 @@ fork's stack.
 
 Ranked by value, highest first.
 
-1. **`1b4f582d` — RPC wire-format fix.** `RunTestsRequest` serializes the test selection
-   as `testCases`; MTP reads `tests`. The property is optional server-side, so the
-   selection is **dropped silently and the whole suite runs**. Defeats test filtering and
-   per-test coverage entirely. Verified `[JsonPropertyName("testCases")]` still present
-   upstream. Carry `7cb93394` (skip assemblies with no selected tests) with it — that one
-   is meaningless until selection actually works. *Unverified: that MTP's wire name is
-   `tests`; the platform source is not vendored here.*
+1. **The RPC wire-format bug — now fully verified, and worse than triage suggested.**
+   `RunTestsRequest` serializes the selection as `testCases`. Confirmed against Microsoft's
+   own source (`microsoft/testfx`, `ServerMode/JsonRpc/JsonRpcMethods.cs`):
 
-2. **Two `ExecutedTests.Count == 0` defects in shared, non-MTP code.** `TestIdentifierList`
-   is `Count => _identifiers?.Count ?? 0` and `IsEveryTest => _identifiers is null`, so the
-   EveryTest sentinel reports `Count == 0`. MTP's initial run returns that sentinel.
-   Consequences, both verified present at master:
-   - `InitialisationProcess.cs:151` — `(double)failingTestsCount / ExecutedTests.Count >= .5`
-     is `Infinity >= .5` whenever any test fails, so **any** pre-existing failing test aborts
-     the run with "more than 50% failing tests".
-   - `MutationTestProcess.cs:189` — `testsCount` is the block-packing budget; at 0 every
-     block holds one mutant, silently disabling mutant grouping on MTP.
+   ```csharp
+   public const string Tests = "tests";
+   ```
+
+   No `"testCases"` constant exists anywhere in `ServerMode`, and the server reads the
+   selection with `GetOptionalPropertyFromJson(properties, JsonRpcStrings.Tests)` — optional,
+   so a misnamed selection yields null and **every test runs**, silently.
+
+   This is not latent. `SingleMicrosoftTestPlatformRunner` line 668 builds
+   `testsToRun` and passes it down through `AssemblyTestServer.RunTestsAsync` →
+   `TestingPlatformClient.RunTestsAsync` → `new RunTestsRequest(RunId, TestCases: testNodes)`.
+   A real selection is sent on every run and discarded every time. **That is the true cause
+   of "MTP ignores test filters and runs every test in the assembly for every mutant"**,
+   which ORC's mutation-scoring runbook records as a property of the platform.
+
+   **Deliberately not carried.** The rename lives in `0162354e` (Werkman), bundled with
+   per-test filter changes inside the unlanded #3752 stack — cherry-picking `1b4f582d` alone
+   would not perform the rename, because its own pre-image already says `tests`. And
+   `1b4f582d` is Amaury Levé's (Microsoft) follow-up marked `Fixes #3754`. This is upstream
+   work in flight, not fork work. Carry `7cb93394` only alongside it, never before: an empty
+   selection means nothing until selection works.
+
+2. **`InitialisationProcess` divide-by-zero — FIXED on this branch.** See the commit
+   `fix(core): don't abort the run when executed tests are not enumerated`.
+
+   **The sibling occurrence at `MutationTestProcess.cs:189` is deliberately left alone**, and
+   this is worth stating because it looks like the same bug and is not safe to "fix". There
+   `testsCount` is the block-packing budget; at zero, `nextSet.Count + usedTests.Count > 0`
+   trips immediately and every block holds exactly one mutant. That looks like a lost
+   optimisation — but `TestMultipleMutantsAsync` sets
+   `mutantId = mutants.Count == 1 ? mutants[0].Id : -1`, so a block with more than one mutant
+   runs on MTP with **no mutation active at all** (the isolation fix ships a canary test,
+   `TestMultipleMutantsAsync_RegularBatch_CurrentlyRunsUnmutated`, documenting exactly this).
+   The zero budget is accidentally protecting MTP from silently unmutated runs. Restoring
+   grouping would convert a wasted optimisation into wrong mutation results. Fix the
+   single-id control channel first.
 
 3. **`5ea2a74c` — `--additional-timeout` has no CLI flag.** `AdditionalTimeoutInput` is
    wired into config file reading/writing and has its own unit tests, but
@@ -196,6 +220,10 @@ by egress policy, so **nothing here was built or run locally**. Verification cam
 GitHub Actions runs against this fork plus source reading at `refs/upstream/master`.
 
 Specifically unverified: the mutation-score figures in the isolation commit message
-(100% → 75%, 98.11% → 84.91%); that MTP reads the selection as `tests`; every integration
-baseline number; and all performance claims on the throughput branches — no benchmark
-artifact is committed anywhere in the fork, those numbers live only in commit messages.
+(100% → 75%, 98.11% → 84.91%); every integration baseline number; and all performance
+claims on the throughput branches — no benchmark artifact is committed anywhere in the
+fork, those numbers live only in commit messages.
+
+The one previously-unverifiable claim that *was* settled: MTP's wire name for the run
+selection. Confirmed by reading `microsoft/testfx` directly rather than taking the commit
+message's word for it.
