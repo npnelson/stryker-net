@@ -272,7 +272,25 @@ namespace Stryker
                     string covered = string.Join(",", _coveredMutants);
                     string staticMutants = string.Join(",", _coveredStaticMutants);
                     string content = covered + ";" + staticMutants;
-                    System.IO.File.WriteAllText(_cachedCoverageFilePath, content);
+                    for (int attempt = 0; ; attempt++)
+                    {
+                        try
+                        {
+                            // Each mutated assembly has its own injected copy of MutantControl.
+                            // Append so every copy contributes coverage to the shared host file.
+                            System.IO.File.AppendAllText(_cachedCoverageFilePath, content + System.Environment.NewLine);
+                            break;
+                        }
+                        catch (System.IO.IOException)
+                        {
+                            if (attempt >= 10)
+                            {
+                                throw;
+                            }
+
+                            System.Threading.Thread.Sleep(1);
+                        }
+                    }
                     ResetCoverage();
                 }
             }

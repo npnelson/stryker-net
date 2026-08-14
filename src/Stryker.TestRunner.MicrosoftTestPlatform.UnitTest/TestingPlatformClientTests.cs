@@ -340,6 +340,51 @@ public class TestingPlatformClientTests
         server.LastRunTestCases.ShouldBeNull();
     }
 
+    [TestMethod, Timeout(10000)]
+    public async Task RunTestsAsync_ShouldCancelServerRunAndUnregisterListener()
+    {
+        using var connection = RpcTestConnection.Create();
+
+        var server = new BlockingRunFakeServer();
+        connection.ServerRpc.AddLocalRpcTarget(server);
+        connection.ServerRpc.StartListening();
+
+        using var client = connection.CreateClient();
+        using var bailSource = new CancellationTokenSource();
+        var requestId = Guid.NewGuid();
+        var updateCallbackCount = 0;
+
+        var runTask = client.RunTestsAsync(
+            requestId,
+            _ =>
+            {
+                Interlocked.Increment(ref updateCallbackCount);
+                return Task.CompletedTask;
+            },
+            testNodes: null,
+            cancellationToken: bailSource.Token);
+
+        await server.RunStarted.Task;
+        bailSource.Cancel();
+
+        await Should.ThrowAsync<OperationCanceledException>(() => runTask);
+        server.RunWasCancelled.ShouldBeTrue();
+
+        await connection.ServerRpc.InvokeWithParameterObjectAsync(
+            "testing/testUpdates/tests",
+            new
+            {
+                runId = requestId,
+                changes = new[]
+                {
+                    new TestNodeUpdate(new TestNode("uid-1", "Test1", "action", "cancelled"), "parent")
+                }
+            });
+        await Task.Delay(100);
+
+        updateCallbackCount.ShouldBe(0);
+    }
+
     [TestMethod]
     public async Task TestsUpdate_ShouldCompleteListener_WhenNullChangesReceived()
     {
@@ -609,6 +654,28 @@ public class TestingPlatformClientTests
         {
             LastRunTestsRunId = request.RunId;
             LastRunTestCases = request.TestCases;
+        }
+    }
+
+    private sealed class BlockingRunFakeServer
+    {
+        public TaskCompletionSource RunStarted { get; } = new(TaskCreationOptions.RunContinuationsAsynchronously);
+
+        public bool RunWasCancelled { get; private set; }
+
+        [JsonRpcMethod("testing/runTests", UseSingleObjectParameterDeserialization = true)]
+        public async Task RunTestsAsync(RunTestsRequest _, CancellationToken cancellationToken)
+        {
+            RunStarted.TrySetResult();
+            try
+            {
+                await Task.Delay(Timeout.InfiniteTimeSpan, cancellationToken);
+            }
+            catch (OperationCanceledException)
+            {
+                RunWasCancelled = true;
+                throw;
+            }
         }
     }
 

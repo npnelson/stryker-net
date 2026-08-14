@@ -1,4 +1,5 @@
 using System.Collections.Concurrent;
+using System.Diagnostics;
 using Microsoft.Extensions.Logging;
 using Stryker.Abstractions;
 using Stryker.Abstractions.Options;
@@ -17,6 +18,8 @@ namespace Stryker.TestRunner.MicrosoftTestPlatform;
 /// </summary>
 public sealed class MicrosoftTestPlatformRunnerPool : ITestRunner
 {
+    private const int DefaultCoverageCohortSize = 32;
+    private const int MaximumCoverageCohortSize = 1024;
     private readonly AutoResetEvent _runnerAvailableHandler = new(false);
     private readonly ConcurrentBag<MicrosoftTestingPlatformRunner> _availableRunners = new();
     private readonly ConcurrentBag<MicrosoftTestingPlatformRunner> _allRunners = new();
@@ -29,19 +32,68 @@ public sealed class MicrosoftTestPlatformRunnerPool : ITestRunner
     private readonly object _discoveryLock = new();
     private readonly ISingleRunnerFactory _runnerFactory;
     private readonly IStrykerOptions _options;
+    private readonly MtpPerformanceMetrics _leasePerformanceMetrics = new();
+    private readonly IReadOnlyDictionary<MtpRunnerPhase, MtpPhasePerformanceMetrics> _phasePerformanceMetrics =
+        Enum.GetValues<MtpRunnerPhase>().ToDictionary(phase => phase, _ => new MtpPhasePerformanceMetrics());
+    private readonly Stopwatch _poolLifetime = new();
+    private readonly int _coverageCohortSize;
+    private int _waitingRunnerRequests;
 
     public IEnumerable<MicrosoftTestingPlatformRunner> Runners => _availableRunners;
+    internal int CoverageCohortSize => _coverageCohortSize;
 
     public MicrosoftTestPlatformRunnerPool(IStrykerOptions options, ILogger? logger = null, ISingleRunnerFactory? runnerFactory = null)
+        : this(options, logger, runnerFactory, DefaultCoverageCohortSize)
     {
+    }
+
+    internal MicrosoftTestPlatformRunnerPool(
+        IStrykerOptions options,
+        ILogger? logger,
+        ISingleRunnerFactory? runnerFactory,
+        int coverageCohortSize)
+    {
+        ArgumentOutOfRangeException.ThrowIfLessThan(coverageCohortSize, 1);
+        ArgumentOutOfRangeException.ThrowIfGreaterThan(coverageCohortSize, MaximumCoverageCohortSize);
+
         _logger = logger ?? ApplicationLogging.LoggerFactory.CreateLogger<MicrosoftTestPlatformRunnerPool>();
         _options = options;
         _countOfRunners = Math.Max(1, options.Concurrency);
+        _coverageCohortSize = coverageCohortSize;
         _runnerFactory = runnerFactory ?? new DefaultRunnerFactory();
         _logger.LogWarning("The Microsoft Test Platform testrunner is currently in preview. Results should be verified since this feature is still being tested.");
+        if (_coverageCohortSize > 1)
+        {
+            _logger.LogWarning(
+                "Experimental MTP coverage cohorts are enabled with up to {CoverageCohortSize} tests per request; coverage is conservatively shared by every test in a cohort",
+                _coverageCohortSize);
+        }
 
         Initialize();
+        _poolLifetime.Start();
     }
+
+    internal MtpPerformanceSnapshot PerformanceSnapshot
+    {
+        get
+        {
+            var snapshot = _leasePerformanceMetrics.Snapshot();
+            foreach (var runner in _allRunners)
+            {
+                snapshot = snapshot.Add(runner.PerformanceSnapshot);
+            }
+
+            return snapshot;
+        }
+    }
+
+    internal IReadOnlyDictionary<MtpRunnerPhase, MtpPhasePerformanceSnapshot> PhasePerformanceSnapshots =>
+        _phasePerformanceMetrics
+            .Select(pair => new KeyValuePair<MtpRunnerPhase, MtpPhasePerformanceSnapshot>(
+                pair.Key,
+                pair.Value.Snapshot()))
+            .Where(pair => pair.Value.LeaseCount > 0)
+            .ToDictionary();
 
     public void ResetTestProcesses()
     {
@@ -77,7 +129,9 @@ public sealed class MicrosoftTestPlatformRunnerPool : ITestRunner
             return false;
         }
 
-        return await RunThisAsync(runner => runner.DiscoverTestsAsync(assembly)).ConfigureAwait(false);
+        return await RunThisAsync(
+            MtpRunnerPhase.Discovery,
+            runner => runner.DiscoverTestsAsync(assembly)).ConfigureAwait(false);
     }
 
     public ITestSet GetTests(IProjectAndTests project) => _testSet;
@@ -90,7 +144,9 @@ public sealed class MicrosoftTestPlatformRunnerPool : ITestRunner
             return new TestRunResult(false, "No test assemblies found");
         }
 
-        var results = await RunThisAsync(runner => runner.InitialTestAsync(project)).ConfigureAwait(false);
+        var results = await RunThisAsync(
+            MtpRunnerPhase.InitialTest,
+            runner => runner.InitialTestAsync(project)).ConfigureAwait(false);
 
         // reset all test processes after the initial test run
         ResetTestProcesses();
@@ -129,7 +185,10 @@ public sealed class MicrosoftTestPlatformRunnerPool : ITestRunner
         try
         {
             // Run all tests with coverage tracking enabled
-            var testResult = RunThisAsync(runner => runner.InitialTestAsync(project)).GetAwaiter().GetResult();
+            var testResult = RunThisAsync(
+                    MtpRunnerPhase.AggregateCoverage,
+                    runner => runner.InitialTestAsync(project))
+                .GetAwaiter().GetResult();
 
             if (testResult.FailingTests.IsEveryTest)
             {
@@ -198,35 +257,70 @@ public sealed class MicrosoftTestPlatformRunnerPool : ITestRunner
 
         try
         {
-            var allTests = new List<(string Assembly, TestNode Test, string TestId)>();
+            var coverageCohorts = new List<(string Assembly, TestNode[] Tests, string[] TestIds)>();
             lock (_discoveryLock)
             {
                 foreach (var (assembly, tests) in _testsByAssembly)
                 {
+                    var mappedTests = new List<(TestNode Test, string TestId)>();
                     foreach (var test in tests)
                     {
                         if (_testDescriptions.TryGetValue(test.Uid, out var description))
                         {
-                            allTests.Add((assembly, test, description.Id));
+                            mappedTests.Add((test, description.Id));
                         }
+                    }
+
+                    foreach (var cohort in mappedTests.Chunk(_coverageCohortSize))
+                    {
+                        coverageCohorts.Add((
+                            assembly,
+                            cohort.Select(test => test.Test).ToArray(),
+                            cohort.Select(test => test.TestId).ToArray()));
                     }
                 }
             }
 
-            _logger.LogInformation("Capturing per-test coverage for {TestCount} tests across {AssemblyCount} assemblies",
-                allTests.Count, _testsByAssembly.Count);
+            _logger.LogInformation(
+                "Capturing coverage for {TestCount} tests in {CohortCount} cohorts across {AssemblyCount} assemblies",
+                coverageCohorts.Sum(cohort => cohort.Tests.Length),
+                coverageCohorts.Count,
+                _testsByAssembly.Count);
 
             var results = new ConcurrentBag<ICoverageRunResult>();
 
-            Parallel.ForEach(allTests, new ParallelOptions { MaxDegreeOfParallelism = _countOfRunners }, testInfo =>
+            Parallel.ForEach(coverageCohorts, new ParallelOptions { MaxDegreeOfParallelism = _countOfRunners }, cohort =>
             {
-                var result = RunThisAsync(runner =>
-                        runner.RunSingleTestForCoverageInReusedProcessAsync(testInfo.Assembly, testInfo.Test, testInfo.TestId))
+                if (_coverageCohortSize == 1)
+                {
+                    var result = RunThisAsync(
+                            MtpRunnerPhase.PerTestCoverage,
+                            runner => runner.RunSingleTestForCoverageInReusedProcessAsync(
+                                cohort.Assembly,
+                                cohort.Tests[0],
+                                cohort.TestIds[0]))
+                        .GetAwaiter().GetResult();
+                    results.Add(result);
+                    return;
+                }
+
+                var cohortResults = RunThisAsync(
+                        MtpRunnerPhase.PerTestCoverage,
+                        runner => runner.RunTestCohortForCoverageInReusedProcessAsync(
+                            cohort.Assembly,
+                            cohort.Tests,
+                            cohort.TestIds))
                     .GetAwaiter().GetResult();
-                results.Add(result);
+                foreach (var result in cohortResults)
+                {
+                    results.Add(result);
+                }
             });
 
-            _logger.LogInformation("Per-test coverage capture complete: {TestCount} tests captured", results.Count);
+            _logger.LogInformation(
+                "Coverage cohort capture complete: {TestCount} tests captured in {CohortCount} requests",
+                results.Count,
+                coverageCohorts.Count);
 
             return results;
         }
@@ -279,7 +373,7 @@ public sealed class MicrosoftTestPlatformRunnerPool : ITestRunner
 
             Parallel.ForEach(allTests, new ParallelOptions { MaxDegreeOfParallelism = _countOfRunners }, testInfo =>
             {
-                var result = RunThisAsync(runner =>
+                var result = RunThisAsync(MtpRunnerPhase.IsolatedCoverage, runner =>
                         runner.RunSingleTestForCoverageInIsolatedProcessAsync(testInfo.Assembly, testInfo.Test, testInfo.TestId))
                     .GetAwaiter().GetResult();
                 results.Add(result);
@@ -310,12 +404,18 @@ public sealed class MicrosoftTestPlatformRunnerPool : ITestRunner
             return new TestRunResult(false, "No test assemblies found");
         }
 
-        return await RunThisAsync(runner => runner.TestMultipleMutantsAsync(project, timeoutCalc, mutants, update)).ConfigureAwait(false);
+        return await RunThisAsync(
+            MtpRunnerPhase.Mutation,
+            runner => runner.TestMultipleMutantsAsync(project, timeoutCalc, mutants, update)).ConfigureAwait(false);
     }
 
-    private async Task<T> RunThisAsync<T>(Func<MicrosoftTestingPlatformRunner, Task<T>> task)
+    private async Task<T> RunThisAsync<T>(
+        MtpRunnerPhase phase,
+        Func<MicrosoftTestingPlatformRunner, Task<T>> task)
     {
         MicrosoftTestingPlatformRunner? runner;
+        var leaseRequestStarted = Stopwatch.GetTimestamp();
+        var contended = false;
 
         // Try to get a runner with a timeout to prevent indefinite blocking
         var attempts = 0;
@@ -323,30 +423,59 @@ public sealed class MicrosoftTestPlatformRunnerPool : ITestRunner
         const int waitIntervalMs = 1000; // Check every second
         var maxAttempts = maxWaitTimeSeconds * 1000 / waitIntervalMs;
 
-        while (!_availableRunners.TryTake(out runner))
+        if (!_availableRunners.TryTake(out runner))
         {
-            if (!_runnerAvailableHandler.WaitOne(waitIntervalMs))
-            {
-                attempts++;
-                if (attempts >= maxAttempts)
-                {
-                    throw new TimeoutException($"Timed out waiting for an available test runner after {maxWaitTimeSeconds} seconds. Available runners: {_availableRunners.Count}, Total runners: {_countOfRunners}");
-                }
+            contended = true;
+            var queueDepth = Interlocked.Increment(ref _waitingRunnerRequests);
+            _leasePerformanceMetrics.ObserveQueueDepth(queueDepth);
+            _phasePerformanceMetrics[phase].ObserveQueueDepth(queueDepth);
 
-                if (attempts % 30 == 0) // Log every 30 seconds
+            try
+            {
+                while (!_availableRunners.TryTake(out runner))
                 {
-                    _logger.LogWarning("Waiting for available test runner... ({Attempts}s elapsed, {Available}/{Total} runners available)",
-                        attempts, _availableRunners.Count, _countOfRunners);
+                    if (!_runnerAvailableHandler.WaitOne(waitIntervalMs))
+                    {
+                        attempts++;
+                        if (attempts >= maxAttempts)
+                        {
+                            throw new TimeoutException($"Timed out waiting for an available test runner after {maxWaitTimeSeconds} seconds. Available runners: {_availableRunners.Count}, Total runners: {_countOfRunners}");
+                        }
+
+                        if (attempts % 30 == 0)
+                        {
+                            _logger.LogWarning(
+                                "Waiting for available test runner... ({Attempts}s elapsed, {Available}/{Total} runners available)",
+                                attempts,
+                                _availableRunners.Count,
+                                _countOfRunners);
+                        }
+                    }
                 }
+            }
+            finally
+            {
+                Interlocked.Decrement(ref _waitingRunnerRequests);
             }
         }
 
+        var queueWait = contended ? Stopwatch.GetElapsedTime(leaseRequestStarted) : TimeSpan.Zero;
+        var runnerBusyStarted = Stopwatch.GetTimestamp();
         try
         {
             return await task(runner).ConfigureAwait(false);
         }
         finally
         {
+            var leaseCompleted = Stopwatch.GetTimestamp();
+            var runnerBusy = Stopwatch.GetElapsedTime(runnerBusyStarted, leaseCompleted);
+            _leasePerformanceMetrics.RecordLease(queueWait, runnerBusy, contended);
+            _phasePerformanceMetrics[phase].RecordLease(
+                leaseRequestStarted,
+                leaseCompleted,
+                queueWait,
+                runnerBusy,
+                contended);
             _availableRunners.Add(runner);
             _runnerAvailableHandler.Set();
         }
@@ -360,11 +489,63 @@ public sealed class MicrosoftTestPlatformRunnerPool : ITestRunner
         }
 
         _disposed = true;
+        _poolLifetime.Stop();
 
         foreach (var runner in _allRunners)
         {
             runner.Dispose();
         }
+
+        var snapshot = PerformanceSnapshot;
+        var summary = MtpPerformanceSummary.Create(snapshot, _countOfRunners, _poolLifetime.Elapsed);
+        _logger.LogInformation(
+            "MTP performance summary: {RunnerCount} runners over {ElapsedMs} ms; {LeaseCount} leases ({ContendedLeaseCount} contended, max queue depth {MaxQueueDepth}, total queue wait {TotalQueueWaitMs} ms, max queue wait {MaxQueueWaitMs} ms); leased runner busy {RunnerBusyMs} ms, idle {RunnerIdleMs} ms, capacity {RunnerCapacityMs} ms, utilization {RunnerUtilizationPercent}%; {HostStartCount} host starts ({HostStartFailureCount} failed, total {HostStartMs} ms, max {MaxHostStartMs} ms); {TestRunCount} test runs ({CompletedTestRunCount} completed, {FailedTestRunCount} failed, {RpcDispatchTimeoutCount} RPC timeouts, {RunCompletionTimeoutCount} completion timeouts); RPC dispatch {RpcDispatchMs} ms total/{MaxRpcDispatchMs} ms max; run completion {RunCompletionMs} ms total/{MaxRunCompletionMs} ms max",
+            _countOfRunners,
+            _poolLifetime.Elapsed.TotalMilliseconds,
+            snapshot.LeaseCount,
+            snapshot.ContendedLeaseCount,
+            snapshot.MaxQueueDepth,
+            snapshot.TotalQueueWait.TotalMilliseconds,
+            snapshot.MaxQueueWait.TotalMilliseconds,
+            snapshot.TotalRunnerBusy.TotalMilliseconds,
+            summary.RunnerIdle.TotalMilliseconds,
+            summary.RunnerCapacity.TotalMilliseconds,
+            summary.RunnerUtilizationPercent,
+            snapshot.HostStartCount,
+            snapshot.HostStartFailureCount,
+            snapshot.TotalHostStart.TotalMilliseconds,
+            snapshot.MaxHostStart.TotalMilliseconds,
+            snapshot.TestRunCount,
+            snapshot.CompletedTestRunCount,
+            snapshot.FailedTestRunCount,
+            snapshot.RpcDispatchTimeoutCount,
+            snapshot.RunCompletionTimeoutCount,
+            snapshot.TotalRpcDispatch.TotalMilliseconds,
+            snapshot.MaxRpcDispatch.TotalMilliseconds,
+            snapshot.TotalRunCompletion.TotalMilliseconds,
+            snapshot.MaxRunCompletion.TotalMilliseconds);
+
+        foreach (var (phase, phaseSnapshot) in PhasePerformanceSnapshots.OrderBy(pair => pair.Key))
+        {
+            var phaseSummary = MtpPerformanceSummary.Create(
+                phaseSnapshot.TotalRunnerBusy,
+                _countOfRunners,
+                phaseSnapshot.Elapsed);
+            _logger.LogInformation(
+                "MTP phase performance: {Phase}; {LeaseCount} leases over {ElapsedMs} ms ({ContendedLeaseCount} contended, max queue depth {MaxQueueDepth}, total queue wait {TotalQueueWaitMs} ms, max queue wait {MaxQueueWaitMs} ms); leased runner busy {RunnerBusyMs} ms, idle {RunnerIdleMs} ms, capacity {RunnerCapacityMs} ms, utilization {RunnerUtilizationPercent}%",
+                phase,
+                phaseSnapshot.LeaseCount,
+                phaseSnapshot.Elapsed.TotalMilliseconds,
+                phaseSnapshot.ContendedLeaseCount,
+                phaseSnapshot.MaxQueueDepth,
+                phaseSnapshot.TotalQueueWait.TotalMilliseconds,
+                phaseSnapshot.MaxQueueWait.TotalMilliseconds,
+                phaseSnapshot.TotalRunnerBusy.TotalMilliseconds,
+                phaseSummary.RunnerIdle.TotalMilliseconds,
+                phaseSummary.RunnerCapacity.TotalMilliseconds,
+                phaseSummary.RunnerUtilizationPercent);
+        }
+
         _runnerAvailableHandler.Dispose();
     }
 }

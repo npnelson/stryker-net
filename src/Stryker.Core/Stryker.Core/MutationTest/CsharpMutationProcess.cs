@@ -60,6 +60,12 @@ public class CsharpMutationProcess : IMutationProcess
         _logger.LogDebug("{MutantsCount} mutants created", projectInfo.Mutants.Count());
 
         CompileMutations(input, compilingProcess);
+
+        if (ReadyToRunPrecompiler.IsEnabled)
+        {
+            new ReadyToRunPrecompiler(_fileSystem)
+                .Precompile(input.SourceProjectInfo.TestProjectsInfo.AnalyzerResults);
+        }
     }
 
     private void CompileMutations(MutationTestInput input, CsharpCompilingProcess compilingProcess)

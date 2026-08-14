@@ -19,6 +19,8 @@ namespace Stryker.TestRunner.MicrosoftTestPlatform;
 /// environment variables. Used by MicrosoftTestPlatformRunnerPool.
 /// Maintains persistent test server connections per assembly to reduce process startup overhead.
 /// Uses file-based mutant control to allow changing the active mutant without restarting processes.
+/// Static mutants and multi-mutant batches use dedicated sessions because the control channel can
+/// activate only one mutant id and static state cannot be safely reused across mutant sessions.
 /// </summary>
 public class MicrosoftTestingPlatformRunner : IDisposable
 {
@@ -41,12 +43,19 @@ public class MicrosoftTestingPlatformRunner : IDisposable
     private readonly ILogger _logger;
     private readonly string _mutantFilePath;
     private readonly string _coverageFilePathBase;
+    private readonly string _perTestEpochFilePathBase;
     private readonly IStrykerOptions? _options;
+    private readonly MtpPerformanceMetrics _performanceMetrics = new();
     private readonly object _serverLock = new();
     private readonly HashSet<string> _initializedPerTestFiles = new();
     private readonly Dictionary<string, int> _perTestEpochCounters = new();
+    private int _activeMutantId = -1;
 
     private string RunnerId => $"MtpRunner-{_id}";
+
+    internal string MutantFilePath => _mutantFilePath;
+
+    internal MtpPerformanceSnapshot PerformanceSnapshot => _performanceMetrics.Snapshot();
 
     public MicrosoftTestingPlatformRunner(
         int id,
@@ -65,16 +74,13 @@ public class MicrosoftTestingPlatformRunner : IDisposable
         _logger = logger;
         _options = options;
 
-        // Create unique file paths for this runner to communicate with the test process.
-        // The coverage base name embeds the process id plus a per-instance nonce: coverage files
-        // are only deleted once their path has been assigned, so a predictable name could let a
-        // run read a stale file left behind by a crashed earlier run (same runner id, same
-        // assembly), and concurrent Stryker processes could clobber each other's files. The nonce
-        // covers what the process id alone does not (pid reuse, several runner instances with the
-        // same id in one process).
-        _mutantFilePath = Path.Combine(Path.GetTempPath(), $"stryker-mutant-{_id}.txt");
-        _coverageFilePathBase = Path.Combine(Path.GetTempPath(),
-            $"stryker-coverage-{Environment.ProcessId}-{_id}-{Guid.NewGuid().ToString("N")[..8]}");
+        // Runner ids are pool-local, so independently constructed pools can assign the same id.
+        // A process id and nonce keep their control and coverage files isolated from one another
+        // and from files left by an earlier crashed process.
+        var instanceQualifier = $"{Environment.ProcessId}-{_id}-{Guid.NewGuid().ToString("N")[..8]}";
+        _mutantFilePath = Path.Combine(Path.GetTempPath(), $"stryker-mutant-{instanceQualifier}.txt");
+        _coverageFilePathBase = Path.Combine(Path.GetTempPath(), $"stryker-coverage-{instanceQualifier}");
+        _perTestEpochFilePathBase = Path.Combine(Path.GetTempPath(), $"stryker-epoch-{instanceQualifier}");
 
         // Initialize with no active mutation
         WriteMutantIdToFile(-1);
@@ -99,6 +105,11 @@ public class MicrosoftTestingPlatformRunner : IDisposable
     {
         var assemblies = project.GetTestAssemblies();
 
+        if (RequiresIndividualSessions(mutants))
+        {
+            return TestMutantsIndividuallyAsync(assemblies, mutants, update, timeoutCalc);
+        }
+
         // Determine which mutant to activate
         // When testing a single mutant, activate it; otherwise use -1 (no mutation)
         var mutantId = mutants.Count == 1 ? mutants[0].Id : -1;
@@ -109,7 +120,96 @@ public class MicrosoftTestingPlatformRunner : IDisposable
         return RunAllTestsAsync(assemblies, mutantId, mutants, update, timeoutCalc);
     }
 
-    public async Task ResetServerAsync()
+    private static bool RequiresIndividualSessions(IReadOnlyList<IMutant> mutants) =>
+        mutants.Count > 1 || mutants.Any(m => m.IsStaticValue || m.MustBeTestedInIsolation);
+
+    private async Task<ITestRunResult> TestMutantsIndividuallyAsync(
+        IReadOnlyList<string> assemblies,
+        IReadOnlyList<IMutant> mutants,
+        TestUpdateHandler? update,
+        ITimeoutValueCalculator? timeoutCalc)
+    {
+        var results = new List<ITestRunResult>(mutants.Count);
+        foreach (var mutant in mutants)
+        {
+            _logger.LogDebug(
+                "{RunnerId}: Testing mutant {MutantId} in an isolated test-server session",
+                RunnerId,
+                mutant.Id);
+
+            await ResetServerAsync().ConfigureAwait(false);
+            try
+            {
+                results.Add(await RunAllTestsAsync(
+                    assemblies, mutant.Id, [mutant], update, timeoutCalc).ConfigureAwait(false));
+            }
+            finally
+            {
+                WriteMutantIdToFile(-1);
+                await ResetServerAsync().ConfigureAwait(false);
+            }
+        }
+
+        return results.Count == 1 ? results[0] : MergeResults(results);
+    }
+
+    private ITestRunResult MergeResults(IReadOnlyList<ITestRunResult> results)
+    {
+        var resultMessage = string.Join(
+            Environment.NewLine,
+            results.Select(result => result.ResultMessage).Where(message => !string.IsNullOrWhiteSpace(message)));
+        var messages = results.SelectMany(result => result.Messages ?? []).ToList();
+        var duration = TimeSpan.FromTicks(results.Sum(result => result.Duration.Ticks));
+
+        IEnumerable<MtpTestDescription> testDescriptions;
+        lock (_discoveryLock)
+        {
+            testDescriptions = _testDescriptions.Values.ToList();
+        }
+
+        if (results.Any(result => result.SessionHadRuntimeIssue))
+        {
+            return TestRunResult.RuntimeError(
+                testDescriptions,
+                TestIdentifierList.NoTest(),
+                TestIdentifierList.NoTest(),
+                TestIdentifierList.NoTest(),
+                resultMessage,
+                messages,
+                duration);
+        }
+
+        if (results.Any(result => result.SessionTimedOut))
+        {
+            return TestRunResult.TimedOut(
+                testDescriptions,
+                TestIdentifierList.NoTest(),
+                TestIdentifierList.NoTest(),
+                TestIdentifierList.NoTest(),
+                resultMessage,
+                messages,
+                duration);
+        }
+
+        var executedTests = results.Any(result => result.ExecutedTests.IsEveryTest)
+            ? TestIdentifierList.EveryTest()
+            : new TestIdentifierList(results.SelectMany(result => result.ExecutedTests.GetIdentifiers()).Distinct());
+        var failingTests = new TestIdentifierList(
+            results.SelectMany(result => result.FailingTests.GetIdentifiers()).Distinct());
+        var timedOutTests = new TestIdentifierList(
+            results.SelectMany(result => result.TimedOutTests.GetIdentifiers()).Distinct());
+
+        return new TestRunResult(
+            testDescriptions,
+            executedTests,
+            failingTests,
+            timedOutTests,
+            resultMessage,
+            messages,
+            duration);
+    }
+
+    public virtual async Task ResetServerAsync()
     {
         _logger.LogDebug("{RunnerId}: Resetting test servers to reload assemblies", RunnerId);
         
@@ -128,6 +228,8 @@ public class MicrosoftTestingPlatformRunner : IDisposable
 
     private void WriteMutantIdToFile(int mutantId)
     {
+        _activeMutantId = mutantId;
+
         try
         {
             // Publish the active mutant id as a fixed 4-byte int through a file-backed memory-mapped view.
@@ -256,10 +358,10 @@ public class MicrosoftTestingPlatformRunner : IDisposable
         $"{Path.GetFileNameWithoutExtension(assembly)}-{(uint)assembly.GetHashCode()}";
 
     private string GetPerTestCoverageFilePath(string assembly) =>
-        Path.Combine(Path.GetTempPath(), $"stryker-coverage-pt-{_id}-{SanitizeAssemblyName(assembly)}.txt");
+        $"{_coverageFilePathBase}-pt-{SanitizeAssemblyName(assembly)}.txt";
 
     private string GetPerTestEpochFilePath(string assembly) =>
-        Path.Combine(Path.GetTempPath(), $"stryker-epoch-{_id}-{SanitizeAssemblyName(assembly)}.txt");
+        $"{_perTestEpochFilePathBase}-{SanitizeAssemblyName(assembly)}.txt";
 
     /// <summary>
     /// Reads coverage data from the per-assembly coverage files written by the test processes,
@@ -306,11 +408,16 @@ public class MicrosoftTestingPlatformRunner : IDisposable
                 return (Array.Empty<int>(), Array.Empty<int>());
             }
 
-            var parts = content.Split(';');
-            var coveredMutants = ParseMutantIds(parts.Length > 0 ? parts[0] : string.Empty);
-            var staticMutants = ParseMutantIds(parts.Length > 1 ? parts[1] : string.Empty);
+            var coveredMutants = new HashSet<int>();
+            var staticMutants = new HashSet<int>();
+            foreach (var line in content.Split('\n'))
+            {
+                var parts = line.Split(';');
+                coveredMutants.UnionWith(ParseMutantIds(parts.Length > 0 ? parts[0] : string.Empty));
+                staticMutants.UnionWith(ParseMutantIds(parts.Length > 1 ? parts[1] : string.Empty));
+            }
 
-            return (coveredMutants, staticMutants);
+            return (coveredMutants.ToList(), staticMutants.ToList());
         }
         catch (Exception ex)
         {
@@ -329,8 +436,7 @@ public class MicrosoftTestingPlatformRunner : IDisposable
         return idString
             .Split(',', StringSplitOptions.RemoveEmptyEntries)
             .Select(s => int.TryParse(s.Trim(), out var id) ? id : (int?)null)
-            .Where(id => id.HasValue)
-            .Select(id => id.Value)
+            .OfType<int>()
             .ToList();
     }
 
@@ -447,6 +553,36 @@ public class MicrosoftTestingPlatformRunner : IDisposable
     internal virtual async Task<ICoverageRunResult> RunSingleTestForCoverageInReusedProcessAsync(
         string assembly, TestNode test, string testId)
     {
+        var results = await RunTestCohortForCoverageInReusedProcessAsync(
+            assembly,
+            [test],
+            [testId]).ConfigureAwait(false);
+        return results[0];
+    }
+
+    /// <summary>
+    /// Captures the union of a bounded test cohort in one request and conservatively attributes
+    /// that union to every cohort member.
+    /// </summary>
+    internal virtual async Task<IReadOnlyList<ICoverageRunResult>> RunTestCohortForCoverageInReusedProcessAsync(
+        string assembly,
+        IReadOnlyList<TestNode> tests,
+        IReadOnlyList<string> testIds)
+    {
+        ArgumentNullException.ThrowIfNull(tests);
+        ArgumentNullException.ThrowIfNull(testIds);
+        if (tests.Count == 0)
+        {
+            throw new ArgumentException("A coverage cohort must contain at least one test.", nameof(tests));
+        }
+
+        if (tests.Count != testIds.Count)
+        {
+            throw new ArgumentException(
+                "Coverage cohort tests and identifiers must have the same count.",
+                nameof(testIds));
+        }
+
         var coverageFilePath = GetPerTestCoverageFilePath(assembly);
         var epochFilePath = GetPerTestEpochFilePath(assembly);
 
@@ -472,15 +608,19 @@ public class MicrosoftTestingPlatformRunner : IDisposable
             try
             {
                 var server = await GetOrCreateServerAsync(assembly).ConfigureAwait(false);
-                var (_, timedOut) = await server.RunTestsAsync(new[] { test }, CalculateSingleTestTimeout(test)).ConfigureAwait(false);
-                if (timedOut)
+                var timeout = CalculateCoverageTimeout(tests);
+                var (_, timeoutStage) = await server.RunTestsAsync(tests.ToArray(), timeout).ConfigureAwait(false);
+                if (timeoutStage is not null)
                 {
                     _logger.LogWarning(
-                        "{RunnerId}: Test run timed out while capturing per-test coverage for {TestId}; marking as Dubious",
-                        RunnerId, testId);
+                        "{RunnerId}: MTP test run timed out during {TimeoutStage} while capturing coverage for a cohort of {TestCount} tests after a {TimeoutMs} ms budget; discarding the test server and marking coverage as Dubious",
+                        RunnerId, timeoutStage, testIds.Count, timeout.TotalMilliseconds);
                     await DiscardServerAsync(assembly).ConfigureAwait(false);
-                    return CoverageRunResult.Create(testId, CoverageConfidence.Dubious,
-                        Array.Empty<int>(), Array.Empty<int>(), Array.Empty<int>());
+                    return CreateCoverageResults(
+                        testIds,
+                        CoverageConfidence.Dubious,
+                        Array.Empty<int>(),
+                        Array.Empty<int>());
                 }
 
                 int epoch;
@@ -491,27 +631,31 @@ public class MicrosoftTestingPlatformRunner : IDisposable
                     _perTestEpochCounters[assembly] = epoch;
                 }
 
+                DeleteFileIfExists(coverageFilePath);
                 WriteEpochRequest(epochFilePath, epoch);
 
                 var acked = await WaitForEpochAckAsync(epochFilePath, epoch, TimeSpan.FromSeconds(10)).ConfigureAwait(false);
                 if (!acked)
                 {
                     _logger.LogWarning(
-                        "{RunnerId}: Timed out waiting for coverage relay ack for test {TestId}; marking as Dubious",
-                        RunnerId, testId);
-                    return CoverageRunResult.Create(testId, CoverageConfidence.Dubious,
-                        Array.Empty<int>(), Array.Empty<int>(), Array.Empty<int>());
+                        "{RunnerId}: Timed out waiting for coverage relay ack for a cohort of {TestCount} tests; marking coverage as Dubious",
+                        RunnerId, testIds.Count);
+                    return CreateCoverageResults(
+                        testIds,
+                        CoverageConfidence.Dubious,
+                        Array.Empty<int>(),
+                        Array.Empty<int>());
                 }
 
                 var (covered, staticMutants) = ReadCoverageDataFrom(coverageFilePath);
-                return CoverageRunResult.Create(testId, CoverageConfidence.Normal, covered, staticMutants, Array.Empty<int>());
+                return CreateCoverageResults(testIds, CoverageConfidence.Normal, covered, staticMutants);
             }
             catch (Exception ex)
             {
                 lastRunException = ex;
                 _logger.LogDebug(ex,
-                    "{RunnerId}: Per-test coverage capture for {TestId} failed on attempt {Attempt}/{MaxAttempts}; discarding crashed server",
-                    RunnerId, testId, attempt, maxRunAttempts);
+                    "{RunnerId}: Coverage capture for a cohort of {TestCount} tests failed on attempt {Attempt}/{MaxAttempts}; discarding crashed server",
+                    RunnerId, testIds.Count, attempt, maxRunAttempts);
 
                 // The server most likely crashed; drop it so the next attempt (or the next test on this
                 // runner) starts a fresh one instead of reusing a dead RPC connection.
@@ -520,11 +664,28 @@ public class MicrosoftTestingPlatformRunner : IDisposable
         }
 
         _logger.LogWarning(lastRunException,
-            "{RunnerId}: Failed to capture per-test coverage for {TestId} after {MaxAttempts} attempts",
-            RunnerId, testId, maxRunAttempts);
-        return CoverageRunResult.Create(testId, CoverageConfidence.Dubious,
-            Array.Empty<int>(), Array.Empty<int>(), Array.Empty<int>());
+            "{RunnerId}: Failed to capture coverage for a cohort of {TestCount} tests after {MaxAttempts} attempts",
+            RunnerId, testIds.Count, maxRunAttempts);
+        return CreateCoverageResults(
+            testIds,
+            CoverageConfidence.Dubious,
+            Array.Empty<int>(),
+            Array.Empty<int>());
     }
+
+    private static IReadOnlyList<ICoverageRunResult> CreateCoverageResults(
+        IReadOnlyList<string> testIds,
+        CoverageConfidence confidence,
+        IReadOnlyList<int> covered,
+        IReadOnlyList<int> staticMutants) =>
+        testIds
+            .Select(testId => (ICoverageRunResult)CoverageRunResult.Create(
+                testId,
+                confidence,
+                covered,
+                staticMutants,
+                Array.Empty<int>()))
+            .ToArray();
 
     /// <summary>
     /// Captures coverage for a single test with full process isolation: the test host is discarded and
@@ -546,16 +707,19 @@ public class MicrosoftTestingPlatformRunner : IDisposable
         try
         {
             // Discard any server left over from a previous isolated test (or another mode) so this
-            // test starts in a fresh process rather than one that already ran other code.
+            // test starts in a fresh process rather than one that already ran other code. The
+            // coverage flush appends, so clear any previous test's data before starting this one.
             await DiscardServerAsync(assembly).ConfigureAwait(false);
+            DeleteFileIfExists(coverageFilePath);
 
             var server = await GetOrCreateServerAsync(assembly).ConfigureAwait(false);
-            var (_, timedOut) = await server.RunTestsAsync(new[] { test }, CalculateSingleTestTimeout(test)).ConfigureAwait(false);
-            if (timedOut)
+            var timeout = CalculateSingleTestTimeout(test);
+            var (_, timeoutStage) = await server.RunTestsAsync(new[] { test }, timeout).ConfigureAwait(false);
+            if (timeoutStage is not null)
             {
                 _logger.LogWarning(
-                    "{RunnerId}: Test run timed out while capturing isolated coverage for {TestId}; marking as Dubious",
-                    RunnerId, testId);
+                    "{RunnerId}: MTP test run timed out during {TimeoutStage} while capturing isolated coverage for {TestId} after a {TimeoutMs} ms budget; discarding the test server and marking coverage as Dubious",
+                    RunnerId, timeoutStage, testId, timeout.TotalMilliseconds);
                 await DiscardServerAsync(assembly).ConfigureAwait(false);
                 return CoverageRunResult.Create(testId, CoverageConfidence.Dubious,
                     Array.Empty<int>(), Array.Empty<int>(), Array.Empty<int>());
@@ -607,7 +771,13 @@ public class MicrosoftTestingPlatformRunner : IDisposable
         }
 
         var environmentVariables = BuildEnvironmentVariables(assembly);
-        var server = new AssemblyTestServer(assembly, environmentVariables, _logger, RunnerId, _options);
+        var server = new AssemblyTestServer(
+            assembly,
+            environmentVariables,
+            _logger,
+            RunnerId,
+            _options,
+            performanceMetrics: _performanceMetrics);
 
         var started = await server.StartAsync().ConfigureAwait(false);
         if (!started)
@@ -710,10 +880,16 @@ public class MicrosoftTestingPlatformRunner : IDisposable
 
     internal TimeSpan CalculateSingleTestTimeout(TestNode test)
     {
+        return CalculateCoverageTimeout([test]);
+    }
+
+    internal TimeSpan CalculateCoverageTimeout(IReadOnlyList<TestNode> tests)
+    {
         var additionalTimeout = TimeSpan.FromMilliseconds(_options?.AdditionalTimeout ?? 0);
-        var estimatedRunTime = _testDescriptions.TryGetValue(test.Uid, out var description)
-            ? description.InitialRunTime
-            : TimeSpan.Zero;
+        var estimatedRunTime = TimeSpan.FromTicks(tests.Sum(test =>
+            _testDescriptions.TryGetValue(test.Uid, out var description)
+                ? description.InitialRunTime.Ticks
+                : 0));
 
         var calculated = (estimatedRunTime * SingleTestCoverageTimeoutRatio) + additionalTimeout;
         return calculated > _minimumSingleTestCoverageTimeout ? calculated : _minimumSingleTestCoverageTimeout;
@@ -761,6 +937,7 @@ public class MicrosoftTestingPlatformRunner : IDisposable
         public List<string> TimedOutTests { get; } = [];
         public bool HasTimeout { get; set; }
         public bool HasError { get; private set; }
+        public bool HasFailingTests => _failedTests.Count > 0;
         public TimeSpan TotalDuration { get; private set; }
 
         public void Aggregate(TestRunResult result, List<TestNode>? discoveredTests)
@@ -861,10 +1038,16 @@ public class MicrosoftTestingPlatformRunner : IDisposable
 
             var testUidFilter = BuildTestUidFilter(mutants);
             var accumulator = new TestRunAccumulator();
+            var bailOnFirstFailure = mutants is not null
+                && _options?.OptimizationMode.HasFlag(OptimizationModes.DisableBail) != true;
 
             foreach (var assembly in assemblies)
             {
-                var (result, timedOut, discoveredTests) = await RunAssemblyTestsAsync(assembly, timeoutCalc, testUidFilter).ConfigureAwait(false);
+                var (result, timedOut, discoveredTests) = await RunAssemblyTestsAsync(
+                    assembly,
+                    timeoutCalc,
+                    testUidFilter,
+                    bailOnFirstFailure).ConfigureAwait(false);
 
                 if (discoveredTests is not null)
                 {
@@ -880,6 +1063,14 @@ public class MicrosoftTestingPlatformRunner : IDisposable
                 if (result is not null)
                 {
                     accumulator.Aggregate(result, discoveredTests);
+                }
+
+                if (bailOnFirstFailure && accumulator.HasFailingTests)
+                {
+                    _logger.LogDebug(
+                        "{RunnerId}: A test failed; skipping the remaining test assemblies",
+                        RunnerId);
+                    break;
                 }
             }
 
@@ -945,7 +1136,8 @@ public class MicrosoftTestingPlatformRunner : IDisposable
     internal virtual async Task<(TestRunResult? Result, bool TimedOut, List<TestNode>? DiscoveredTests)> RunAssemblyTestsAsync(
         string assembly,
         ITimeoutValueCalculator? timeoutCalc,
-        Func<TestNode, bool>? testUidFilter = null)
+        Func<TestNode, bool>? testUidFilter = null,
+        bool bailOnFirstFailure = false)
     {
         if (!File.Exists(assembly))
         {
@@ -969,7 +1161,11 @@ public class MicrosoftTestingPlatformRunner : IDisposable
             timeout = CalculateAssemblyTimeout(discoveredTests, timeoutCalc, assembly);
         }
 
-        var (testResults, timedOut) = await RunAssemblyTestsInternalAsync(assembly, testUidFilter, timeout).ConfigureAwait(false);
+        var (testResults, timedOut) = await RunAssemblyTestsInternalAsync(
+            assembly,
+            testUidFilter,
+            timeout,
+            bailOnFirstFailure).ConfigureAwait(false);
 
         return (testResults as TestRunResult, timedOut, discoveredTests);
     }
@@ -977,7 +1173,8 @@ public class MicrosoftTestingPlatformRunner : IDisposable
     internal async Task<(ITestRunResult Result, bool TimedOut)> RunAssemblyTestsInternalAsync(
         string assembly,
         Func<TestNode, bool>? testUidFilter,
-        TimeSpan? timeout = null)
+        TimeSpan? timeout = null,
+        bool bailOnFirstFailure = false)
     {
         // A crashed test host tears down the RPC connection, so the run throws (rather than timing out).
         // Retry once on a freshly started server: a crash caused by a *previous* mutant then self-heals
@@ -999,10 +1196,11 @@ public class MicrosoftTestingPlatformRunner : IDisposable
                 return (new TestRunResult(false, ex.Message), false);
             }
 
-            var startTime = DateTime.UtcNow;
+            var stopwatch = Stopwatch.StartNew();
+            List<TestNode>? tests = null;
+            TestNode[]? testsToRun = null;
             try
             {
-                List<TestNode>? tests = null;
                 lock (_discoveryLock)
                 {
                     if (_testsByAssembly.TryGetValue(assembly, out var assemblyTests))
@@ -1011,20 +1209,47 @@ public class MicrosoftTestingPlatformRunner : IDisposable
                     }
                 }
 
-                var testsToRun = tests?.Where(t => testUidFilter is null || testUidFilter(t)).ToArray();
+                testsToRun = tests?.Where(t => testUidFilter is null || testUidFilter(t)).ToArray();
 
-                var (testResults, timedOut) = await server.RunTestsAsync(testsToRun, timeout).ConfigureAwait(false);
+                var (testResults, timeoutStage) = await server.RunTestsAsync(
+                    testsToRun,
+                    timeout,
+                    bailOnFirstFailure).ConfigureAwait(false);
 
-                var duration = DateTime.UtcNow - startTime;
+                var duration = stopwatch.Elapsed;
                 var result = BuildTestRunResult(testResults, tests?.Count ?? 0, duration);
 
-                return (result, timedOut);
+                if (timeoutStage is not null)
+                {
+                    _logger.LogWarning(
+                        "{RunnerId}: MTP test run timed out during {TimeoutStage} for mutant {MutantId} in {Assembly} after {ElapsedMs} ms (timeout {TimeoutMs} ms; selected {SelectedTestCount} of {DiscoveredTestCount} tests; attempt {Attempt}/{MaxAttempts}); the test server will be force-restarted",
+                        RunnerId,
+                        timeoutStage,
+                        _activeMutantId,
+                        Path.GetFileName(assembly),
+                        duration.TotalMilliseconds,
+                        timeout?.TotalMilliseconds,
+                        testsToRun?.Length ?? tests?.Count ?? 0,
+                        tests?.Count ?? 0,
+                        attempt,
+                        maxRunAttempts);
+                }
+
+                return (result, timeoutStage is not null);
             }
             catch (Exception ex)
             {
                 lastRunException = ex;
-                _logger.LogDebug(ex, "{RunnerId}: Test run for {Assembly} failed on attempt {Attempt}/{MaxAttempts}; discarding crashed server",
-                    RunnerId, Path.GetFileName(assembly), attempt, maxRunAttempts);
+                _logger.LogWarning(
+                    ex,
+                    "{RunnerId}: MTP test run for mutant {MutantId} in {Assembly} failed after {ElapsedMs} ms with {SelectedTestCount} selected tests on attempt {Attempt}/{MaxAttempts}; discarding the crashed test server",
+                    RunnerId,
+                    _activeMutantId,
+                    Path.GetFileName(assembly),
+                    stopwatch.Elapsed.TotalMilliseconds,
+                    testsToRun?.Length ?? tests?.Count ?? 0,
+                    attempt,
+                    maxRunAttempts);
 
                 // The server most likely crashed; drop it so the next attempt starts a fresh one.
                 await DiscardServerAsync(assembly).ConfigureAwait(false);

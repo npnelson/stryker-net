@@ -395,6 +395,86 @@ public class MicrosoftTestPlatformRunnerPoolTests : TestBase
     }
 
     [TestMethod]
+    public void CaptureCoverage_ShouldShareUnionWithinBoundedCohorts()
+    {
+        var options = new Mock<IStrykerOptions>();
+        options.Setup(candidate => candidate.Concurrency).Returns(1);
+        options.Setup(candidate => candidate.OptimizationMode).Returns(OptimizationModes.CoverageBasedTest);
+
+        var testNodes = new[]
+        {
+            new TestNode("test-1", "Test1", "test", "discovered"),
+            new TestNode("test-2", "Test2", "test", "discovered"),
+            new TestNode("test-3", "Test3", "test", "discovered")
+        };
+        var capturedCohorts = new System.Collections.Concurrent.ConcurrentBag<string[]>();
+
+        var runnerFactory = new Mock<ISingleRunnerFactory>();
+        runnerFactory
+            .Setup(factory => factory.CreateRunner(
+                It.IsAny<int>(),
+                It.IsAny<Dictionary<string, List<TestNode>>>(),
+                It.IsAny<Dictionary<string, MtpTestDescription>>(),
+                It.IsAny<TestSet>(),
+                It.IsAny<object>(),
+                It.IsAny<ILogger>(),
+                It.IsAny<IStrykerOptions>()))
+            .Returns<int, Dictionary<string, List<TestNode>>, Dictionary<string, MtpTestDescription>, TestSet, object, ILogger, IStrykerOptions>(
+                (id, testsByAssembly, descriptions, testSet, discoveryLock, _, _) =>
+                {
+                    testsByAssembly["assembly.dll"] = [.. testNodes];
+                    foreach (var test in testNodes)
+                    {
+                        var description = new MtpTestDescription(test);
+                        descriptions[test.Uid] = description;
+                        testSet.RegisterTest(description.Description);
+                    }
+
+                    return new TestableRunner(
+                        id,
+                        testsByAssembly,
+                        descriptions,
+                        testSet,
+                        discoveryLock,
+                        () => { },
+                        coverageCohortHandler: (_, tests, testIds) =>
+                        {
+                            capturedCohorts.Add(tests.Select(test => test.Uid).ToArray());
+                            var covered = testIds.Contains("test-1") ? new[] { 10, 20 } : new[] { 30 };
+                            IReadOnlyList<ICoverageRunResult> results = testIds
+                                .Select(testId => (ICoverageRunResult)CoverageRunResult.Create(
+                                    testId,
+                                    CoverageConfidence.Normal,
+                                    covered,
+                                    Array.Empty<int>(),
+                                    Array.Empty<int>()))
+                                .ToArray();
+                            return Task.FromResult(results);
+                        });
+                });
+
+        var project = new Mock<IProjectAndTests>();
+        project.Setup(candidate => candidate.GetTestAssemblies()).Returns(["assembly.dll"]);
+
+        using var pool = new MicrosoftTestPlatformRunnerPool(
+            options.Object,
+            NullLogger.Instance,
+            runnerFactory.Object,
+            coverageCohortSize: 2);
+
+        var coverage = pool.CaptureCoverage(project.Object).ToList();
+
+        capturedCohorts.Count.ShouldBe(2);
+        capturedCohorts.Select(cohort => cohort.Length).Order().ShouldBe([1, 2]);
+        coverage.Count.ShouldBe(3);
+        coverage.Single(result => result.TestId == "test-1").MutationsCovered.Order().ShouldBe([10, 20]);
+        coverage.Single(result => result.TestId == "test-2").MutationsCovered.Order().ShouldBe([10, 20]);
+        coverage.Single(result => result.TestId == "test-3").MutationsCovered.ShouldBe([30]);
+        pool.PerformanceSnapshot.LeaseCount.ShouldBe(2);
+        pool.PhasePerformanceSnapshots[MtpRunnerPhase.PerTestCoverage].LeaseCount.ShouldBe(2);
+    }
+
+    [TestMethod]
     public void CaptureCoverage_ShouldCaptureEachTestInIsolation_WhenPerTestInIsolationEnabled()
     {
         // Arrange - "perTestInIsolation" (CoverageBasedTest | CaptureCoveragePerTest) must route to the
@@ -648,6 +728,17 @@ public class MicrosoftTestPlatformRunnerPoolTests : TestBase
 
         // Assert
         pool.ShouldNotBeNull();
+    }
+
+    [TestMethod]
+    public void Constructor_ShouldUseBoundedDefaultCoverageCohortSize()
+    {
+        var options = new Mock<IStrykerOptions>();
+        options.Setup(candidate => candidate.Concurrency).Returns(1);
+
+        using var pool = new MicrosoftTestPlatformRunnerPool(options.Object, NullLogger.Instance);
+
+        pool.CoverageCohortSize.ShouldBe(32);
     }
 
     [TestMethod]

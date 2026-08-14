@@ -1,3 +1,4 @@
+using System.IO.MemoryMappedFiles;
 using Microsoft.Extensions.Logging.Abstractions;
 using Shouldly;
 using Stryker.Abstractions.Testing;
@@ -228,6 +229,41 @@ public class MicrosoftTestingPlatformRunnerCoverageTests
     }
 
     [TestMethod]
+    public void MutantFilePath_ShouldBeUniquePerRunnerInstance()
+    {
+        using var runner = CreateRunner(511);
+        using var otherRunner = CreateRunner(512);
+        using var sameIdRunner = CreateRunner(511);
+
+        Path.GetFileName(runner.MutantFilePath).ShouldStartWith($"stryker-mutant-{Environment.ProcessId}-");
+        otherRunner.MutantFilePath.ShouldNotBe(runner.MutantFilePath);
+        sameIdRunner.MutantFilePath.ShouldNotBe(runner.MutantFilePath);
+    }
+
+    [TestMethod]
+    public async Task MutantFile_ShouldNotBeResetOrDeletedByAnotherRunnerInstance()
+    {
+        using var runner = CreateRunner(513);
+        using var hostStream = new FileStream(
+            runner.MutantFilePath, FileMode.Open, FileAccess.Read, FileShare.ReadWrite);
+        using var hostMap = MemoryMappedFile.CreateFromFile(
+            hostStream, null, sizeof(int), MemoryMappedFileAccess.Read,
+            HandleInheritability.None, leaveOpen: true);
+        using var hostView = hostMap.CreateViewAccessor(0, sizeof(int), MemoryMappedFileAccess.Read);
+
+        await runner.RunAllTestsAsync([], mutantId: 42, mutants: null, update: null);
+        hostView.ReadInt32(0).ShouldBe(42);
+
+        using (CreateRunner(513))
+        {
+            hostView.ReadInt32(0).ShouldBe(42);
+        }
+
+        hostView.ReadInt32(0).ShouldBe(42);
+        File.Exists(runner.MutantFilePath).ShouldBeTrue();
+    }
+
+    [TestMethod]
     public void ReadCoverageData_ShouldReturnEmpty_WhenFileDoesNotExist()
     {
         using var runner = CreateRunner(500);
@@ -239,6 +275,27 @@ public class MicrosoftTestingPlatformRunnerCoverageTests
 
         result.CoveredMutants.ShouldBeEmpty();
         result.StaticMutants.ShouldBeEmpty();
+    }
+
+    [TestMethod]
+    public void ReadCoverageData_ShouldUnionMultipleFlushLines()
+    {
+        using var runner = CreateRunner(710);
+        var coverageFilePath = runner.GetCoverageFilePath("union-test-assembly.dll");
+
+        try
+        {
+            File.WriteAllText(coverageFilePath, "1,2;\n3;10\n");
+
+            var (covered, statics) = runner.ReadCoverageData();
+
+            covered.ShouldBe([1, 2, 3], ignoreOrder: true);
+            statics.ShouldBe([10]);
+        }
+        finally
+        {
+            File.Delete(coverageFilePath);
+        }
     }
 
     [TestMethod]
@@ -583,6 +640,29 @@ public class MicrosoftTestingPlatformRunnerCoverageTests
 
         result.Confidence.ShouldBe(CoverageConfidence.Dubious);
         result.MutationsCovered.ShouldBeEmpty();
+    }
+
+    [TestMethod, Timeout(5000)]
+    public async Task RunTestCohortForCoverageInReusedProcessAsync_ReturnsDubiousForEveryTest_WhenServerCannotStart()
+    {
+        using var runner = new MicrosoftTestingPlatformRunner(
+            705, _testsByAssembly, _testDescriptions, _testSet, _discoveryLock, NullLogger.Instance);
+
+        runner.SetPerTestCoverageMode(true);
+        var tests = new[]
+        {
+            new TestNode("test-1", "Test1", "test", "discovered"),
+            new TestNode("test-2", "Test2", "test", "discovered")
+        };
+
+        var results = await runner.RunTestCohortForCoverageInReusedProcessAsync(
+            "/nonexistent/assembly.dll",
+            tests,
+            ["test-1", "test-2"]);
+
+        results.Select(result => result.TestId).ShouldBe(["test-1", "test-2"]);
+        results.ShouldAllBe(result => result.Confidence == CoverageConfidence.Dubious);
+        results.ShouldAllBe(result => result.MutationsCovered.Count == 0);
     }
 
     // --- Isolated ("perTestInIsolation") per-test coverage capture ---

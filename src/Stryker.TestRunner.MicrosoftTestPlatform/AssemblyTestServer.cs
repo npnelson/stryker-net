@@ -1,3 +1,4 @@
+using System.Diagnostics;
 using Microsoft.Extensions.Logging;
 using Stryker.Abstractions.Options;
 using Stryker.TestRunner.MicrosoftTestPlatform.Models;
@@ -16,6 +17,7 @@ internal sealed class AssemblyTestServer : IDisposable
     private readonly string _runnerId;
     private readonly IStrykerOptions? _options;
     private readonly ITestServerConnectionFactory _connectionFactory;
+    private readonly MtpPerformanceMetrics? _performanceMetrics;
     private ITestServerListener? _listener;
     private ITestServerProcess? _process;
     private Stream? _stream;
@@ -30,7 +32,8 @@ internal sealed class AssemblyTestServer : IDisposable
         ILogger logger,
         string runnerId,
         IStrykerOptions? options = null,
-        ITestServerConnectionFactory? connectionFactory = null)
+        ITestServerConnectionFactory? connectionFactory = null,
+        MtpPerformanceMetrics? performanceMetrics = null)
     {
         _assembly = assembly;
         _environmentVariables = environmentVariables;
@@ -38,6 +41,7 @@ internal sealed class AssemblyTestServer : IDisposable
         _runnerId = runnerId;
         _options = options;
         _connectionFactory = connectionFactory ?? new DefaultTestServerConnectionFactory(options);
+        _performanceMetrics = performanceMetrics;
     }
 
     public bool IsInitialized => _isInitialized;
@@ -57,6 +61,8 @@ internal sealed class AssemblyTestServer : IDisposable
             return true;
         }
 
+        var startupStarted = Stopwatch.GetTimestamp();
+        var started = false;
         try
         {
             var (listener, port) = _connectionFactory.CreateListener();
@@ -89,6 +95,7 @@ internal sealed class AssemblyTestServer : IDisposable
 
             await _client.InitializeAsync().ConfigureAwait(false);
             _isInitialized = true;
+            started = true;
 
             _logger.LogDebug("{RunnerId}: Test server started successfully for {Assembly}", _runnerId, _assembly);
             return true;
@@ -98,6 +105,10 @@ internal sealed class AssemblyTestServer : IDisposable
             _logger.LogDebug(ex, "{RunnerId}: Failed to start test server for {Assembly}", _runnerId, _assembly);
             await StopAsync().ConfigureAwait(false);
             return false;
+        }
+        finally
+        {
+            _performanceMetrics?.RecordHostStart(Stopwatch.GetElapsedTime(startupStarted), started);
         }
     }
 
@@ -131,7 +142,10 @@ internal sealed class AssemblyTestServer : IDisposable
         return results;
     }
 
-    public async Task<(List<TestNodeUpdate> Results, bool TimedOut)> RunTestsAsync(TestNode[]? testsToRun, TimeSpan? timeout)
+    public async Task<(List<TestNodeUpdate> Results, TestRunTimeoutStage? TimeoutStage)> RunTestsAsync(
+        TestNode[]? testsToRun,
+        TimeSpan? timeout,
+        bool bailOnFirstFailure = false)
     {
         if (!_isInitialized || _client is null)
         {
@@ -140,46 +154,104 @@ internal sealed class AssemblyTestServer : IDisposable
 
         var runId = Guid.NewGuid();
         var testResults = new System.Collections.Concurrent.ConcurrentBag<TestNodeUpdate>();
+        var rpcDispatchStarted = Stopwatch.GetTimestamp();
+        long? rpcDispatchCompleted = null;
+        long? runCompletionStarted = null;
+        var outcome = MtpTestRunOutcome.Failed;
+        using var bailSource = new CancellationTokenSource();
+        var bailed = 0;
 
         Func<TestNodeUpdate[], Task> onUpdate = updates =>
         {
+            if (Volatile.Read(ref bailed) != 0)
+            {
+                return Task.CompletedTask;
+            }
+
             foreach (var update in updates)
             {
                 testResults.Add(update);
             }
+
+            if (bailOnFirstFailure
+                && updates.Any(update => TestNodeStates.IsFailure(update.Node.ExecutionState))
+                && Interlocked.Exchange(ref bailed, 1) == 0)
+            {
+                _logger.LogDebug(
+                    "{RunnerId}: A test failed for {Assembly}; cancelling the remainder of the run",
+                    _runnerId,
+                    _assembly);
+                bailSource.Cancel();
+            }
+
             return Task.CompletedTask;
         };
 
-        if (timeout.HasValue)
+        try
         {
-            ResponseListener executeTestsResponse;
+            if (timeout.HasValue)
+            {
+                ResponseListener executeTestsResponse;
+                try
+                {
+                    // The RPC call itself can block when the server is stuck (e.g. infinite loop in mutated code)
+                    executeTestsResponse = await _client.RunTestsAsync(runId, onUpdate, testsToRun, bailSource.Token)
+                        .WaitAsync(timeout.Value).ConfigureAwait(false);
+                    rpcDispatchCompleted = Stopwatch.GetTimestamp();
+                }
+                catch (TimeoutException ex)
+                {
+                    outcome = MtpTestRunOutcome.RpcDispatchTimeout;
+                    _logger.LogDebug(ex, "{RunnerId}: Test run RPC call timed out for {Assembly}", _runnerId, _assembly);
+                    return (testResults.ToList(), TestRunTimeoutStage.RpcDispatch);
+                }
+                catch (OperationCanceledException) when (Volatile.Read(ref bailed) != 0)
+                {
+                    outcome = MtpTestRunOutcome.Completed;
+                    return (testResults.ToList(), null);
+                }
+
+                runCompletionStarted = Stopwatch.GetTimestamp();
+                var completionTask = executeTestsResponse.WaitCompletionAsync(timeout.Value);
+                await Task.WhenAny(completionTask, _process!.WaitForExitAsync()).ConfigureAwait(false);
+                ThrowIfHostCrashed(completionTask);
+
+                var completed = await completionTask.ConfigureAwait(false);
+                outcome = completed ? MtpTestRunOutcome.Completed : MtpTestRunOutcome.RunCompletionTimeout;
+                return (testResults.ToList(), completed ? null : TestRunTimeoutStage.RunCompletion);
+            }
+
+            ResponseListener response;
             try
             {
-                // The RPC call itself can block when the server is stuck (e.g. infinite loop in mutated code)
-                executeTestsResponse = await _client.RunTestsAsync(runId, onUpdate, testsToRun)
-                    .WaitAsync(timeout.Value).ConfigureAwait(false);
+                response = await _client.RunTestsAsync(runId, onUpdate, testsToRun, bailSource.Token).ConfigureAwait(false);
             }
-            catch (TimeoutException ex)
+            catch (OperationCanceledException) when (Volatile.Read(ref bailed) != 0)
             {
-                _logger.LogDebug(ex, "{RunnerId}: Test run RPC call timed out for {Assembly}", _runnerId, _assembly);
-                return (testResults.ToList(), true);
+                outcome = MtpTestRunOutcome.Completed;
+                return (testResults.ToList(), null);
             }
 
-            var completionTask = executeTestsResponse.WaitCompletionAsync(timeout.Value);
-            await Task.WhenAny(completionTask, _process!.WaitForExitAsync()).ConfigureAwait(false);
-            ThrowIfHostCrashed(completionTask);
+            rpcDispatchCompleted = Stopwatch.GetTimestamp();
+            runCompletionStarted = Stopwatch.GetTimestamp();
+            var responseCompletion = response.WaitCompletionAsync();
+            await Task.WhenAny(responseCompletion, _process!.WaitForExitAsync()).ConfigureAwait(false);
+            ThrowIfHostCrashed(responseCompletion);
 
-            var completed = await completionTask.ConfigureAwait(false);
-            return (testResults.ToList(), !completed);
+            await responseCompletion.ConfigureAwait(false);
+            outcome = MtpTestRunOutcome.Completed;
+            return (testResults.ToList(), null);
         }
-
-        var response = await _client.RunTestsAsync(runId, onUpdate, testsToRun).ConfigureAwait(false);
-        var responseCompletion = response.WaitCompletionAsync();
-        await Task.WhenAny(responseCompletion, _process!.WaitForExitAsync()).ConfigureAwait(false);
-        ThrowIfHostCrashed(responseCompletion);
-
-        await responseCompletion.ConfigureAwait(false);
-        return (testResults.ToList(), false);
+        finally
+        {
+            var runCompleted = Stopwatch.GetTimestamp();
+            _performanceMetrics?.RecordTestRun(
+                Stopwatch.GetElapsedTime(rpcDispatchStarted, rpcDispatchCompleted ?? runCompleted),
+                runCompletionStarted.HasValue
+                    ? Stopwatch.GetElapsedTime(runCompletionStarted.Value, runCompleted)
+                    : TimeSpan.Zero,
+                outcome);
+        }
     }
 
     /// <summary>

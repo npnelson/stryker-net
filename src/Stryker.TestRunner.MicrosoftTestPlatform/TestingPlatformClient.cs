@@ -139,13 +139,30 @@ public sealed class TestingPlatformClient : ITestingPlatformClient
                 return discoveryListener;
             }, @checked);
 
-    public async Task<ResponseListener> RunTestsAsync(Guid requestId, Func<TestNodeUpdate[], Task> action, TestNode[]? testNodes = null)
+    public async Task<ResponseListener> RunTestsAsync(
+        Guid requestId,
+        Func<TestNodeUpdate[], Task> action,
+        TestNode[]? testNodes = null,
+        CancellationToken cancellationToken = default)
         => await CheckedInvokeAsync(async () =>
         {
-            using CancellationTokenSource cancellationTokenSource = new(TimeSpan.FromMinutes(3));
+            using var cancellationTokenSource = CancellationTokenSource.CreateLinkedTokenSource(cancellationToken);
+            cancellationTokenSource.CancelAfter(TimeSpan.FromMinutes(3));
             var runListener = new TestNodeUpdatesResponseListener(requestId, action);
             _targetHandler.RegisterResponseListener(runListener);
-            await JsonRpcClient.InvokeWithParameterObjectAsync("testing/runTests", new RunTestsRequest(RunId: requestId, TestCases: testNodes), cancellationToken: cancellationTokenSource.Token);
+            try
+            {
+                await JsonRpcClient.InvokeWithParameterObjectAsync(
+                    "testing/runTests",
+                    new RunTestsRequest(RunId: requestId, TestCases: testNodes),
+                    cancellationToken: cancellationTokenSource.Token);
+            }
+            catch
+            {
+                _targetHandler.UnregisterResponseListener(requestId);
+                throw;
+            }
+
             return runListener;
         });
 
@@ -176,6 +193,9 @@ public sealed class TestingPlatformClient : ITestingPlatformClient
 
         public void RegisterResponseListener(ResponseListener responseListener)
             => _ = _listeners.TryAdd(responseListener.RequestId, responseListener);
+
+        public void UnregisterResponseListener(Guid requestId)
+            => _ = _listeners.TryRemove(requestId, out _);
 
         [JsonRpcMethod("client/attachDebugger", UseSingleObjectParameterDeserialization = true)]
         public static Task AttachDebuggerAsync(AttachDebuggerInfo attachDebuggerInfo) => throw new NotImplementedException();

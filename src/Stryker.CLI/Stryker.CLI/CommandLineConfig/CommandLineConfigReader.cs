@@ -185,6 +185,7 @@ public class CommandLineConfigReader
         AddCliInput(inputs.LogToFileInput, "log-to-file", "L", optionType: CommandOptionType.NoValue);
         AddCliInput(inputs.VerbosityInput, "verbosity", "V");
         AddCliInput(inputs.ConcurrencyInput, "concurrency", "c", argumentHint: "number");
+        AddCliInput(inputs.AdditionalTimeoutInput, "additional-timeout", null, argumentHint: "milliseconds");
         AddCliInput(inputs.DisableBailInput, "disable-bail", null, optionType: CommandOptionType.NoValue);
         // Category: Build
         AddCliInput(inputs.SolutionInput, "solution", "s", argumentHint: "file-path", category: InputCategory.Build);

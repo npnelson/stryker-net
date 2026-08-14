@@ -3,6 +3,7 @@ using Microsoft.Extensions.Logging.Abstractions;
 using Moq;
 using Shouldly;
 using Stryker.Abstractions;
+using Stryker.Abstractions.Options;
 using Stryker.Abstractions.Testing;
 using Stryker.TestRunner.Tests;
 using Stryker.TestRunner.MicrosoftTestPlatform.Models;
@@ -787,9 +788,141 @@ public class MicrosoftTestingPlatformRunnerTests
             => _discovered = discovered;
 
         internal override Task<(TestRunResult? Result, bool TimedOut, List<TestNode>? DiscoveredTests)> RunAssemblyTestsAsync(
-            string assembly, ITimeoutValueCalculator? timeoutCalc, Func<TestNode, bool>? testUidFilter = null)
+            string assembly,
+            ITimeoutValueCalculator? timeoutCalc,
+            Func<TestNode, bool>? testUidFilter = null,
+            bool bailOnFirstFailure = false)
             => Task.FromResult<(TestRunResult?, bool, List<TestNode>?)>(
                 (new TestRunResult(false, "simulated test host crash"), false, _discovered));
+    }
+
+    [TestMethod, Timeout(1000)]
+    public async Task TestMultipleMutantsAsync_EnablesBailForMutationRuns()
+    {
+        using var runner = CreateBailRecordingRunner();
+
+        await runner.TestMultipleMutantsAsync(ProjectWithAssemblies("/a.dll").Object, null, [SingleMutant()], null);
+
+        runner.Calls.ShouldBe([("/a.dll", true)]);
+    }
+
+    [TestMethod, Timeout(1000)]
+    public async Task TestMultipleMutantsAsync_DisablesBailWhenRequested()
+    {
+        using var runner = CreateBailRecordingRunner(options: OptionsWith(OptimizationModes.DisableBail));
+
+        await runner.TestMultipleMutantsAsync(ProjectWithAssemblies("/a.dll").Object, null, [SingleMutant()], null);
+
+        runner.Calls.ShouldBe([("/a.dll", false)]);
+    }
+
+    [TestMethod, Timeout(1000)]
+    public async Task InitialTestAsync_NeverBails()
+    {
+        using var runner = CreateBailRecordingRunner();
+
+        await runner.InitialTestAsync(ProjectWithAssemblies("/a.dll").Object);
+
+        runner.Calls.ShouldBe([("/a.dll", false)]);
+    }
+
+    [TestMethod, Timeout(1000)]
+    public async Task TestMultipleMutantsAsync_SkipsRemainingAssembliesAfterFailure()
+    {
+        using var runner = CreateBailRecordingRunner(failingTests: new TestIdentifierList("uid-1"));
+
+        await runner.TestMultipleMutantsAsync(
+            ProjectWithAssemblies("/a.dll", "/b.dll").Object,
+            null,
+            [SingleMutant()],
+            null);
+
+        runner.Calls.ShouldBe([("/a.dll", true)]);
+    }
+
+    [TestMethod, Timeout(1000)]
+    public async Task TestMultipleMutantsAsync_WithDisabledBailRunsEveryAssemblyAfterFailure()
+    {
+        using var runner = CreateBailRecordingRunner(
+            OptionsWith(OptimizationModes.DisableBail),
+            new TestIdentifierList("uid-1"));
+
+        await runner.TestMultipleMutantsAsync(
+            ProjectWithAssemblies("/a.dll", "/b.dll").Object,
+            null,
+            [SingleMutant()],
+            null);
+
+        runner.Calls.ShouldBe([("/a.dll", false), ("/b.dll", false)]);
+    }
+
+    private BailRecordingRunner CreateBailRecordingRunner(
+        IStrykerOptions? options = null,
+        ITestIdentifiers? failingTests = null) =>
+        new(
+            _testsByAssembly,
+            _testDescriptions,
+            _testSet,
+            _discoveryLock,
+            options,
+            failingTests);
+
+    private static Mock<IProjectAndTests> ProjectWithAssemblies(params string[] assemblies)
+    {
+        var project = new Mock<IProjectAndTests>();
+        project.Setup(candidate => candidate.GetTestAssemblies()).Returns(assemblies.ToList());
+        return project;
+    }
+
+    private static IMutant SingleMutant()
+    {
+        var mutant = new Mock<IMutant>();
+        mutant.Setup(candidate => candidate.Id).Returns(1);
+        return mutant.Object;
+    }
+
+    private static IStrykerOptions OptionsWith(OptimizationModes optimizationMode)
+    {
+        var options = new Mock<IStrykerOptions>();
+        options.SetupGet(candidate => candidate.OptimizationMode).Returns(optimizationMode);
+        return options.Object;
+    }
+
+    private sealed class BailRecordingRunner : MicrosoftTestingPlatformRunner
+    {
+        private readonly ITestIdentifiers _failingTests;
+
+        public BailRecordingRunner(
+            Dictionary<string, List<TestNode>> testsByAssembly,
+            Dictionary<string, MtpTestDescription> testDescriptions,
+            TestSet testSet,
+            object discoveryLock,
+            IStrykerOptions? options,
+            ITestIdentifiers? failingTests)
+            : base(0, testsByAssembly, testDescriptions, testSet, discoveryLock, NullLogger.Instance, options)
+        {
+            _failingTests = failingTests ?? TestIdentifierList.NoTest();
+        }
+
+        public List<(string Assembly, bool BailOnFirstFailure)> Calls { get; } = [];
+
+        internal override Task<(TestRunResult? Result, bool TimedOut, List<TestNode>? DiscoveredTests)> RunAssemblyTestsAsync(
+            string assembly,
+            ITimeoutValueCalculator? timeoutCalc,
+            Func<TestNode, bool>? testUidFilter = null,
+            bool bailOnFirstFailure = false)
+        {
+            Calls.Add((assembly, bailOnFirstFailure));
+            var result = new TestRunResult(
+                Array.Empty<IFrameworkTestDescription>(),
+                new TestIdentifierList("uid-1"),
+                _failingTests,
+                TestIdentifierList.NoTest(),
+                string.Empty,
+                [],
+                TimeSpan.Zero);
+            return Task.FromResult<(TestRunResult?, bool, List<TestNode>?)>((result, false, []));
+        }
     }
 
     // --- Multi-assembly test-filter tests ---
@@ -937,7 +1070,10 @@ public class MicrosoftTestingPlatformRunnerTests
             => _perAssembly = perAssembly;
 
         internal override Task<(TestRunResult? Result, bool TimedOut, List<TestNode>? DiscoveredTests)> RunAssemblyTestsAsync(
-            string assembly, ITimeoutValueCalculator? timeoutCalc, Func<TestNode, bool>? testUidFilter = null)
+            string assembly,
+            ITimeoutValueCalculator? timeoutCalc,
+            Func<TestNode, bool>? testUidFilter = null,
+            bool bailOnFirstFailure = false)
         {
             var (result, discovered) = _perAssembly[assembly];
             return Task.FromResult<(TestRunResult?, bool, List<TestNode>?)>((result, false, discovered));
@@ -1117,8 +1253,8 @@ public class MicrosoftTestingPlatformRunnerTests
             NullLogger.Instance);
 
         // Verify mutant file was created
-        TestableRunner.MutantFilePath.ShouldNotBeNull();
-        var mutantFilePath = TestableRunner.MutantFilePath;
+        testableRunner.MutantFilePath.ShouldNotBeNull();
+        var mutantFilePath = testableRunner.MutantFilePath;
 
         // Create the mutant file manually to test deletion
         await File.WriteAllTextAsync(mutantFilePath, "-1");
@@ -1628,8 +1764,6 @@ public class MicrosoftTestingPlatformRunnerTests
 
         public bool DisposedFlagWasSet { get; private set; }
         public int DisposeLogicExecutedCount => _disposeLogicExecutedCount;
-        public static string MutantFilePath => Path.Combine(Path.GetTempPath(), $"stryker-mutant-123.txt");
-
         public override void Dispose(bool disposing)
         {
             var wasDisposedBefore = _disposed;
@@ -1676,7 +1810,10 @@ public class MicrosoftTestingPlatformRunnerTests
             : base(id, testsByAssembly, testDescriptions, testSet, discoveryLock, logger) { }
 
         internal override Task<(TestRunResult? Result, bool TimedOut, List<TestNode>? DiscoveredTests)> RunAssemblyTestsAsync(
-            string assembly, ITimeoutValueCalculator? timeoutCalc, Func<TestNode, bool>? testUidFilter = null)
+            string assembly,
+            ITimeoutValueCalculator? timeoutCalc,
+            Func<TestNode, bool>? testUidFilter = null,
+            bool bailOnFirstFailure = false)
         {
             var discoveredTests = GetDiscoveredTests(assembly);
             var result = new TestRunResult(
@@ -1703,7 +1840,10 @@ public class MicrosoftTestingPlatformRunnerTests
             : base(id, testsByAssembly, testDescriptions, testSet, discoveryLock, logger) { }
 
         internal override Task<(TestRunResult? Result, bool TimedOut, List<TestNode>? DiscoveredTests)> RunAssemblyTestsAsync(
-            string assembly, ITimeoutValueCalculator? timeoutCalc, Func<TestNode, bool>? testUidFilter = null)
+            string assembly,
+            ITimeoutValueCalculator? timeoutCalc,
+            Func<TestNode, bool>? testUidFilter = null,
+            bool bailOnFirstFailure = false)
         {
             var discoveredTests = GetDiscoveredTests(assembly);
             var result = new TestRunResult(
